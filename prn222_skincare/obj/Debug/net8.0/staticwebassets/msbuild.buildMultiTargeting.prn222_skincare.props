@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\prn222_skincare.props" />
+</Project>
