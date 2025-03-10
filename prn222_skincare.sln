@@ -1,9 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "prn222_skincare", "prn222_skincare\prn222_skincare.csproj", "{CE86F52B-B6E1-4386-92A9-0E1F58760CB1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkinCareBO", "SkinCareBO\SkinCareBO.csproj", "{E3BCF88C-7C59-425C-8255-822D494CFC7B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkinCareDAO", "SkinCareDAO\SkinCareDAO.csproj", "{D4D6A94B-D1DA-442F-8786-6A3E12587300}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkinCareRepo", "SkinCareRepo\SkinCareRepo.csproj", "{EB1D2582-6728-4EAF-AC9F-DE0A3B9C22CA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +21,18 @@ Global
 		{CE86F52B-B6E1-4386-92A9-0E1F58760CB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE86F52B-B6E1-4386-92A9-0E1F58760CB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE86F52B-B6E1-4386-92A9-0E1F58760CB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3BCF88C-7C59-425C-8255-822D494CFC7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3BCF88C-7C59-425C-8255-822D494CFC7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3BCF88C-7C59-425C-8255-822D494CFC7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3BCF88C-7C59-425C-8255-822D494CFC7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4D6A94B-D1DA-442F-8786-6A3E12587300}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4D6A94B-D1DA-442F-8786-6A3E12587300}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4D6A94B-D1DA-442F-8786-6A3E12587300}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4D6A94B-D1DA-442F-8786-6A3E12587300}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB1D2582-6728-4EAF-AC9F-DE0A3B9C22CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB1D2582-6728-4EAF-AC9F-DE0A3B9C22CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB1D2582-6728-4EAF-AC9F-DE0A3B9C22CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB1D2582-6728-4EAF-AC9F-DE0A3B9C22CA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
