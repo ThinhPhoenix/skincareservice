@@ -7,8 +7,9 @@ namespace SkinCareDAO.Utils
 {
     public static class MyUtils
     {
-        private static readonly byte[] Key = Encoding.UTF8.GetBytes("YourSecretKey32Characters1234567890"); // 32-byte key, change it to your own key
-        private static readonly byte[] IV = Encoding.UTF8.GetBytes("YourSecretIV16Characters1234567890"); // 16-byte IV, change it to your own IV
+        private static readonly byte[] Key = Encoding.UTF8.GetBytes("YourSecretKey32CharsOnly12345678").Take(32).ToArray();
+        private static readonly byte[] IV = Encoding.UTF8.GetBytes("YourSecretIV16Char").Take(16).ToArray();
+
 
         public static string Encrypt(string plainText)
         {

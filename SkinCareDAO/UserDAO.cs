@@ -37,7 +37,7 @@ namespace SkinCareDAO
                 u =>
                 u.Email.ToLower().Equals(email.ToLower())
                 &&
-                u.Password.Equals(MyUtils.Decrypt(password))
+                u.Password.Equals(MyUtils.Encrypt(password))
             );
         }
 
@@ -65,7 +65,7 @@ namespace SkinCareDAO
                 throw new InvalidOperationException($"User with ID {a.Id} already exists.");
 
             a.Id = Guid.NewGuid().ToString();
-            a.Password = MyUtils.Encrypt(a.Password)
+            a.Password = MyUtils.Decrypt(a.Password)
                 ?? throw new InvalidOperationException("Password encryption failed.");
 
             _dbContext.Users.Add(a);
