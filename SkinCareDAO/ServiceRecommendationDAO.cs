@@ -7,56 +7,57 @@ using SkinCareBussinessObject;
 
 namespace SkinCareDAO
 {
-    public class ServiceDAO
+    public class ServiceRecommendationDAO
     {
 
         private SkinCareDBContext _dbContext;
-        private static ServiceDAO instance;
+        private static ServiceRecommendationDAO instance;
 
-        public ServiceDAO()
+        public ServiceRecommendationDAO()
         {
             _dbContext = new SkinCareDBContext();
         }
 
-        public static ServiceDAO Instance
+        public static ServiceRecommendationDAO Instance
         {
             get
             {
                 if (instance == null)
                 {
-                    instance = new ServiceDAO();
+                    instance = new ServiceRecommendationDAO();
                 }
                 return instance;
             }
         }
 
-        public Service? GetOne(string id)
+
+        public ServiceRecommendation GetOne(string id)
         {
-            return _dbContext.Services
+            return _dbContext.ServiceRecommendations
                 .SingleOrDefault(a => a.Id.Equals(id));
         }
 
-        public List<Service> GetAll()
+        public List<ServiceRecommendation> GetAll()
         {
-            return _dbContext.Services
+            return _dbContext.ServiceRecommendations
                 .ToList();
         }
 
-        public void Add(Service a)
+        public void Add(ServiceRecommendation a)
         {
-            Service cur = GetOne(a.Id);
+            ServiceRecommendation cur = GetOne(a.Id);
             if (cur != null)
             {
                 throw new Exception();
             }
             a.Id = Guid.NewGuid().ToString();
-            _dbContext.Services.Add(a);
+            _dbContext.ServiceRecommendations.Add(a);
             _dbContext.SaveChanges();
         }
 
-        public void Update(Service a)
+        public void Update(ServiceRecommendation a)
         {
-            Service cur = GetOne(a.Id);
+            ServiceRecommendation cur = GetOne(a.Id);
             if (cur == null)
             {
                 throw new Exception();
@@ -67,14 +68,13 @@ namespace SkinCareDAO
 
         public void Delete(string id)
         {
-            Service cur = GetOne(id);
+            ServiceRecommendation cur = GetOne(id);
             if (cur != null)
             {
-                _dbContext.Services.Remove(cur);
+                _dbContext.ServiceRecommendations.Remove(cur);
                 _dbContext.SaveChanges(); // Delete the object
             }
         }
-
 
     }
 }

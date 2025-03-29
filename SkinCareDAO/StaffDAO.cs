@@ -7,56 +7,57 @@ using SkinCareBussinessObject;
 
 namespace SkinCareDAO
 {
-    public class ServiceDAO
+    public class StaffDAO
     {
 
         private SkinCareDBContext _dbContext;
-        private static ServiceDAO instance;
+        private static StaffDAO instance;
 
-        public ServiceDAO()
+        public StaffDAO()
         {
             _dbContext = new SkinCareDBContext();
         }
 
-        public static ServiceDAO Instance
+        public static StaffDAO Instance
         {
             get
             {
                 if (instance == null)
                 {
-                    instance = new ServiceDAO();
+                    instance = new StaffDAO();
                 }
                 return instance;
             }
         }
 
-        public Service? GetOne(string id)
+
+        public Staff GetOne(string id)
         {
-            return _dbContext.Services
+            return _dbContext.Staffs
                 .SingleOrDefault(a => a.Id.Equals(id));
         }
 
-        public List<Service> GetAll()
+        public List<Staff> GetAll()
         {
-            return _dbContext.Services
+            return _dbContext.Staffs
                 .ToList();
         }
 
-        public void Add(Service a)
+        public void Add(Staff a)
         {
-            Service cur = GetOne(a.Id);
+            Staff cur = GetOne(a.Id);
             if (cur != null)
             {
                 throw new Exception();
             }
             a.Id = Guid.NewGuid().ToString();
-            _dbContext.Services.Add(a);
+            _dbContext.Staffs.Add(a);
             _dbContext.SaveChanges();
         }
 
-        public void Update(Service a)
+        public void Update(Staff a)
         {
-            Service cur = GetOne(a.Id);
+            Staff cur = GetOne(a.Id);
             if (cur == null)
             {
                 throw new Exception();
@@ -67,10 +68,10 @@ namespace SkinCareDAO
 
         public void Delete(string id)
         {
-            Service cur = GetOne(id);
+            Staff cur = GetOne(id);
             if (cur != null)
             {
-                _dbContext.Services.Remove(cur);
+                _dbContext.Staffs.Remove(cur);
                 _dbContext.SaveChanges(); // Delete the object
             }
         }
