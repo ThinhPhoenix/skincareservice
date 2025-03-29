@@ -4,58 +4,60 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SkinCareBussinessObject;
+using SkinCareDAO;
 
-namespace SkinCareDAO
+namespace SkinCareRepository
 {
-    public class ServiceDAO
+    public class ServiceCategoryDAO
     {
 
         private SkinCareDBContext _dbContext;
-        private static ServiceDAO instance;
+        private static ServiceCategoryDAO instance;
 
-        public ServiceDAO()
+        public ServiceCategoryDAO()
         {
             _dbContext = new SkinCareDBContext();
         }
 
-        public static ServiceDAO Instance
+        public static ServiceCategoryDAO Instance
         {
             get
             {
                 if (instance == null)
                 {
-                    instance = new ServiceDAO();
+                    instance = new ServiceCategoryDAO();
                 }
                 return instance;
             }
         }
 
-        public Service? GetOne(string id)
+
+        public ServiceCategory GetOne(string id)
         {
-            return _dbContext.Services
+            return _dbContext.ServiceCategories
                 .SingleOrDefault(a => a.Id.Equals(id));
         }
 
-        public List<Service> GetAll()
+        public List<ServiceCategory> GetAll()
         {
-            return _dbContext.Services
+            return _dbContext.ServiceCategories
                 .ToList();
         }
 
-        public void Add(Service a)
+        public void Add(ServiceCategory a)
         {
-            Service cur = GetOne(a.Id);
+            ServiceCategory cur = GetOne(a.Id);
             if (cur != null)
             {
                 throw new Exception();
             }
-            _dbContext.Services.Add(a);
+            _dbContext.ServiceCategories.Add(a);
             _dbContext.SaveChanges();
         }
 
-        public void Update(Service a)
+        public void Update(ServiceCategory a)
         {
-            Service cur = GetOne(a.Id);
+            ServiceCategory cur = GetOne(a.Id);
             if (cur == null)
             {
                 throw new Exception();
@@ -66,10 +68,10 @@ namespace SkinCareDAO
 
         public void Delete(string id)
         {
-            Service cur = GetOne(id);
+            ServiceCategory cur = GetOne(id);
             if (cur != null)
             {
-                _dbContext.Services.Remove(cur);
+                _dbContext.ServiceCategories.Remove(cur);
                 _dbContext.SaveChanges(); // Delete the object
             }
         }
