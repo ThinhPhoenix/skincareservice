@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SkinCareDAO")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a93eab8ea15f37b4957723b48c0d27178e83419b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+571bea108275f940a70503b38f84699aac99500d")]
 [assembly: System.Reflection.AssemblyProductAttribute("SkinCareDAO")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SkinCareDAO")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
