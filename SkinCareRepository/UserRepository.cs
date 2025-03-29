@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using SkinCareBussinessObject;
 using SkinCareDAO;
 using SkinCareDAO.Utils;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SkinCareRepository
 {
@@ -17,6 +18,19 @@ namespace SkinCareRepository
             return UserDAO.Instance.SignIn(email, password);
         }
 
+        public bool SignUp(User u, Customer c)
+        {
+            try
+            {
+                UserDAO.Instance.Add(u);
+                CustomerDAO.Instance.Add(c);
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
 
         public User? GetOne(string id)
         {
