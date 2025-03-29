@@ -32,6 +32,20 @@ namespace SkinCareRepository
             }
         }
 
+        public bool SignUpStaff(User u, Staff s)
+        {
+            try
+            {
+                UserDAO.Instance.Add(u);
+                StaffDAO.Instance.Add(s);
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
         public User? GetUserByEmail(string email) => UserDAO.Instance.GetUserByEmail(email);
 
         public User? GetOne(string id)
