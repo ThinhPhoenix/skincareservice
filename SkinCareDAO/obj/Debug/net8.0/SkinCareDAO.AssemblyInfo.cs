@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SkinCareDAO")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+530664b72e00b09b298e40253914cf02981ff50a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+67db1b12202f80c47f43e352268d14def7cc447b")]
 [assembly: System.Reflection.AssemblyProductAttribute("SkinCareDAO")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SkinCareDAO")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
