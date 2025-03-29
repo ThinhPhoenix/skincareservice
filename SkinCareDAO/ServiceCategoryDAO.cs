@@ -51,6 +51,7 @@ namespace SkinCareRepository
             {
                 throw new Exception();
             }
+            a.Id = Guid.NewGuid().ToString();
             _dbContext.ServiceCategories.Add(a);
             _dbContext.SaveChanges();
         }
