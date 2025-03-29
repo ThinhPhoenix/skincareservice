@@ -27,9 +27,9 @@ namespace SkinCareRepository
             return UserDAO.Instance.GetAll();
         }
 
-        public void SignUp(User a)
+        public void Add(User a)
         {
-            UserDAO.Instance.SignUp(a);
+            UserDAO.Instance.Add(a);
         }
 
         public void Update(User a)
