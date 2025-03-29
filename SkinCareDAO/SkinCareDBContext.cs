@@ -5,7 +5,7 @@ using System.IO;
 
 /*
 ```
-dotnet ef migrations add YOUR_MIGRATION_NAME
+dotnet ef migrations add YOUR_MIGRATION_NAME (can not use existed migration's name)
 ```
 dotnet ef database update
 ```
@@ -15,7 +15,30 @@ namespace SkinCareDAO
 {
     public class SkinCareDBContext : DbContext
     {
-        public DbSet<Account> Accounts { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<AssessmentQuestion> AssessmentQuestions { get; set; }
+        public DbSet<AssessmentResponse> AssessmentResponses { get; set; }
+        public DbSet<Appointment> Appointments { get; set; }
+        public DbSet<AppointmentHistory> AppointmentHistories { get; set; }
+        public DbSet<CenterLocation> CenterLocations { get; set; }
+        public DbSet<Customer> Customers { get; set; }
+        public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<Promotion> Promotions { get; set; }
+        public DbSet<ResponseServiceMapping> ResponseServiceMappings { get; set; }
+        public DbSet<Service> Services { get; set; }
+        public DbSet<ServiceCategory> ServiceCategories { get; set; }
+        public DbSet<ServicePromotion> ServicePromotions { get; set; }
+        public DbSet<ServiceRecommendation> ServiceRecommendations { get; set; }
+        public DbSet<ServiceToCategory> ServiceToCategories { get; set; }
+        public DbSet<SkinAssessment> SkinAssessments { get; set; }
+        public DbSet<Staff> Staff { get; set; }
+        public DbSet<Therapist> Therapists { get; set; }
+        public DbSet<TherapistExpertise> TherapistExpertises { get; set; }
+        public DbSet<Treatment> Treatments { get; set; }
+        public DbSet<WorkingSchedule> WorkingSchedules { get; set; }
+        public DbSet<TimeOffRequest> TimeOffRequests { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
