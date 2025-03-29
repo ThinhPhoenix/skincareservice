@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace SkinCareBussinessObject
 {
     [Index(nameof(Email), IsUnique = true)]
-    public class User
+    public class Account
     {
         [Key]
         [Required]
