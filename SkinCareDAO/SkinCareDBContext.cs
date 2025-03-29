@@ -31,7 +31,7 @@ namespace SkinCareDAO
         public DbSet<ServicePromotion> ServicePromotions { get; set; }
         public DbSet<ServiceRecommendation> ServiceRecommendations { get; set; }
         public DbSet<SkinAssessment> SkinAssessments { get; set; }
-        public DbSet<Staff> Staff { get; set; }
+        public DbSet<Staff> Staffs { get; set; }
         public DbSet<Therapist> Therapists { get; set; }
         public DbSet<TherapistExpertise> TherapistExpertises { get; set; }
         public DbSet<Treatment> Treatments { get; set; }
