@@ -1,0 +1,80 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using SkinCareBussinessObject;
+
+namespace SkinCareDAO
+{
+    public class CustomerDAO
+    {
+
+        private SkinCareDBContext _dbContext;
+        private static CustomerDAO instance;
+
+        public CustomerDAO()
+        {
+            _dbContext = new SkinCareDBContext();
+        }
+
+        public static CustomerDAO Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    instance = new CustomerDAO();
+                }
+                return instance;
+            }
+        }
+
+
+        public Customer GetOne(string id)
+        {
+            return _dbContext.Customers
+                .SingleOrDefault(a => a.Id.Equals(id));
+        }
+
+        public List<Customer> GetAll()
+        {
+            return _dbContext.Customers
+                .ToList();
+        }
+
+        public void Add(Customer a)
+        {
+            Customer cur = GetOne(a.Id);
+            if (cur != null)
+            {
+                throw new Exception();
+            }
+            a.Id = Guid.NewGuid().ToString();
+            _dbContext.Customers.Add(a);
+            _dbContext.SaveChanges();
+        }
+
+        public void Update(Customer a)
+        {
+            Customer cur = GetOne(a.Id);
+            if (cur == null)
+            {
+                throw new Exception();
+            }
+            _dbContext.Entry(cur).CurrentValues.SetValues(a);
+            _dbContext.SaveChanges();
+        }
+
+        public void Delete(string id)
+        {
+            Customer cur = GetOne(id);
+            if (cur != null)
+            {
+                _dbContext.Customers.Remove(cur);
+                _dbContext.SaveChanges(); // Delete the object
+            }
+        }
+
+    }
+}

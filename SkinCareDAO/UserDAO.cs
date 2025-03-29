@@ -53,17 +53,25 @@ namespace SkinCareDAO
                 .ToList();
         }
 
-        public void SignUp(User a)
+        public void Add(User a)
         {
-            User cur = GetOne(a.Id);
-            if (cur != null)
-            {
-                throw new Exception();
-            }
-            a.Password = MyUtils.Encrypt(a.Password);
+            if (a == null)
+                throw new ArgumentNullException(nameof(a), "User cannot be null.");
+
+            if (string.IsNullOrWhiteSpace(a.Password))
+                throw new ArgumentException("Password cannot be empty.", nameof(a.Password));
+
+            if (!string.IsNullOrWhiteSpace(a.Id) && GetOne(a.Id) != null)
+                throw new InvalidOperationException($"User with ID {a.Id} already exists.");
+
+            a.Id = Guid.NewGuid().ToString();
+            a.Password = MyUtils.Encrypt(a.Password)
+                ?? throw new InvalidOperationException("Password encryption failed.");
+
             _dbContext.Users.Add(a);
             _dbContext.SaveChanges();
         }
+
 
         public void Update(User a)
         {

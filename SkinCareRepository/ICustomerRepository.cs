@@ -6,21 +6,18 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SkinCareBussinessObject;
 using SkinCareDAO;
-using SkinCareDAO.Utils;
 
 namespace SkinCareRepository
 {
-    public interface IUserRepository
+    public interface ICustomerRepository
     {
-        public User? SignIn(string email, string password);
+        public Customer GetOne(string id);
 
-        public User? GetOne(string id);
+        public List<Customer> GetAll();
 
-        public List<User> GetAll();
+        public void Add(Customer a);
 
-        public void Add(User a);
-
-        public void Update(User a);
+        public void Update(Customer a);
 
         public void Delete(string id);
     }
