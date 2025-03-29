@@ -30,7 +30,6 @@ namespace SkinCareDAO
             }
         }
 
-
         public Customer GetOne(string id)
         {
             return _dbContext.Customers
