@@ -4,21 +4,17 @@ using System.ComponentModel.DataAnnotations;
 namespace SkinCareBussinessObject
 {
     [Index(nameof(Email), IsUnique = true)]
-    public class Account
+    public class User
     {
         [Key]
         [Required]
         public string Id { get; set; }
-
-        public string Name { get; set; }
 
         [Required]
         [EmailAddress]
         public string Email { get; set; }
 
         public string Password { get; set; }
-
-        public DateTime DOB { get; set; }
 
         public DateTime CreatedAt { get; set; }
 
