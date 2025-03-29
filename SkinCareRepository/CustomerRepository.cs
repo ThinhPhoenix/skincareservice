@@ -9,7 +9,7 @@ using SkinCareDAO;
 
 namespace SkinCareRepository
 {
-    public class CustomerRepository
+    public class CustomerRepository : ICustomerRepository
     {
         public Customer GetOne(string id)
         {

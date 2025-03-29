@@ -47,6 +47,12 @@ namespace SkinCareDAO
                 .SingleOrDefault(a => a.Id.Equals(id));
         }
 
+        public User? GetUserByEmail(string email)
+        {
+            return _dbContext.Users
+                .SingleOrDefault(a => a.Email.Equals(email));
+        }
+
         public List<User> GetAll()
         {
             return _dbContext.Users
@@ -65,7 +71,7 @@ namespace SkinCareDAO
                 throw new InvalidOperationException($"User with ID {a.Id} already exists.");
 
             a.Id = Guid.NewGuid().ToString();
-            a.Password = MyUtils.Decrypt(a.Password)
+            a.Password = MyUtils.Encrypt(a.Password)
                 ?? throw new InvalidOperationException("Password encryption failed.");
 
             _dbContext.Users.Add(a);

@@ -32,6 +32,8 @@ namespace SkinCareRepository
             }
         }
 
+        public User? GetUserByEmail(string email) => UserDAO.Instance.GetUserByEmail(email);
+
         public User? GetOne(string id)
         {
             return UserDAO.Instance.GetOne(id);

@@ -32,6 +32,7 @@ builder.Services.AddHttpContextAccessor();
 
 // Your repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 
 builder.Services.AddScoped<SkinCareUI.Services.AuthService>();
 

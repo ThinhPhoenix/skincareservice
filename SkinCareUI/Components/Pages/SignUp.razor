@@ -1,166 +1,316 @@
 ﻿@page "/signup"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@using SkinCareRepository
+@using SkinCareDAO.Utils
+@inject IUserRepository UserRepository
+@inject ICustomerRepository CustomerRepository
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <section>
-  <div
-    class="flex bg-white items-center justify-center px-4 py-10 sm:px-6 sm:py-16 lg:px-8 lg:py-8"
-  >
-    <div class="xl:mx-auto xl:w-full shadow-md p-4 xl:max-w-sm 2xl:max-w-md">
-      <div class="mb-2 flex justify-center"></div>
-      <h2 class="text-center text-2xl font-bold leading-tight text-black">
-        Create an account
-      </h2>
-      <p class="mt-2 text-center text-sm text-gray-600">
-        Already have an account? <a href="/signin" class="text-blue-500 hover:text-blue-700">Sign in</a>
-      </p>
-      <form class="mt-8" method="POST" action="#">
-        <div class="space-y-5">
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="text-base font-medium text-gray-900">
-                First Name
-              </label>
-              <div class="mt-2">
-                <input
-                  placeholder="First Name"
-                  type="text"
-                  class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
+    <div class="flex bg-white items-center justify-center px-4 py-10 sm:px-6 sm:py-16 lg:px-8 lg:py-8">
+        <div class="xl:mx-auto xl:w-full shadow-md p-4 xl:max-w-sm 2xl:max-w-md">
+            <div class="mb-2 flex justify-center"></div>
+            <h2 class="text-center text-2xl font-bold leading-tight text-black">
+                Create an account
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Already have an account? <a href="/signin" class="text-blue-500 hover:text-blue-700">Sign in</a>
+            </p>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="mt-2 text-center text-red-600">@errorMessage</div>
+            }
+            @if (showSuccessMessage)
+            {
+                <div class="mt-2 text-center text-green-600">Account created successfully! Redirecting to login...</div>
+            }
+
+            <EditForm Model="@registrationModel" OnValidSubmit="HandleRegistration" class="mt-8">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-red-600 mb-3" />
+                <div class="space-y-5">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-base font-medium text-gray-900">
+                                First Name
+                            </label>
+                            <div class="mt-2">
+                                <InputText
+                                placeholder="First Name"
+                                @bind-Value="registrationModel.FirstName"
+                                class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                                />
+                                <ValidationMessage For="@(() => registrationModel.FirstName)" class="text-red-600 text-sm" />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-base font-medium text-gray-900">
+                                Last Name
+                            </label>
+                            <div class="mt-2">
+                                <InputText
+                                placeholder="Last Name"
+                                @bind-Value="registrationModel.LastName"
+                                class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                                />
+                                <ValidationMessage For="@(() => registrationModel.LastName)" class="text-red-600 text-sm" />
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-base font-medium text-gray-900">
+                            Email address
+                        </label>
+                        <div class="mt-2">
+                            <InputText
+                            placeholder="Email"
+                            type="email"
+                            @bind-Value="registrationModel.Email"
+                            class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                            />
+                            <ValidationMessage For="@(() => registrationModel.Email)" class="text-red-600 text-sm" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-base font-medium text-gray-900">
+                            Password
+                        </label>
+                        <div class="mt-2">
+                            <InputText
+                            placeholder="Password"
+                            type="password"
+                            @bind-Value="registrationModel.Password"
+                            class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                            />
+                            <ValidationMessage For="@(() => registrationModel.Password)" class="text-red-600 text-sm" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-base font-medium text-gray-900">
+                            Confirm Password
+                        </label>
+                        <div class="mt-2">
+                            <InputText
+                            placeholder="Confirm Password"
+                            type="password"
+                            @bind-Value="registrationModel.ConfirmPassword"
+                            class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                            />
+                            <ValidationMessage For="@(() => registrationModel.ConfirmPassword)" class="text-red-600 text-sm" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-base font-medium text-gray-900">
+                            Phone Number
+                        </label>
+                        <div class="mt-2">
+                            <InputText
+                            placeholder="Phone Number"
+                            type="tel"
+                            @bind-Value="registrationModel.PhoneNumber"
+                            class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                            />
+                            <ValidationMessage For="@(() => registrationModel.PhoneNumber)" class="text-red-600 text-sm" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-base font-medium text-gray-900">
+                            Address
+                        </label>
+                        <div class="mt-2">
+                            <InputTextArea
+                            placeholder="Address"
+                            @bind-Value="registrationModel.Address"
+                            class="flex min-h-[100px] w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                            />
+                            <ValidationMessage For="@(() => registrationModel.Address)" class="text-red-600 text-sm" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-base font-medium text-gray-900">
+                            Date of Birth
+                        </label>
+                        <div class="mt-2">
+                            <InputDate
+                            @bind-Value="registrationModel.DateOfBirth"
+                            class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                            />
+                            <ValidationMessage For="@(() => registrationModel.DateOfBirth)" class="text-red-600 text-sm" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-base font-medium text-gray-900">
+                            Gender
+                        </label>
+                        <div class="mt-2">
+                            <InputSelect
+                            @bind-Value="registrationModel.Gender"
+                            class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <option value="" disabled selected>Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                                <option value="PreferNotToSay">Prefer not to say</option>
+                            </InputSelect>
+                            <ValidationMessage For="@(() => registrationModel.Gender)" class="text-red-600 text-sm" />
+                        </div>
+                    </div>
+                    <div>
+                        <button
+                        class="inline-flex w-full items-center justify-center rounded-md bg-black px-3.5 py-2.5 font-semibold leading-7 text-white hover:bg-black/80"
+                        type="submit"
+                        disabled="@isSubmitting"
+                        >
+                            @if (isSubmitting)
+                            {
+                                <span>Creating Account...</span>
+                            }
+                            else
+                            {
+                                <span>Create Account</span>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+            <div class="mt-3 space-y-3">
+                <button
+                class="relative inline-flex w-full items-center justify-center rounded-md border border-gray-400 bg-white px-3.5 py-2.5 font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black focus:outline-none"
+                type="button"
+                @onclick="SignUpWithGoogle"
+                >
+                    <span class="mr-2 inline-block">
+                        <svg
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6 text-rose-500"
+                        >
+                            <path
+                            d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 0 1-5.279-5.28 5.27 5.27 0 0 1 5.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 0 0-8.934 8.934 8.907 8.907 0 0 0 8.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z"
+                            ></path>
+                        </svg>
+                    </span>
+                    Sign up with Google
+                </button>
             </div>
-            <div>
-              <label class="text-base font-medium text-gray-900">
-                Last Name
-              </label>
-              <div class="mt-2">
-                <input
-                  placeholder="Last Name"
-                  type="text"
-                  class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-            </div>
-          </div>
-          <div>
-            <label class="text-base font-medium text-gray-900">
-              Email address
-            </label>
-            <div class="mt-2">
-              <input
-                placeholder="Email"
-                type="email"
-                class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
-          </div>
-          <div>
-            <label class="text-base font-medium text-gray-900">
-              Password
-            </label>
-            <div class="mt-2">
-              <input
-                placeholder="Password"
-                type="password"
-                class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
-          </div>
-          <div>
-            <label class="text-base font-medium text-gray-900">
-              Confirm Password
-            </label>
-            <div class="mt-2">
-              <input
-                placeholder="Confirm Password"
-                type="password"
-                class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
-          </div>
-          <div>
-            <label class="text-base font-medium text-gray-900">
-              Phone Number
-            </label>
-            <div class="mt-2">
-              <input
-                placeholder="Phone Number"
-                type="tel"
-                class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
-          </div>
-          <div>
-            <label class="text-base font-medium text-gray-900">
-              Address
-            </label>
-            <div class="mt-2">
-              <textarea
-                placeholder="Address"
-                class="flex min-h-[100px] w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-              ></textarea>
-            </div>
-          </div>
-          <div>
-            <label class="text-base font-medium text-gray-900">
-              Date of Birth
-            </label>
-            <div class="mt-2">
-              <input
-                placeholder="Date of Birth"
-                type="date"
-                class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
-          </div>
-          <div>
-            <label class="text-base font-medium text-gray-900">
-              Gender
-            </label>
-            <div class="mt-2">
-              <select
-                class="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <option value="" disabled selected>Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-                <option value="prefer-not-to-say">Prefer not to say</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <button
-              class="inline-flex w-full items-center justify-center rounded-md bg-black px-3.5 py-2.5 font-semibold leading-7 text-white hover:bg-black/80"
-              type="button"
-            >
-              Create Account
-            </button>
-          </div>
         </div>
-      </form>
-      <div class="mt-3 space-y-3">
-        <button
-          class="relative inline-flex w-full items-center justify-center rounded-md border border-gray-400 bg-white px-3.5 py-2.5 font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black focus:outline-none"
-          type="button"
-        >
-          <span class="mr-2 inline-block">
-            <svg
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6 text-rose-500"
-            >
-              <path
-                d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 0 1-5.279-5.28 5.27 5.27 0 0 1 5.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 0 0-8.934 8.934 8.907 8.907 0 0 0 8.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z"
-              ></path>
-            </svg>
-          </span>
-          Sign up with Google
-        </button>
-      </div>
     </div>
-  </div>
 </section>
 
 @code {
+    private RegistrationViewModel registrationModel = new();
+    private string? errorMessage;
+    private bool isSubmitting = false;
+    private bool showSuccessMessage = false;
+    private async Task HandleRegistration()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
 
+            // Validate password match
+            if (registrationModel.Password != registrationModel.ConfirmPassword)
+            {
+                errorMessage = "Passwords do not match";
+                isSubmitting = false;
+                return;
+            }
+
+
+
+            // Create user account
+            var newUser = new SkinCareBussinessObject.User
+        {
+            Email = registrationModel.Email,
+            Password = registrationModel.Password,
+            Role = "Customer", // Default role for registration
+            Status = "Active", // Active by default
+                CreatedAt = DateTime.UtcNow // Set creation timestamp to current UTC time
+
+        };
+
+            // Save user to database and get the generated ID
+            UserRepository.Add(newUser);
+
+            var createdUser = UserRepository.GetUserByEmail(registrationModel.Email);
+            string pass = MyUtils.Decrypt(createdUser.Password);
+            // Create customer record with additional details
+            var newCustomer = new SkinCareBussinessObject.Customer
+        {
+            UserId = createdUser.Id, // Link to the user account
+            FirstName = registrationModel.FirstName,
+            LastName = registrationModel.LastName,
+            PhoneNumber = registrationModel.PhoneNumber,
+            Address = registrationModel.Address,
+            DateOfBirth = DateTime.SpecifyKind(registrationModel.DateOfBirth, DateTimeKind.Utc),
+            Gender = registrationModel.Gender
+        };
+
+        CustomerRepository.Add(newCustomer);
+
+        // Show success message
+        showSuccessMessage = true;
+
+                NavigationManager.NavigateTo("/signin");
+
+
+    }
+    catch (Exception ex)
+    {
+        errorMessage = $"Registration failed: Email has existed";
+    }
+    finally
+    {
+        isSubmitting = false;
+    }
+}
+
+    private void SignUpWithGoogle()
+    {
+        // Implement Google OAuth sign-up logic here
+        errorMessage = "Google sign-up is not yet implemented";
+    }
+
+    public class RegistrationViewModel
+    {
+        [Required(ErrorMessage = "First name is required")]
+        [StringLength(50, ErrorMessage = "First name cannot exceed 50 characters")]
+        public string FirstName { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "Last name is required")]
+        [StringLength(50, ErrorMessage = "Last name cannot exceed 50 characters")]
+        public string LastName { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string Email { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "Password is required")]
+        [StringLength(100, ErrorMessage = "Password must be at least {2} characters long", MinimumLength = 6)]
+        public string Password { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "Password confirmation is required")]
+        [Compare("Password", ErrorMessage = "Passwords do not match")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "Phone number is required")]
+        [Phone(ErrorMessage = "Invalid phone number format")]
+        public string PhoneNumber { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "Address is required")]
+        public string Address { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "Date of birth is required")]
+        [DataType(DataType.Date)]
+        public DateTime DateOfBirth { get; set; } = DateTime.Now.AddYears(-18);
+        
+        [Required(ErrorMessage = "Gender is required")]
+        public string Gender { get; set; } = string.Empty;
+    }
 }

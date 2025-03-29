@@ -16,7 +16,12 @@ namespace SkinCareRepository
 
         public User? GetOne(string id);
 
+        public bool SignUp(User u, Customer c);
+
         public List<User> GetAll();
+
+        public User? GetUserByEmail(string email);
+
 
         public void Add(User a);
 
