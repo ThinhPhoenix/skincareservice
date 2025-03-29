@@ -2621,32 +2621,39 @@
     ]
   },
   "packageFolders": {
-    "/Users/laith/.nuget/packages/": {}
+    "C:\\Users\\laith\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/laith/Desktop/skincare-mng/SkinCareDAO/SkinCareDAO.csproj",
+      "projectUniqueName": "C:\\Users\\laith\\Desktop\\skincare-mng\\SkinCareDAO\\SkinCareDAO.csproj",
       "projectName": "SkinCareDAO",
-      "projectPath": "/Users/laith/Desktop/skincare-mng/SkinCareDAO/SkinCareDAO.csproj",
-      "packagesPath": "/Users/laith/.nuget/packages/",
-      "outputPath": "/Users/laith/Desktop/skincare-mng/SkinCareDAO/obj/",
+      "projectPath": "C:\\Users\\laith\\Desktop\\skincare-mng\\SkinCareDAO\\SkinCareDAO.csproj",
+      "packagesPath": "C:\\Users\\laith\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\laith\\Desktop\\skincare-mng\\SkinCareDAO\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "/Users/laith/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\laith\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/Users/laith/Desktop/skincare-mng/SkinCareBussinessObject/SkinCareBussinessObject.csproj": {
-              "projectPath": "/Users/laith/Desktop/skincare-mng/SkinCareBussinessObject/SkinCareBussinessObject.csproj"
+            "C:\\Users\\laith\\Desktop\\skincare-mng\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj": {
+              "projectPath": "C:\\Users\\laith\\Desktop\\skincare-mng\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj"
             }
           }
         }
@@ -2660,7 +2667,8 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      }
+      },
+      "SdkAnalysisLevel": "9.0.200"
     },
     "frameworks": {
       "net8.0": {
@@ -2715,7 +2723,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.407/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.201/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
