@@ -1,0 +1,164 @@
+﻿@using SkinCareUI.Services
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+
+@if (isLoading)
+{
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else if (isAuthenticated)
+{
+    @ChildContent
+}
+else
+{
+    <div class="alert alert-warning">
+        <h4>Authentication Required</h4>
+        <p>You need to log in to access this page.</p>
+        <button class="btn btn-primary" @onclick="RedirectToLogin">Log in</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public string[] AllowedRoles { get; set; } = Array.Empty<string>();
+
+    [Parameter]
+    public bool RequireAdmin { get; set; } = false;
+
+    private bool isAuthenticated = false;
+    private bool isLoading = true;
+    private bool isInitialized = false;
+
+    // Use this instead of OnInitializedAsync to avoid JS interop during prerendering
+    protected override void OnInitialized()
+    {
+        // Just set the initial state
+        isLoading = true;
+        isAuthenticated = false;
+    }
+
+    // Move JS interop calls to OnAfterRenderAsync
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Now it's safe to use JS interop
+            await CheckAuthentication();
+        }
+    }
+
+    private async Task CheckAuthentication()
+    {
+        try
+        {
+            // First, check if user is authenticated at all
+            bool isAuth = await AuthService.IsAuthenticated();
+            Console.WriteLine($"User authenticated: {isAuth}");
+            
+            if (!isAuth)
+            {
+                // User is not authenticated at all - redirect to login
+                isAuthenticated = false;
+                isLoading = false;
+                StateHasChanged(); // Update the UI
+                
+                // Add a small delay to ensure rendering completes
+                await Task.Delay(100);
+                
+                // Redirect to login page
+                NavigationManager.NavigateTo("/login", forceLoad: true);
+                return;
+            }
+
+            // Debug the authentication parameters
+            var email = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "email");
+            var roleIdStr = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "role");
+            var isAdminStr = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "isAdmin");
+            
+       
+            // User is authenticated, now check roles
+            // Inside your CheckAuthentication method in AuthCheck.razor
+            if (RequireAdmin)
+            {
+                // Check if user is admin
+                bool isAdminUser = await AuthService.IsAdmin();
+                Console.WriteLine($"Admin check result for protected page: {isAdminUser}");
+
+                isAuthenticated = isAdminUser;
+
+                if (!isAuthenticated)
+                {
+                    Console.WriteLine("Access denied: User is not an admin");
+                    isLoading = false;
+                    StateHasChanged();
+                    NavigationManager.NavigateTo("/unauthorized", forceLoad: true);
+                    return;
+                }
+            }
+            else if (AllowedRoles != null && AllowedRoles.Length > 0)
+            {
+                // For regular role-based access, not admin
+                string userRole = await AuthService.GetUserRole();
+
+                // Check if user is admin first - admins should have access to all pages
+                bool isAdminUser = await AuthService.IsAdmin();
+                if (isAdminUser)
+                {
+                    Console.WriteLine("User is admin - granting access to role-protected page");
+                    isAuthenticated = true;
+                }
+                else
+                {
+                    // If not admin, then check role
+                    isAuthenticated = !string.IsNullOrEmpty(userRole) && AllowedRoles.Contains(userRole);
+
+                    if (!isAuthenticated)
+                    {
+                        Console.WriteLine($"Access denied: User role {userRole} not in allowed roles");
+                        isLoading = false;
+                        StateHasChanged();
+                        NavigationManager.NavigateTo("/unauthorized", forceLoad: true);
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                // Just needs to be authenticated
+                Console.WriteLine("Basic authentication sufficient - access granted");
+                isAuthenticated = true;
+            }
+
+            isLoading = false;
+            StateHasChanged(); // Make sure UI is updated
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in AuthCheck: {ex.Message}");
+            isLoading = false;
+            isAuthenticated = false;
+            StateHasChanged();
+        }
+    }
+
+    private void RedirectToLogin()
+    {
+        NavigationManager.NavigateTo("/login");
+    }
+
+    // Clean up any resources
+    public void Dispose()
+    {
+        // Clean up code if needed
+    }
+}

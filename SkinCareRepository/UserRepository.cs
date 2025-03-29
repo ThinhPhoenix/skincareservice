@@ -10,12 +10,13 @@ using SkinCareDAO.Utils;
 
 namespace SkinCareRepository
 {
-    public class UserRepository
+    public class UserRepository : IUserRepository
     {
         public User? SignIn(string email, string password)
         {
             return UserDAO.Instance.SignIn(email, password);
         }
+
 
         public User? GetOne(string id)
         {
