@@ -1,0 +1,97 @@
+@page "/therapist"
+@using SkinCareBussinessObject
+
+<PageTitle>Our Therapists</PageTitle>
+
+<div class="bg-gradient-to-b from-white to-pink-50 min-h-screen py-8">
+    <div class="container mx-auto px-4">
+        <h1 class="text-4xl font-bold text-center text-pink-600 mb-10">Our Expert Therapists</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            @foreach (var therapist in mockTherapists)
+            {
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-xl">
+                    <div class="h-64 overflow-hidden">
+                        <img src="@therapist.ProfileImage" class="w-full h-full object-cover" alt="@($"{therapist.FirstName} {therapist.LastName}")">
+                    </div>
+                    <div class="p-6">
+                        <h5 class="text-xl font-semibold text-pink-700 mb-2">Dr. @($"{therapist.FirstName} {therapist.LastName}")</h5>
+                        <p class="text-gray-600 mb-4">@therapist.Bio</p>
+                        <div class="flex justify-between items-center">
+                            <a href="/therapist/@therapist.Id" class="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition">View Profile</a>
+                            <span class="@(therapist.IsAvailable ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800") px-3 py-1 rounded-full text-sm font-medium">
+                                @(therapist.IsAvailable ? "Available" : "Limited Availability")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    // Mock data for Therapists
+    private List<Therapist> mockTherapists = new List<Therapist>();
+
+    // Initialize component
+    protected override void OnInitialized()
+    {
+        // Initialize mock data
+        InitializeMockData();
+    }
+
+    // Method to initialize mock data for real implementation
+    private void InitializeMockData()
+    {
+        // Here we would typically make API calls to a service like:
+        // mockTherapists = await therapistService.GetAllAvailableTherapists();
+        
+        // For demo, we're using static mock data
+        mockTherapists = new List<Therapist>
+        {
+            new Therapist
+            {
+                Id = "1",
+                UserId = "user1",
+                FirstName = "Sarah",
+                LastName = "Johnson",
+                Bio = "Expert in acne treatment and skin rejuvenation",
+                Expertise = "Acne Treatment, Skin Rejuvenation",
+                HireDate = DateTime.Now.AddYears(-8),
+                IsAvailable = true,
+                ProfileImage = "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
+                WorkStartTime = new TimeSpan(9, 0, 0),
+                WorkEndTime = new TimeSpan(17, 0, 0)
+            },
+            new Therapist
+            {
+                Id = "2",
+                UserId = "user2",
+                FirstName = "Michael",
+                LastName = "Chen",
+                Bio = "Specialized in anti-aging and skin brightening",
+                Expertise = "Anti-aging, Skin Brightening",
+                HireDate = DateTime.Now.AddYears(-5),
+                IsAvailable = true,
+                ProfileImage = "https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=764&q=80",
+                WorkStartTime = new TimeSpan(9, 0, 0),
+                WorkEndTime = new TimeSpan(17, 0, 0)
+            },
+            new Therapist
+            {
+                Id = "3",
+                UserId = "user3",
+                FirstName = "Emily",
+                LastName = "Rodriguez",
+                Bio = "Expert in pigmentation and skin tone correction",
+                Expertise = "Pigmentation, Skin Tone Correction",
+                HireDate = DateTime.Now.AddYears(-3),
+                IsAvailable = false,
+                ProfileImage = "https://images.unsplash.com/photo-1594824476967-48c8b964273f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80",
+                WorkStartTime = new TimeSpan(9, 0, 0),
+                WorkEndTime = new TimeSpan(17, 0, 0)
+            }
+        };
+    }
+} 
