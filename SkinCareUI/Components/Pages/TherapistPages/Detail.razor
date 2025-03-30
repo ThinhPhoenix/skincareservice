@@ -3,6 +3,7 @@
 @using SkinCareRepository
 @inject ITherapistRepository TherapistRepository
 @inject IServiceRepository ServiceRepository
+@inject ITherapistExpertiseRepository TherapistExpertiseRepository
 
 <PageTitle>Therapist Details</PageTitle>
 
@@ -176,7 +177,8 @@
             
             if (therapist != null)
             {
-                services = ServiceRepository.GetAllAsync().Result;
+                // Lấy danh sách service theo TherapistId (chỉ những service mà therapist có expertise)
+                services = TherapistExpertiseRepository.GetServicesByTherapistIdAsync(Id).Result;
             }
         }
         catch (Exception ex)
