@@ -6,90 +6,207 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
-<h3 class="text-3xl font-bold text-center text-gray-800 mb-6">Edit Service</h3>
+<div class="bg-gradient-to-b from-pink-100 to-white min-h-screen pt-8 pb-16">
+    <div class="max-w-4xl mx-auto px-4">
+        <h3 class="text-3xl font-bold text-center text-pink-700 mb-8 drop-shadow-sm">Chỉnh Sửa Dịch Vụ</h3>
 
-@if (errorMessage != null)
-{
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative text-center mb-4">
-        @errorMessage
-    </div>
-}
-
-@if (isLoading)
-{
-    <div class="text-center">
-        <p><em>Loading...</em></p>
-    </div>
-}
-else if (service == null)
-{
-    <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-lg relative text-center mb-4">
-        Không tìm thấy dịch vụ với ID: @Id
-    </div>
-    <div class="flex justify-center">
-        <button class="bg-gray-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-gray-600 transition text-sm font-medium" @onclick="GoBack">
-            Quay lại
-        </button>
-    </div>
-}
-else
-{
-    <div class="max-w-xl mx-auto bg-white p-8 rounded-xl shadow-lg space-y-6">
-        <div>
-            <label class="block text-sm font-semibold text-gray-700">Service Name</label>
-            <input type="text" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-primary focus:border-primary px-3 py-2" @bind="service.ServiceName" />
-        </div>
-
-        <div>
-            <label class="block text-sm font-semibold text-gray-700">Category</label>
-            <select class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-primary focus:border-primary px-3 py-2" @bind="service.CategoryId">
-                <option value="">Select a category</option>
-                @foreach (var category in categoryList)
-                {
-                    <option value="@category.Id">@category.CategoryName</option>
-                }
-            </select>
-        </div>
-
-        <div>
-            <label class="block text-sm font-semibold text-gray-700">Description</label>
-            <textarea class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-primary focus:border-primary px-3 py-2 resize-none h-24" @bind="service.Description"></textarea>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label class="block text-sm font-semibold text-gray-700">Price ($)</label>
-                <input type="number" step="0.01" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-primary focus:border-primary px-3 py-2" @bind="service.Price" />
+        @if (errorMessage != null)
+        {
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md mb-6 animate-fade-in">
+                <div class="flex items-center">
+                    <svg class="h-6 w-6 text-red-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>@errorMessage</span>
+                </div>
             </div>
-            <div>
-                <label class="block text-sm font-semibold text-gray-700">Duration (min)</label>
-                <input type="number" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-primary focus:border-primary px-3 py-2" @bind="service.DurationMinutes" />
+        }
+
+        @if (isLoading)
+        {
+            <div class="bg-white rounded-xl shadow-md p-8 text-center">
+                <div class="animate-pulse flex flex-col items-center">
+                    <div class="rounded-full bg-pink-200 h-12 w-12 flex items-center justify-center mb-4">
+                        <svg class="animate-spin h-6 w-6 text-pink-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-gray-600 font-medium">Đang tải dữ liệu...</p>
+                </div>
             </div>
-        </div>
+        }
+        else if (service == null)
+        {
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg shadow-md mb-6">
+                <div class="flex items-center">
+                    <svg class="h-6 w-6 text-yellow-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span class="text-yellow-700">Không tìm thấy dịch vụ với ID: @Id</span>
+                </div>
+            </div>
+            <div class="flex justify-center mt-4">
+                <button class="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 shadow-sm transition-all duration-200 ease-in-out font-medium" @onclick="GoBack">
+                    <span class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Quay lại danh sách
+                    </span>
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
+                <div class="bg-gradient-to-r from-pink-500 to-pink-600 py-4 px-6">
+                    <h4 class="text-white text-xl font-medium">Thông Tin Dịch Vụ</h4>
+                </div>
+                
+                <div class="p-8 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tên Dịch Vụ<span class="text-red-500">*</span></label>
+                            <input type="text" class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-pink-500 focus:border-pink-500 px-4 py-3 transition-all duration-200 ease-in-out" 
+                                  placeholder="Nhập tên dịch vụ" @bind="service.ServiceName" />
+                        </div>
 
-        <div>
-            <label class="block text-sm font-semibold text-gray-700">Prerequisites</label>
-            <textarea class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-primary focus:border-primary px-3 py-2 resize-none h-16" @bind="service.Prerequisites"></textarea>
-        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Danh Mục<span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <select class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-pink-500 focus:border-pink-500 px-4 py-3 appearance-none transition-all duration-200 ease-in-out" 
+                                        @bind="service.CategoryId">
+                                    <option value="">-- Chọn danh mục --</option>
+                                    @foreach (var category in categoryList)
+                                    {
+                                        <option value="@category.Id">@category.CategoryName</option>
+                                    }
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
 
-        <div>
-            <label class="block text-sm font-semibold text-gray-700">Aftercare</label>
-            <textarea class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-primary focus:border-primary px-3 py-2 resize-none h-16" @bind="service.Aftercare"></textarea>
-        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Trạng Thái</label>
+                            <div class="flex items-center h-full pt-2">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" class="sr-only peer" @bind="service.IsActive">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                                    <span class="ml-3 text-sm font-medium text-gray-700">
+                                        @(service.IsActive ? "Kích hoạt" : "Vô hiệu hóa")
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
 
-        <div>
-            <label class="flex items-center space-x-3">
-                <input type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary h-5 w-5" @bind="service.IsActive" />
-                <span class="text-sm text-gray-700">Active</span>
-            </label>
-        </div>
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mô Tả</label>
+                            <textarea class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-pink-500 focus:border-pink-500 px-4 py-3 resize-none h-24 transition-all duration-200 ease-in-out" 
+                                     placeholder="Nhập mô tả dịch vụ" @bind="service.Description"></textarea>
+                        </div>
 
-        <div class="flex justify-end space-x-3">
-            <button class="bg-gray-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-gray-600 transition text-sm font-medium" @onclick="Cancel">Cancel</button>
-            <button class="bg-primary text-white px-5 py-2 rounded-lg shadow-md hover:bg-primary/80 transition text-sm font-medium" @onclick="() => UpdateService()">Save Changes</button>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Giá (VNĐ)<span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500">₫</span>
+                                </div>
+                                <input type="number" step="1000" min="0" 
+                                      class="block w-full pl-8 rounded-lg border-gray-300 shadow-sm focus:ring-pink-500 focus:border-pink-500 px-4 py-3 transition-all duration-200 ease-in-out" 
+                                      placeholder="0" @bind="service.Price" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Thời Gian (phút)<span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <input type="number" min="0" 
+                                      class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-pink-500 focus:border-pink-500 px-4 py-3 transition-all duration-200 ease-in-out" 
+                                      placeholder="Thời gian thực hiện (phút)" @bind="service.DurationMinutes" />
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500">phút</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Yêu Cầu Trước Khi Sử Dụng</label>
+                            <textarea class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-pink-500 focus:border-pink-500 px-4 py-3 resize-none h-20 transition-all duration-200 ease-in-out" 
+                                     placeholder="Những điều khách hàng cần làm trước khi sử dụng dịch vụ" @bind="service.Prerequisites"></textarea>
+                        </div>
+
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Hướng Dẫn Chăm Sóc Sau</label>
+                            <textarea class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-pink-500 focus:border-pink-500 px-4 py-3 resize-none h-20 transition-all duration-200 ease-in-out" 
+                                     placeholder="Những điều khách hàng cần làm sau khi sử dụng dịch vụ" @bind="service.Aftercare"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-gray-200 mt-8">
+                        <div class="flex justify-end space-x-3">
+                            <button class="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 shadow-sm transition-all duration-200 ease-in-out font-medium" 
+                                    @onclick="Cancel">
+                                Hủy Bỏ
+                            </button>
+                            <button class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-pink-500 to-pink-600 text-white hover:from-pink-600 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 shadow-md transition-all duration-200 ease-in-out font-medium" 
+                                    @onclick="ShowUpdateConfirm">
+                                <span class="flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Lưu Thay Đổi
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@if (showConfirmDialog)
+{
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl transform transition-all">
+            <div class="text-center mb-4">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-pink-100 mb-4">
+                    <svg class="h-6 w-6 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Cập nhật dịch vụ</h3>
+                <p class="text-gray-600 mt-2">Bạn có chắc chắn muốn cập nhật thông tin dịch vụ này?</p>
+            </div>
+            <div class="flex justify-center space-x-4 mt-6">
+                <button class="px-5 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 font-medium"
+                        @onclick="CloseConfirmDialog">
+                    Hủy bỏ
+                </button>
+                <button class="px-5 py-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-lg hover:from-pink-600 hover:to-pink-700 transition-all duration-200 font-medium"
+                        @onclick="UpdateService">
+                    Xác nhận
+                </button>
+            </div>
         </div>
     </div>
 }
+
+<style>
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
 
 @code {
     [Parameter]
@@ -99,6 +216,7 @@ else
     private List<ServiceCategory> categoryList;
     private string errorMessage;
     private bool isLoading = true;
+    private bool showConfirmDialog = false;
 
     protected override void OnInitialized()
     {
@@ -109,92 +227,94 @@ else
     {
         try
         {
-            Console.WriteLine($"EditService.LoadData - Start loading data for id: {Id}");
+            Console.WriteLine($"EditService.LoadData - Bắt đầu tải dữ liệu cho ID: {Id}");
             
-            // Load categories
+            // Tải danh sách danh mục
             categoryList = CategoryRepository.GetAll();
-            Console.WriteLine($"EditService.LoadData - Loaded {categoryList?.Count ?? 0} categories");
+            Console.WriteLine($"EditService.LoadData - Đã tải {categoryList?.Count ?? 0} danh mục");
 
-            // Load service
+            // Tải thông tin dịch vụ
             if (!string.IsNullOrEmpty(Id))
             {
                 service = ServiceRepository.GetOne(Id);
-                Console.WriteLine($"EditService.LoadData - Service loaded: {(service != null ? "Yes" : "No")}");
+                Console.WriteLine($"EditService.LoadData - Dịch vụ đã tải: {(service != null ? "Có" : "Không")}");
                 
                 if (service != null)
                 {
-                    Console.WriteLine($"EditService.LoadData - Service data: Name={service.ServiceName}, Price={service.Price}, CategoryId={service.CategoryId}");
+                    Console.WriteLine($"EditService.LoadData - Dữ liệu dịch vụ: Tên={service.ServiceName}, Giá={service.Price}, CategoryId={service.CategoryId}");
                     
-                    // If service is found but category is not loaded
+                    // Nếu dịch vụ được tìm thấy nhưng danh mục chưa được tải
                     if (service.CategoryId != null && service.ServiceCategory == null)
                     {
                         var category = CategoryRepository.GetOne(service.CategoryId);
                         service.ServiceCategory = category;
-                        Console.WriteLine($"EditService.LoadData - Category loaded: {(category != null ? category.CategoryName : "Not Found")}");
+                        Console.WriteLine($"EditService.LoadData - Danh mục đã tải: {(category != null ? category.CategoryName : "Không tìm thấy")}");
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"EditService.LoadData - WARNING: Service with ID {Id} not found");
+                    Console.WriteLine($"EditService.LoadData - CẢNH BÁO: Không tìm thấy dịch vụ với ID {Id}");
                 }
             }
             else
             {
-                Console.WriteLine($"EditService.LoadData - WARNING: No ID provided");
+                Console.WriteLine($"EditService.LoadData - CẢNH BÁO: Không có ID được cung cấp");
             }
             
             isLoading = false;
-            Console.WriteLine("EditService.LoadData - Completed");
+            Console.WriteLine("EditService.LoadData - Hoàn thành");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"EditService.LoadData - ERROR: {ex.Message}");
-            errorMessage = $"Error loading data: {ex.Message}";
+            Console.WriteLine($"EditService.LoadData - LỖI: {ex.Message}");
+            errorMessage = $"Lỗi khi tải dữ liệu: {ex.Message}";
             isLoading = false;
         }
     }
 
+    private void ShowUpdateConfirm()
+    {
+        // Kiểm tra đầu vào trước
+        if (string.IsNullOrWhiteSpace(service.ServiceName))
+        {
+            errorMessage = "Tên dịch vụ không được để trống";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(service.CategoryId))
+        {
+            errorMessage = "Vui lòng chọn danh mục";
+            return;
+        }
+
+        if (service.Price <= 0)
+        {
+            errorMessage = "Giá dịch vụ phải lớn hơn 0";
+            return;
+        }
+
+        if (service.DurationMinutes <= 0)
+        {
+            errorMessage = "Thời gian dịch vụ phải lớn hơn 0 phút";
+            return;
+        }
+
+        // Hiển thị hộp thoại xác nhận
+        showConfirmDialog = true;
+    }
+
+    private void CloseConfirmDialog()
+    {
+        showConfirmDialog = false;
+    }
+
     private async Task UpdateService()
     {
-        Console.WriteLine("EditService.UpdateService - Starting update process");
+        Console.WriteLine("EditService.UpdateService - Bắt đầu quá trình cập nhật");
         try
         {
-            // Validate input
-            if (string.IsNullOrWhiteSpace(service.ServiceName))
-            {
-                errorMessage = "Tên dịch vụ không được để trống";
-                Console.WriteLine("EditService.UpdateService - Validation failed: Empty service name");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(service.CategoryId))
-            {
-                errorMessage = "Vui lòng chọn danh mục";
-                Console.WriteLine("EditService.UpdateService - Validation failed: No category selected");
-                return;
-            }
-
-            if (service.Price <= 0)
-            {
-                errorMessage = "Giá dịch vụ phải lớn hơn 0";
-                Console.WriteLine("EditService.UpdateService - Validation failed: Invalid price");
-                return;
-            }
-
-            if (service.DurationMinutes <= 0)
-            {
-                errorMessage = "Thời gian dịch vụ phải lớn hơn 0 phút";
-                Console.WriteLine("EditService.UpdateService - Validation failed: Invalid duration");
-                return;
-            }
-
-            // Xác nhận trước khi cập nhật
-            var confirmUpdate = await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn cập nhật dịch vụ này?");
-            if (!confirmUpdate)
-            {
-                Console.WriteLine("EditService.UpdateService - Update cancelled by user");
-                return;
-            }
+            // Đóng hộp thoại xác nhận
+            showConfirmDialog = false;
 
             // Tạo bản sao của service để tránh vấn đề tham chiếu
             Service serviceToUpdate = new Service
@@ -212,12 +332,12 @@ else
             };
             
             // In ra dữ liệu sẽ được cập nhật
-            Console.WriteLine($"EditService.UpdateService - Data to update: ID={serviceToUpdate.Id}, Name={serviceToUpdate.ServiceName}, Price={serviceToUpdate.Price}, CategoryId={serviceToUpdate.CategoryId}");
+            Console.WriteLine($"EditService.UpdateService - Dữ liệu cập nhật: ID={serviceToUpdate.Id}, Tên={serviceToUpdate.ServiceName}, Giá={serviceToUpdate.Price}, Danh mục={serviceToUpdate.CategoryId}");
             
-            // Update
-            Console.WriteLine("EditService.UpdateService - Calling repository update");
+            // Cập nhật
+            Console.WriteLine("EditService.UpdateService - Gọi repository cập nhật");
             ServiceRepository.Update(serviceToUpdate);
-            Console.WriteLine("EditService.UpdateService - Update completed successfully");
+            Console.WriteLine("EditService.UpdateService - Cập nhật hoàn tất thành công");
             
             // Chèn delay nhỏ để đảm bảo dữ liệu đã được cập nhật trong DB
             await Task.Delay(300);
@@ -226,32 +346,32 @@ else
             var updatedService = ServiceRepository.GetOne(serviceToUpdate.Id);
             if (updatedService != null)
             {
-                Console.WriteLine($"EditService.UpdateService - Verified service still exists with name: {updatedService.ServiceName}");
+                Console.WriteLine($"EditService.UpdateService - Xác nhận dịch vụ vẫn tồn tại với tên: {updatedService.ServiceName}");
             }
             else
             {
-                Console.WriteLine($"EditService.UpdateService - WARNING: Could not verify service after update!");
+                Console.WriteLine($"EditService.UpdateService - CẢNH BÁO: Không thể xác minh dịch vụ sau khi cập nhật!");
             }
             
             // Chuyển hướng với refresh để đảm bảo dữ liệu mới nhất
-            Console.WriteLine("EditService.UpdateService - Navigating back to service list");
+            Console.WriteLine("EditService.UpdateService - Chuyển hướng về danh sách dịch vụ");
             NavigationManager.NavigateTo("/staff/services", true); // forceLoad = true để refresh trang
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"EditService.UpdateService - ERROR: {ex.Message}");
+            Console.WriteLine($"EditService.UpdateService - LỖI: {ex.Message}");
             if (ex.InnerException != null)
             {
-                Console.WriteLine($"EditService.UpdateService - Inner Exception: {ex.InnerException.Message}");
+                Console.WriteLine($"EditService.UpdateService - Ngoại lệ bên trong: {ex.InnerException.Message}");
             }
             
-            errorMessage = $"Error updating service: {ex.Message}";
+            errorMessage = $"Lỗi khi cập nhật dịch vụ: {ex.Message}";
             if (ex.InnerException != null)
             {
-                errorMessage += $" - Inner Exception: {ex.InnerException.Message}";
+                errorMessage += $" - Chi tiết: {ex.InnerException.Message}";
             }
         }
-        Console.WriteLine("EditService.UpdateService - Completed");
+        Console.WriteLine("EditService.UpdateService - Đã hoàn thành");
     }
 
     private void Cancel()

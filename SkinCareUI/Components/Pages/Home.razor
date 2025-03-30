@@ -1,7 +1,49 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>SkinCare Spa - Trang Chủ</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="container mx-auto px-4 py-8">
+    <div class="flex flex-col items-center justify-center">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-pink-600 mb-4 animate-fadeIn">Chào mừng đến với SkinCare Spa</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">Hệ thống quản lý dịch vụ spa chuyên nghiệp - nơi làm đẹp và chăm sóc sức khỏe của bạn</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
+            <div class="bg-white rounded-lg shadow-lg p-6 transform transition-all duration-300 hover:scale-105">
+                <div class="text-pink-500 text-3xl mb-4">✨</div>
+                <h2 class="text-xl font-semibold text-gray-800 mb-2">Quản Lý Dịch Vụ</h2>
+                <p class="text-gray-600">Dễ dàng thêm, sửa, xóa và quản lý các dịch vụ spa chuyên nghiệp</p>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-lg p-6 transform transition-all duration-300 hover:scale-105">
+                <div class="text-pink-500 text-3xl mb-4">📋</div>
+                <h2 class="text-xl font-semibold text-gray-800 mb-2">Danh Mục Đa Dạng</h2>
+                <p class="text-gray-600">Phân loại dịch vụ theo nhiều danh mục khác nhau, giúp quản lý hiệu quả</p>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-lg p-6 transform transition-all duration-300 hover:scale-105">
+                <div class="text-pink-500 text-3xl mb-4">💖</div>
+                <h2 class="text-xl font-semibold text-gray-800 mb-2">Trải Nghiệm Khách Hàng</h2>
+                <p class="text-gray-600">Nâng cao trải nghiệm khách hàng với thông tin chi tiết về dịch vụ</p>
+            </div>
+        </div>
+        
+        <div class="mt-12">
+            <a href="staff/services" class="px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-700 text-white font-medium rounded-md shadow-md hover:shadow-lg transition-all duration-300">
+                Bắt đầu ngay
+            </a>
+        </div>
+    </div>
+</div>
 
-Welcome to your new app.
+<style>
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-fadeIn {
+        animation: fadeIn 1s ease-out;
+    }
+</style>
