@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SkinCareDAO;
@@ -11,9 +12,11 @@ using SkinCareDAO;
 namespace SkinCareDAO.Migrations
 {
     [DbContext(typeof(SkinCareDBContext))]
-    partial class SkinCareDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250330034019_FixServiceFK")]
+    partial class FixServiceFK
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -970,7 +973,7 @@ namespace SkinCareDAO.Migrations
             modelBuilder.Entity("SkinCareBussinessObject.AssessmentOption", b =>
                 {
                     b.HasOne("SkinCareBussinessObject.AssessmentQuestion", "AssessmentQuestion")
-                        .WithMany("AssessmentOptions")
+                        .WithMany()
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1289,11 +1292,6 @@ namespace SkinCareDAO.Migrations
                     b.Navigation("Staff");
 
                     b.Navigation("Therapist");
-                });
-
-            modelBuilder.Entity("SkinCareBussinessObject.AssessmentQuestion", b =>
-                {
-                    b.Navigation("AssessmentOptions");
                 });
 #pragma warning restore 612, 618
         }

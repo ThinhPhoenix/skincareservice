@@ -32,11 +32,10 @@ namespace SkinCareRepository
             }
         }
 
-        public bool SignUpStaff(User u, Staff s)
+        public bool SignUpStaff(Staff s)
         {
             try
             {
-                UserDAO.Instance.Add(u);
                 StaffDAO.Instance.Add(s);
                 return true;
             }

@@ -28,7 +28,9 @@ namespace SkinCareBussinessObject
 
         public string Aftercare { get; set; }
 
-        [ForeignKey("CategoryId")]
+        [ForeignKey("ServiceCategory")]
+        public string CategoryId { get; set; }
+
         public virtual ServiceCategory ServiceCategory { get; set; }
 
     }

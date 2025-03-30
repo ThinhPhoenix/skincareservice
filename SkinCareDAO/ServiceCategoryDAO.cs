@@ -10,7 +10,6 @@ namespace SkinCareRepository
 {
     public class ServiceCategoryDAO
     {
-
         private SkinCareDBContext _dbContext;
         private static ServiceCategoryDAO instance;
 
@@ -31,29 +30,47 @@ namespace SkinCareRepository
             }
         }
 
-
         public ServiceCategory GetOne(string id)
         {
-            return _dbContext.ServiceCategories
-                .SingleOrDefault(a => a.Id.Equals(id));
+            if (string.IsNullOrEmpty(id))
+            {
+                return null;
+            }
+
+            return _dbContext.ServiceCategories.SingleOrDefault(a => a.Id.Equals(id));
         }
 
         public List<ServiceCategory> GetAll()
         {
-            return _dbContext.ServiceCategories
-                .ToList();
+            return _dbContext.ServiceCategories.ToList();
         }
 
         public void Add(ServiceCategory a)
         {
-            ServiceCategory cur = GetOne(a.Id);
-            if (cur != null)
+            if (!string.IsNullOrEmpty(a.Id))
             {
-                throw new Exception();
+                ServiceCategory cur = GetOne(a.Id);
+                if (cur != null)
+                {
+                    throw new Exception($"Danh mục dịch vụ với ID {a.Id} đã tồn tại");
+                }
             }
-            a.Id = Guid.NewGuid().ToString();
-            _dbContext.ServiceCategories.Add(a);
-            _dbContext.SaveChanges();
+            else
+            {
+                a.Id = Guid.NewGuid().ToString();
+            }
+            
+            try
+            {
+                Console.WriteLine("Adding category: " + a.CategoryName);
+                _dbContext.ServiceCategories.Add(a);
+                _dbContext.SaveChanges();
+                Console.WriteLine("Category added successfully.");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Lỗi khi thêm danh mục dịch vụ: {ex.Message}", ex);
+            }
         }
 
         public void Update(ServiceCategory a)
@@ -76,7 +93,5 @@ namespace SkinCareRepository
                 _dbContext.SaveChanges(); // Delete the object
             }
         }
-
-
     }
 }

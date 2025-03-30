@@ -1,0 +1,141 @@
+@page "/staff/services/details/{Id}"
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@inject IServiceRepository ServiceRepository
+@inject IServiceCategoryRepository CategoryRepository
+@inject NavigationManager NavigationManager
+
+<h3 class="text-3xl font-bold text-center text-gray-800 mb-6">Chi tiết dịch vụ</h3>
+
+@if (errorMessage != null)
+{
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative text-center mb-4">
+        @errorMessage
+    </div>
+}
+
+@if (isLoading)
+{
+    <div class="text-center">
+        <p><em>Loading...</em></p>
+    </div>
+}
+else if (service == null)
+{
+    <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-lg relative text-center mb-4">
+        Không tìm thấy dịch vụ với ID: @Id
+    </div>
+    <div class="flex justify-center">
+        <button class="bg-gray-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-gray-600 transition text-sm font-medium" @onclick="GoBack">
+            Quay lại
+        </button>
+    </div>
+}
+else
+{
+    <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="p-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold text-gray-800">@service.ServiceName</h2>
+                <span class="px-3 py-1 rounded-full text-sm font-semibold @(service.IsActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800")">
+                    @(service.IsActive ? "Active" : "Inactive")
+                </span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Category</p>
+                    <p class="font-medium">@(service.ServiceCategory?.CategoryName ?? "N/A")</p>
+                </div>
+                
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Price</p>
+                    <p class="font-medium">$@service.Price.ToString("F2")</p>
+                </div>
+                
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Duration</p>
+                    <p class="font-medium">@service.DurationMinutes minutes</p>
+                </div>
+                
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">ID</p>
+                    <p class="font-medium text-gray-500 text-sm">@service.Id</p>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <p class="text-sm text-gray-600 mb-1">Description</p>
+                <p class="text-gray-800">@(string.IsNullOrEmpty(service.Description) ? "No description provided" : service.Description)</p>
+            </div>
+            
+            <div class="mb-6">
+                <p class="text-sm text-gray-600 mb-1">Prerequisites</p>
+                <p class="text-gray-800">@(string.IsNullOrEmpty(service.Prerequisites) ? "None" : service.Prerequisites)</p>
+            </div>
+            
+            <div class="mb-8">
+                <p class="text-sm text-gray-600 mb-1">Aftercare</p>
+                <p class="text-gray-800">@(string.IsNullOrEmpty(service.Aftercare) ? "None" : service.Aftercare)</p>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button class="bg-gray-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-gray-600 transition text-sm font-medium" @onclick="GoBack">
+                    Back to List
+                </button>
+                <button class="bg-blue-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-blue-600 transition text-sm font-medium" @onclick="EditService">
+                    Edit Service
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private Service service;
+    private string errorMessage;
+    private bool isLoading = true;
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        try
+        {
+            // Load service
+            if (!string.IsNullOrEmpty(Id))
+            {
+                service = ServiceRepository.GetOne(Id);
+                
+                // If service is found but category is not loaded
+                if (service != null && service.CategoryId != null && service.ServiceCategory == null)
+                {
+                    service.ServiceCategory = CategoryRepository.GetOne(service.CategoryId);
+                }
+            }
+            
+            isLoading = false;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+            isLoading = false;
+        }
+    }
+
+    private void EditService()
+    {
+        NavigationManager.NavigateTo($"/staff/services/edit/{Id}");
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/staff/services");
+    }
+} 

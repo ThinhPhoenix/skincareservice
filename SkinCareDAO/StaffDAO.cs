@@ -39,19 +39,16 @@ namespace SkinCareDAO
 
         public List<Staff> GetAll()
         {
-            return _dbContext.Staffs
-                .ToList();
+            return _dbContext.Staffs.ToList();
         }
 
         public void Add(Staff a)
         {
-            Staff cur = GetOne(a.Id);
-            if (cur != null)
-            {
-                throw new Exception();
-            }
-            a.Id = Guid.NewGuid().ToString();
-            _dbContext.Staffs.Add(a);
+            
+
+                _dbContext.Staffs.Add(a);
+            
+            
             _dbContext.SaveChanges();
         }
 

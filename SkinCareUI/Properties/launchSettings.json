@@ -10,7 +10,7 @@
     },
     "profiles": {
         "http": {
-          "launchUrl": "signin",
+          "launchUrl": "",
             "commandName": "Project",
             "dotnetRunMessages": true,
             "launchBrowser": true,

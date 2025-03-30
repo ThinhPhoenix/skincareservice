@@ -9,7 +9,7 @@ using SkinCareDAO;
 
 namespace SkinCareRepository
 {
-    public class StaffRepository
+    public class StaffRepository : IStaffRepository
     {
         public Staff GetOne(string id)
             => StaffDAO.Instance.GetOne(id);

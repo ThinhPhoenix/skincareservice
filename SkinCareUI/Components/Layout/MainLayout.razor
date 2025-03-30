@@ -1,13 +1,15 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
+<div class="page bg-gradient-to-b from-pink-100 to-white min-h-screen">
     <div class="sidebar">
         <NavMenu />
     </div>
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <a href="/" class="mr-4 font-medium text-pink-600 hover:text-pink-800 transition-colors">Trang Chủ</a>
+            <a href="/staff/services" class="mr-4 font-medium text-pink-600 hover:text-pink-800 transition-colors">Dịch Vụ</a>
+            <a href="/staff/categories" class="font-medium text-pink-600 hover:text-pink-800 transition-colors">Danh Mục</a>
         </div>
 
         <article class="content px-4">
@@ -17,7 +19,7 @@
 </div>
 
 <div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
+    Đã xảy ra lỗi không xử lý được.
+    <a href="" class="reload">Tải lại</a>
     <a class="dismiss">🗙</a>
 </div>

@@ -22,7 +22,7 @@ namespace SkinCareRepository
 
         public User? GetUserByEmail(string email);
 
-
+        public bool SignUpStaff(Staff s);
         public void Add(User a);
 
         public void Update(User a);
