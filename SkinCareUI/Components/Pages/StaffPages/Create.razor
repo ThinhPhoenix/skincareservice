@@ -1,0 +1,140 @@
+﻿@page "/staff/create"
+@using Microsoft.EntityFrameworkCore
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@using SkinCareDAO.Utils
+@using System.ComponentModel.DataAnnotations
+@inject IUserRepository UserRepository
+@inject IStaffRepository StaffRepository
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create Staff</PageTitle>
+
+<h1>Create Staff</h1>
+
+<h2>New Staff Member</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm Model="staffData" OnValidSubmit="CreateStaff" FormName="create">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email:</label> 
+                <InputText id="email" @bind-Value="staffData.Email" class="form-control" aria-required="true"/> 
+                <ValidationMessage For="() => staffData.Email" class="text-danger" /> 
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password:</label> 
+                <InputText id="password" type="password" @bind-Value="staffData.Password" class="form-control" aria-required="true"/> 
+                <ValidationMessage For="() => staffData.Password" class="text-danger" /> 
+            </div>
+
+            <div class="mb-3">
+                <label for="firstname" class="form-label">First Name:</label> 
+                <InputText id="firstname" @bind-Value="staffData.FirstName" class="form-control" aria-required="true"/> 
+                <ValidationMessage For="() => staffData.FirstName" class="text-danger" /> 
+            </div>        
+
+            <div class="mb-3">
+                <label for="lastname" class="form-label">Last Name:</label> 
+                <InputText id="lastname" @bind-Value="staffData.LastName" class="form-control" aria-required="true"/> 
+                <ValidationMessage For="() => staffData.LastName" class="text-danger" /> 
+            </div>        
+
+            <div class="mb-3">
+                <label for="role" class="form-label">Role:</label> 
+                <InputText id="role" @bind-Value="staffData.Role" class="form-control" aria-required="true"/> 
+                <ValidationMessage For="() => staffData.Role" class="text-danger" /> 
+            </div>        
+
+            <div class="mb-3">
+                <label for="hiredate" class="form-label">Hire Date:</label> 
+                <InputDate id="hiredate" @bind-Value="staffData.HireDate" class="form-control" aria-required="true"/> 
+                <ValidationMessage For="() => staffData.HireDate" class="text-danger" /> 
+            </div>        
+
+            <div class="mb-3">
+                <label for="ismanager" class="form-label">Is Manager:</label> 
+                <InputCheckbox id="ismanager" @bind-Value="staffData.IsManager" class="form-check-input" aria-required="true"/> 
+                <ValidationMessage For="() => staffData.IsManager" class="text-danger" /> 
+            </div>        
+
+            <button type="submit" class="btn btn-primary">Create</button>
+            <a href="/staff" class="btn btn-secondary">Back to List</a>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private StaffCreateModel staffData = new StaffCreateModel();
+
+    private async Task CreateStaff()
+    {
+        try {
+            // Create user account
+            var user = new SkinCareBussinessObject.User
+            {
+                Email = staffData.Email,
+                Password = staffData.Password,
+                Role = "Staff",
+                Status = "Active",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            UserRepository.Add(user);
+
+            var curUser = UserRepository.GetUserByEmail(staffData.Email);
+
+
+            // Create staff record
+            var staff = new SkinCareBussinessObject.Staff
+            {
+                    Id = Guid.NewGuid().ToString(),
+                UserId = curUser.Id,
+                FirstName = staffData.FirstName,
+                LastName = staffData.LastName,
+                Role = staffData.Role,
+                HireDate = DateTime.SpecifyKind(staffData.HireDate, DateTimeKind.Utc),
+                IsManager = staffData.IsManager
+            };
+            StaffRepository.Add(staff);
+
+           
+                NavigationManager.NavigateTo("/staff");
+
+        
+        }
+        catch (Exception ex) {
+            // Handle exception
+            Console.WriteLine($"Error creating staff: {ex.Message}");
+        }
+    }
+
+    public class StaffCreateModel
+    {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password is required")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters long")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "First name is required")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last name is required")]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Role is required")]
+        public string Role { get; set; } = "Staff";
+
+        [Required(ErrorMessage = "Hire date is required")]
+        public DateTime HireDate { get; set; } = DateTime.Today;
+
+        public bool IsManager { get; set; } = false;
+    }
+}

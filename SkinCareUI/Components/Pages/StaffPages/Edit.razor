@@ -1,0 +1,77 @@
+﻿@page "/staff/edit"
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@inject IStaffRepository StaffRepository
+@inject NavigationManager NavigationManager
+
+<h1>Edit Staff</h1>
+
+@if (staff == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <EditForm Model="@staff" OnValidSubmit="UpdateStaff">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label>First Name:</label>
+            <InputText @bind-Value="staff.FirstName" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Last Name:</label>
+            <InputText @bind-Value="staff.LastName" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Role:</label>
+            <InputText @bind-Value="staff.Role" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Hire Date:</label>
+            <InputDate @bind-Value="staff.HireDate" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Is Manager:</label>
+            <InputCheckbox @bind-Value="staff.IsManager" />
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">Save</button>
+        <a href="/staff" class="btn btn-secondary mt-3 ml-2">Back to List</a>
+    </EditForm>
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    private Staff? staff;
+
+    protected override void OnInitialized()
+    {
+        staff = StaffRepository.GetOne(Id);
+
+        if (staff is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private void UpdateStaff()
+    {
+        try
+        {
+            // Ensure UTC date for PostgreSQL
+            staff.HireDate = DateTime.SpecifyKind(staff.HireDate, DateTimeKind.Utc);
+
+            // Update staff using repository
+            StaffRepository.Update(staff);
+            NavigationManager.NavigateTo("/staff");
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+}
