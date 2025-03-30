@@ -18,5 +18,7 @@ namespace SkinCareRepository
         public void Update(Service a);
 
         public void Delete(string id);
+
+        public List<Service> Search(string keyword);
     }
 }
