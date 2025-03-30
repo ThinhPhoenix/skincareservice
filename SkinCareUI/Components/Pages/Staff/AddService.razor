@@ -69,6 +69,20 @@
     {
         try
         {
+            // Khởi tạo dịch vụ mới với giá trị mặc định
+            newService = new Service
+            {
+                Id = null,
+                ServiceName = "",
+                Description = "",
+                Price = 0, // Giá trị mặc định
+                DurationMinutes = 0, // Giá trị mặc định
+                IsActive = true, // Mặc định là active
+                CategoryId = "",
+                ServiceCategory = null
+            };
+            
+            // Lấy danh sách danh mục
             categoryList = CategoryRepository.GetAll();
         }
         catch (Exception ex)
@@ -81,15 +95,62 @@
     {
         try
         {
-            ServiceRepository.Add(newService);
+            // Validate input
+            if (string.IsNullOrWhiteSpace(newService.ServiceName))
+            {
+                errorMessage = "Tên dịch vụ không được để trống";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(newService.CategoryId))
+            {
+                errorMessage = "Vui lòng chọn danh mục";
+                return;
+            }
+
+            if (newService.Price <= 0)
+            {
+                errorMessage = "Giá dịch vụ phải lớn hơn 0";
+                return;
+            }
+
+            if (newService.DurationMinutes <= 0)
+            {
+                errorMessage = "Thời gian dịch vụ phải lớn hơn 0 phút";
+                return;
+            }
+
+            // Tạo mới một đối tượng Service, thay vì sử dụng đối tượng ràng buộc dữ liệu
+            Service serviceToAdd = new Service
+            {
+                ServiceName = newService.ServiceName.Trim(),
+                Description = newService.Description?.Trim() ?? string.Empty,
+                Price = newService.Price,
+                DurationMinutes = newService.DurationMinutes,
+                IsActive = newService.IsActive,
+                CategoryId = newService.CategoryId.Trim(),
+                Prerequisites = newService.Prerequisites?.Trim() ?? string.Empty,
+                Aftercare = newService.Aftercare?.Trim() ?? string.Empty
+            };
+
+            // Debug thông tin
+            Console.WriteLine($"Debug - Adding service with CategoryId: {serviceToAdd.CategoryId}");
+            
+            // Save
+            ServiceRepository.Add(serviceToAdd);
             NavigationManager.NavigateTo("/staff/services");
         }
         catch (Exception ex)
         {
             errorMessage = $"Error saving service: {ex.Message}";
+            
             if (ex.InnerException != null)
             {
                 errorMessage += $" - Inner Exception: {ex.InnerException.Message}";
+                
+                // Debug thêm thông tin chi tiết
+                Console.WriteLine($"Error Details: {ex}");
+                Console.WriteLine($"Inner Exception Details: {ex.InnerException}");
             }
         }
     }

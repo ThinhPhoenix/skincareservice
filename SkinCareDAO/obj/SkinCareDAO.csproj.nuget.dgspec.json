@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Study\\Spring 2025\\PRN222\\Project\\PRN222-SkinCare\\SkinCareDAO\\SkinCareDAO.csproj": {}
+    "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareDAO\\SkinCareDAO.csproj": {}
   },
   "projects": {
-    "D:\\Study\\Spring 2025\\PRN222\\Project\\PRN222-SkinCare\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj": {
+    "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Study\\Spring 2025\\PRN222\\Project\\PRN222-SkinCare\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj",
+        "projectUniqueName": "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj",
         "projectName": "SkinCareBussinessObject",
-        "projectPath": "D:\\Study\\Spring 2025\\PRN222\\Project\\PRN222-SkinCare\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj",
-        "packagesPath": "C:\\Users\\nhanv\\.nuget\\packages\\",
-        "outputPath": "D:\\Study\\Spring 2025\\PRN222\\Project\\PRN222-SkinCare\\SkinCareBussinessObject\\obj\\",
+        "projectPath": "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj",
+        "packagesPath": "C:\\Users\\2004d\\.nuget\\packages\\",
+        "outputPath": "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareBussinessObject\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\nhanv\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\2004d\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -43,8 +43,7 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.100"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -87,24 +86,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\Study\\Spring 2025\\PRN222\\Project\\PRN222-SkinCare\\SkinCareDAO\\SkinCareDAO.csproj": {
+    "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareDAO\\SkinCareDAO.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Study\\Spring 2025\\PRN222\\Project\\PRN222-SkinCare\\SkinCareDAO\\SkinCareDAO.csproj",
+        "projectUniqueName": "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareDAO\\SkinCareDAO.csproj",
         "projectName": "SkinCareDAO",
-        "projectPath": "D:\\Study\\Spring 2025\\PRN222\\Project\\PRN222-SkinCare\\SkinCareDAO\\SkinCareDAO.csproj",
-        "packagesPath": "C:\\Users\\nhanv\\.nuget\\packages\\",
-        "outputPath": "D:\\Study\\Spring 2025\\PRN222\\Project\\PRN222-SkinCare\\SkinCareDAO\\obj\\",
+        "projectPath": "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareDAO\\SkinCareDAO.csproj",
+        "packagesPath": "C:\\Users\\2004d\\.nuget\\packages\\",
+        "outputPath": "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareDAO\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\nhanv\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\2004d\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -119,8 +118,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\Study\\Spring 2025\\PRN222\\Project\\PRN222-SkinCare\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj": {
-                "projectPath": "D:\\Study\\Spring 2025\\PRN222\\Project\\PRN222-SkinCare\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj"
+              "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj": {
+                "projectPath": "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj"
               }
             }
           }
@@ -134,8 +133,7 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.100"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -190,7 +188,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

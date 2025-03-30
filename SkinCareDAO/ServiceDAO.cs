@@ -44,14 +44,47 @@ namespace SkinCareDAO
 
         public void Add(Service a)
         {
-            Service cur = GetOne(a.Id);
-            if (cur != null)
+            try
             {
-                throw new Exception();
+                a.ServiceCategory = null;
+                
+                // Tạo ID mới nếu chưa có
+                if (string.IsNullOrEmpty(a.Id))
+                {
+                    a.Id = Guid.NewGuid().ToString();
+                }
+                else
+                {
+                    Service cur = GetOne(a.Id);
+                    if (cur != null)
+                    {
+                        throw new Exception("Service with this ID already exists");
+                    }
+                }
+                
+                // Kiểm tra xem CategoryId có tồn tại trong database không
+                if (!string.IsNullOrEmpty(a.CategoryId))
+                {
+                    var category = _dbContext.ServiceCategories.Find(a.CategoryId);
+                    if (category == null)
+                    {
+                        throw new Exception($"Category with ID {a.CategoryId} does not exist");
+                    }
+                }
+
+                _dbContext.Services.Add(a);
+                                _dbContext.SaveChanges();
+                Console.WriteLine("ServiceDAO.Add - Successfully saved service");
             }
-            a.Id = Guid.NewGuid().ToString();
-            _dbContext.Services.Add(a);
-            _dbContext.SaveChanges();
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+            {
+                throw new Exception("Database error while adding service", dbEx);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ServiceDAO.Add - General exception: {ex.Message}");
+                throw;
+            }
         }
 
         public void Update(Service a)

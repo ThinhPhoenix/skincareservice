@@ -34,6 +34,11 @@ namespace SkinCareRepository
 
         public ServiceCategory GetOne(string id)
         {
+            if (string.IsNullOrEmpty(id))
+            {
+                return null;
+            }
+
             return _dbContext.ServiceCategories
                 .SingleOrDefault(a => a.Id.Equals(id));
         }
@@ -46,14 +51,28 @@ namespace SkinCareRepository
 
         public void Add(ServiceCategory a)
         {
-            ServiceCategory cur = GetOne(a.Id);
-            if (cur != null)
+            if (!string.IsNullOrEmpty(a.Id))
             {
-                throw new Exception();
+                ServiceCategory cur = GetOne(a.Id);
+                if (cur != null)
+                {
+                    throw new Exception($"Danh mục dịch vụ với ID {a.Id} đã tồn tại");
+                }
             }
-            a.Id = Guid.NewGuid().ToString();
-            _dbContext.ServiceCategories.Add(a);
-            _dbContext.SaveChanges();
+            else
+            {
+                a.Id = Guid.NewGuid().ToString();
+            }
+            
+            try
+            {
+                _dbContext.ServiceCategories.Add(a);
+                _dbContext.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Lỗi khi thêm danh mục dịch vụ: {ex.Message}", ex);
+            }
         }
 
         public void Update(ServiceCategory a)
