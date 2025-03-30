@@ -2,48 +2,271 @@
 
 <PageTitle>SkinCare Spa - Trang Chủ</PageTitle>
 
-<div class="container mx-auto px-4 py-8">
-    <div class="flex flex-col items-center justify-center">
-        <div class="text-center mb-12">
-            <h1 class="text-4xl md:text-5xl font-bold text-pink-600 mb-4 animate-fadeIn">Chào mừng đến với SkinCare Spa</h1>
-            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">Hệ thống quản lý dịch vụ spa chuyên nghiệp - nơi làm đẹp và chăm sóc sức khỏe của bạn</p>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
-            <div class="bg-white rounded-lg shadow-lg p-6 transform transition-all duration-300 hover:scale-105">
-                <div class="text-pink-500 text-3xl mb-4">✨</div>
-                <h2 class="text-xl font-semibold text-gray-800 mb-2">Quản Lý Dịch Vụ</h2>
-                <p class="text-gray-600">Dễ dàng thêm, sửa, xóa và quản lý các dịch vụ spa chuyên nghiệp</p>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow-lg p-6 transform transition-all duration-300 hover:scale-105">
-                <div class="text-pink-500 text-3xl mb-4">📋</div>
-                <h2 class="text-xl font-semibold text-gray-800 mb-2">Danh Mục Đa Dạng</h2>
-                <p class="text-gray-600">Phân loại dịch vụ theo nhiều danh mục khác nhau, giúp quản lý hiệu quả</p>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow-lg p-6 transform transition-all duration-300 hover:scale-105">
-                <div class="text-pink-500 text-3xl mb-4">💖</div>
-                <h2 class="text-xl font-semibold text-gray-800 mb-2">Trải Nghiệm Khách Hàng</h2>
-                <p class="text-gray-600">Nâng cao trải nghiệm khách hàng với thông tin chi tiết về dịch vụ</p>
+<div class="min-h-screen overflow-hidden">
+    <!-- Hero Section -->
+    <header class="relative bg-gradient-to-r from-pink-500 to-purple-600 text-white overflow-hidden">
+        <div class="container mx-auto px-4 py-16 md:py-28 relative z-10">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-8 container mx-auto">
+                <div class="md:w-1/2 animate-fadeIn text-center md:text-left">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-white">Chăm Sóc Làn Da <br class="hidden md:block" /><span class="text-yellow-300">Của Bạn</span></h1>
+                    <p class="text-lg md:text-xl opacity-90 mb-6 max-w-xl text-white">Khám phá bí quyết chăm sóc da hoàn hảo tại SkinCare Spa với các dịch vụ chuyên nghiệp và sản phẩm cao cấp</p>
+                    <div class="flex flex-col sm:flex-row justify-center md:justify-start gap-4 mt-8">
+                        <a href="staff/services" class="px-8 py-3 bg-pink-200 text-pink-800 hover:bg-pink-300 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                            Dịch Vụ Của Chúng Tôi
+                        </a>
+                        <a href="#services" class="px-8 py-3 bg-transparent border-2 border-pink-200 rounded-full font-semibold text-white hover:bg-pink-200 hover:text-white transform hover:-translate-y-1 transition-all duration-300">
+                            Tìm Hiểu Thêm
+                        </a>
+                    </div>
+                </div>
+                <div class="md:w-1/2 relative animate-float mt-8 md:mt-0">
+                    <img src="https://img.freepik.com/free-photo/beautiful-woman-having-cosmetic-mask-spa_329181-1936.jpg" alt="Skincare Treatment" class="rounded-xl shadow-2xl" />
+                    <div class="absolute -bottom-6 -left-6 w-24 h-24 md:w-32 md:h-32 bg-yellow-400 rounded-full opacity-30 z-0 animate-pulse"></div>
+                    <div class="absolute -top-6 -right-6 w-32 h-32 md:w-40 md:h-40 bg-purple-500 rounded-full opacity-20 z-0 animate-pulse animation-delay-700"></div>
+                </div>
             </div>
         </div>
-        
-        <div class="mt-12">
-            <a href="staff/services" class="px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-700 text-white font-medium rounded-md shadow-md hover:shadow-lg transition-all duration-300">
-                Bắt đầu ngay
+    </header>
+
+    <!-- Các Bước Làm Đẹp Section -->
+    <section id="steps" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">QUY TRÌNH CHĂM SÓC DA</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Khám phá quy trình chăm sóc da chuyên nghiệp từ các chuyên gia của chúng tôi</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center px-4 py-6 scroll-reveal delay-200">
+                    <div class="step-circle flex items-center justify-center h-20 w-20 mx-auto rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white text-2xl font-bold mb-4 transform transition-transform hover:scale-110">01</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Tư Vấn</h3>
+                    <p class="text-gray-600">Đội ngũ chuyên gia sẽ phân tích làn da và tư vấn dịch vụ phù hợp</p>
+                </div>
+                <div class="text-center px-4 py-6 scroll-reveal delay-400">
+                    <div class="step-circle flex items-center justify-center h-20 w-20 mx-auto rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white text-2xl font-bold mb-4 transform transition-transform hover:scale-110">02</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Điều Trị</h3>
+                    <p class="text-gray-600">Sử dụng các công nghệ và sản phẩm hiện đại để chăm sóc làn da của bạn</p>
+                </div>
+                <div class="text-center px-4 py-6 scroll-reveal delay-600">
+                    <div class="step-circle flex items-center justify-center h-20 w-20 mx-auto rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white text-2xl font-bold mb-4 transform transition-transform hover:scale-110">03</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Chăm Sóc Sau</h3>
+                    <p class="text-gray-600">Hướng dẫn chi tiết về cách chăm sóc da tại nhà để duy trì kết quả</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dịch Vụ Nổi Bật Section -->
+    <section id="services" class="py-16 bg-pink-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">DỊCH VỤ NỔI BẬT</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Khám phá các dịch vụ chất lượng cao của chúng tôi được thiết kế riêng cho từng loại da</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 scroll-reveal delay-200">
+                    <img src="https://img.freepik.com/free-photo/close-up-young-attractive-woman-getting-facial-care-treatment-spa-beauty-salon_343596-4254.jpg" alt="Facial Treatment" class="w-full h-64 object-cover object-center"/>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Mát-xa Mặt Trị Liệu</h3>
+                        <p class="text-gray-600 mb-4">Tái tạo làn da với phương pháp mát-xa truyền thống kết hợp hiện đại</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-pink-600 font-bold text-xl">800.000₫</span>
+                            <span class="text-gray-500 text-sm">45 phút</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 scroll-reveal delay-400">
+                    <img src="https://img.freepik.com/free-photo/beauty-treatment-face-spa-salon_1303-2748.jpg" alt="Hydrafacial" class="w-full h-64 object-cover object-center"/>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Hydrafacial Cao Cấp</h3>
+                        <p class="text-gray-600 mb-4">Làm sạch sâu, tẩy tế bào chết và cung cấp độ ẩm cho làn da</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-pink-600 font-bold text-xl">1.200.000₫</span>
+                            <span class="text-gray-500 text-sm">60 phút</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 scroll-reveal delay-600">
+                    <img src="https://img.freepik.com/free-photo/young-woman-having-mask-her-face_186202-6112.jpg" alt="Mask Treatment" class="w-full h-64 object-cover object-center"/>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Mặt Nạ Collagen</h3>
+                        <p class="text-gray-600 mb-4">Cải thiện độ đàn hồi và làm trẻ hóa làn da với collagen tự nhiên</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-pink-600 font-bold text-xl">950.000₫</span>
+                            <span class="text-gray-500 text-sm">50 phút</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-12 scroll-reveal">
+                <a href="staff/services" class="px-8 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 inline-block">
+                    XEM THÊM DỊCH VỤ
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ưu Đãi Đặc Biệt Section -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="bg-gradient-to-r from-pink-100 to-purple-100 rounded-2xl overflow-hidden shadow-xl">
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="md:w-1/2 p-8 md:p-12 scroll-reveal">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">Ưu Đãi Đặc Biệt</h2>
+                        <p class="text-gray-600 mb-6">Đăng ký thành viên để nhận ưu đãi 20% cho lần đầu sử dụng dịch vụ và nhiều quà tặng hấp dẫn khác</p>
+                        <button class="px-8 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                            NHẬN ƯU ĐÃI NGAY
+                        </button>
+                    </div>
+                    <div class="md:w-1/2 p-4 scroll-reveal delay-300">
+                        <img src="https://img.freepik.com/free-photo/face-cream-pink-background-beauty-product-packaging-with-copy-space_53876-129739.jpg" alt="Special Offer" class="rounded-xl hover:scale-105 transition-transform duration-500" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Đánh Giá Khách Hàng Section -->
+    <section class="py-16 bg-pink-50 relative">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">ĐÁNH GIÁ TỪ KHÁCH HÀNG</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Khám phá những gì khách hàng của chúng tôi nói về trải nghiệm tại SkinCare Spa</p>
+            </div>
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl p-8 shadow-xl relative scroll-reveal">
+                    <div class="text-pink-500 text-6xl absolute -top-6 left-10">"</div>
+                    <div class="relative z-10">
+                        <p class="text-lg text-gray-600 italic mb-6">Tôi đã thử rất nhiều dịch vụ spa, nhưng SkinCare Spa thực sự nổi bật với dịch vụ chăm sóc cá nhân và kiến thức chuyên sâu. Làn da của tôi chưa bao giờ trông rạng rỡ đến vậy!</p>
+                        <div class="flex items-center">
+                            <img src="https://randomuser.me/api/portraits/women/45.jpg" alt="Customer" class="w-14 h-14 rounded-full object-cover mr-4"/>
+                            <div>
+                                <h4 class="font-bold text-gray-800">Nguyễn Thị Hương</h4>
+                                <p class="text-gray-500 text-sm">Khách hàng thân thiết</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-center mt-8 space-x-2 scroll-reveal">
+                    <span class="h-3 w-3 rounded-full bg-pink-500"></span>
+                    <span class="h-3 w-3 rounded-full bg-pink-200"></span>
+                    <span class="h-3 w-3 rounded-full bg-pink-200"></span>
+                    <span class="h-3 w-3 rounded-full bg-pink-200"></span>
+                </div>
+            </div>
+        </div>
+        <div class="absolute top-10 left-10 w-20 h-20 rounded-full bg-pink-300 opacity-20 animate-float"></div>
+        <div class="absolute bottom-10 right-10 w-32 h-32 rounded-full bg-purple-300 opacity-20 animate-float animation-delay-1000"></div>
+    </section>
+
+    <!-- App Features Section -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">TIỆN ÍCH CỦA ỨNG DỤNG</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Khám phá các tính năng hữu ích mà ứng dụng SkinCare Spa mang lại</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="flex flex-col items-center text-center scroll-reveal delay-200">
+                    <div class="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mb-4 text-pink-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Quản Lý Dịch Vụ</h3>
+                    <p class="text-gray-600">Dễ dàng thêm, sửa, xóa và quản lý các dịch vụ spa với đầy đủ thông tin</p>
+                </div>
+                <div class="flex flex-col items-center text-center scroll-reveal delay-400">
+                    <div class="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mb-4 text-pink-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Phân Loại Danh Mục</h3>
+                    <p class="text-gray-600">Tổ chức dịch vụ theo nhiều danh mục, giúp khách hàng dễ dàng tìm kiếm</p>
+                </div>
+                <div class="flex flex-col items-center text-center scroll-reveal delay-600">
+                    <div class="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mb-4 text-pink-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Tối Ưu Trải Nghiệm</h3>
+                    <p class="text-gray-600">Cung cấp thông tin chi tiết về yêu cầu trước và hướng dẫn chăm sóc sau</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Liên Hệ Với Chúng Tôi Section -->
+    <section class="py-16 bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-8 scroll-reveal">Bắt Đầu Hành Trình Làm Đẹp Ngay</h2>
+            <p class="text-xl max-w-2xl mx-auto mb-10 opacity-90 scroll-reveal delay-200">Trải nghiệm dịch vụ chăm sóc da tốt nhất tại SkinCare Spa. Đội ngũ chuyên gia của chúng tôi sẵn sàng phục vụ bạn</p>
+            <a href="staff/services" class="px-8 py-3 bg-white text-pink-600 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 inline-block scroll-reveal delay-400">
+                KHÁM PHÁ NGAY
             </a>
         </div>
-    </div>
+    </section>
 </div>
 
+<script src="https://unpkg.com/scrollreveal"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const sr = ScrollReveal({
+            origin: 'bottom',
+            distance: '30px',
+            duration: 1000,
+            reset: true,
+            delay: 200
+        });
+
+        sr.reveal('.scroll-reveal', { 
+            interval: 100
+        });
+    });
+</script>
+
 <style>
-    @@keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
     .animate-fadeIn {
-        animation: fadeIn 1s ease-out;
+        animation: fadeIn 1.5s ease-out forwards;
+    }
+
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .animation-delay-700 {
+        animation-delay: 700ms;
+    }
+
+    .animation-delay-1000 {
+        animation-delay: 1000ms;
+    }
+
+    .delay-200 {
+        animation-delay: 200ms;
+    }
+
+    .delay-300 {
+        animation-delay: 300ms;
+    }
+
+    .delay-400 {
+        animation-delay: 400ms;
+    }
+
+    .delay-600 {
+        animation-delay: 600ms;
+    }
+
+    @@keyframes fadeIn {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+        100% { transform: translateY(0px); }
     }
 </style>
