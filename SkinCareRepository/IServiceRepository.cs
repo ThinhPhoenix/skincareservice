@@ -11,9 +11,8 @@ namespace SkinCareRepository
 {
     public interface IServiceRepository
     {
-        public Service? GetOne(string id);
-
-        public List<Service> GetAll();
+        Task<List<Service>> GetAllAsync();
+        Task<Service> GetOneAsync(string id);
 
         public void Add(Service a);
 

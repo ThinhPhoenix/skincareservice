@@ -11,14 +11,16 @@ namespace SkinCareRepository
 {
     public class ServiceRepository : IServiceRepository
     {
-        public Service? GetOne(string id)
+        public Task<List<Service>> GetAllAsync()
         {
-            return ServiceDAO.Instance.GetOne(id);
+            var result = ServiceDAO.Instance.GetAll();
+            return Task.FromResult(result);
         }
 
-        public List<Service> GetAll()
+        public Task<Service> GetOneAsync(string id)
         {
-            return ServiceDAO.Instance.GetAll();
+            var result = ServiceDAO.Instance.GetOne(id);
+            return Task.FromResult(result);
         }
 
         public void Add(Service a)
