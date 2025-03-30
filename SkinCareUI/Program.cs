@@ -33,6 +33,8 @@ builder.Services.AddHttpContextAccessor();
 // Your repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
+
 builder.Services.AddScoped<ITherapistRepository, TherapistRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<ITherapistExpertiseRepository, TherapistExpertiseRepository>();
