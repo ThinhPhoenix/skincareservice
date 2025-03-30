@@ -1,15 +1,17 @@
 ﻿@page "/staff/services"
 @using SkinCareBussinessObject
 @using SkinCareRepository
+@using System.Linq
 @inject IServiceRepository ServiceRepository
 @inject IServiceCategoryRepository CategoryRepository
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <h3 class="text-2xl font-semibold text-center mb-6">Skin Care Services</h3>
 
 @if (errorMessage != null)
 {
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-center">
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-center mb-4">
         @errorMessage
     </div>
 }
@@ -23,6 +25,24 @@
 else
 {
     <div class="flex justify-between items-center mb-6">
+        <div class="flex space-x-4 items-center">
+            <div class="relative">
+                <input type="text" class="pl-10 pr-4 py-2 border rounded-md focus:ring-primary focus:border-primary" 
+                       placeholder="Tìm kiếm dịch vụ..." @bind="searchKeyword" @bind:event="oninput" @onkeyup="HandleSearchKeyUp" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <button class="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-600 transition"
+                    @onclick="SearchServices">
+                Tìm kiếm
+            </button>
+            <button class="bg-gray-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-gray-600 transition"
+                    @onclick="ResetSearch">
+                Reset
+            </button>
+        </div>
+
         <button class="bg-primary text-white px-4 py-2 rounded-md shadow-md hover:bg-primary/80 transition" @onclick="AddNewService">
             + Add New Service
         </button>
@@ -42,7 +62,7 @@ else
                 </tr>
             </thead>
             <tbody class="divide-y">
-                @foreach (var service in serviceList)
+                @foreach (var service in displayedServices ?? Enumerable.Empty<Service>())
                 {
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">@service.ServiceName</td>
@@ -67,19 +87,97 @@ else
             </tbody>
         </table>
     </div>
+
+    @if (displayedServices?.Any() != true)
+    {
+        <div class="text-center my-8 text-gray-500">
+            <p>Không tìm thấy dịch vụ nào phù hợp.</p>
+        </div>
+    }
 }
 
 @code {
-    private List<Service> serviceList;
-    private string errorMessage;
+    private List<Service>? serviceList;
+    private List<Service>? displayedServices;
+    private string searchKeyword = "";
+    private string? errorMessage;
+    private System.Threading.Timer? searchTimer;
 
     protected override void OnInitialized()
     {
         try
         {
-            serviceList = ServiceRepository.GetAll();
+            LoadServices();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading services: {ex.Message}";
+        }
+    }
 
-            foreach (var service in serviceList)
+    protected override void OnParametersSet()
+    {
+        try
+        {
+            LoadServices();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading services: {ex.Message}";
+        }
+    }
+
+    private void LoadServices()
+    {
+        serviceList = ServiceRepository.GetAll();
+        displayedServices = serviceList;
+
+        foreach (var service in serviceList ?? Enumerable.Empty<Service>())
+        {
+            if (service.CategoryId != null && service.ServiceCategory == null)
+            {
+                service.ServiceCategory = CategoryRepository.GetOne(service.CategoryId);
+            }
+        }
+    }
+
+    private async Task DeleteService(string id)
+    {
+        try
+        {
+            var confirmDelete = await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn xóa dịch vụ này?");
+            if (!confirmDelete)
+            {
+                return;
+            }
+
+            ServiceRepository.Delete(id);
+            serviceList?.RemoveAll(s => s.Id == id);
+            displayedServices = new List<Service>(displayedServices?.Where(s => s.Id != id) ?? Enumerable.Empty<Service>());
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting service: {ex.Message}";
+        }
+    }
+
+    private void SearchServices()
+    {
+        try
+        {
+            errorMessage = null;
+            
+            if (string.IsNullOrWhiteSpace(searchKeyword))
+            {
+                displayedServices = serviceList;
+                return;
+            }
+
+            displayedServices = ServiceRepository.Search(searchKeyword);
+            
+            // Cập nhật thông tin danh mục
+            foreach (var service in displayedServices ?? Enumerable.Empty<Service>())
             {
                 if (service.CategoryId != null && service.ServiceCategory == null)
                 {
@@ -89,22 +187,37 @@ else
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error loading services: {ex.Message}";
+            errorMessage = $"Error searching services: {ex.Message}";
         }
     }
 
-    private void DeleteService(string id)
+    private void HandleSearchKeyUp(KeyboardEventArgs args)
     {
-        try
+        if (args.Key == "Enter")
         {
-            ServiceRepository.Delete(id);
-            serviceList.RemoveAll(s => s.Id == id);
-            StateHasChanged();
+            SearchServices();
         }
-        catch (Exception ex)
+        
+        // Debounce search
+        searchTimer?.Dispose();
+        searchTimer = new System.Threading.Timer(_ =>
         {
-            errorMessage = $"Error deleting service: {ex.Message}";
-        }
+            InvokeAsync(() =>
+            {
+                if (searchKeyword.Length >= 2)
+                {
+                    SearchServices();
+                    StateHasChanged();
+                }
+            });
+        }, null, 500, Timeout.Infinite);
+    }
+
+    private void ResetSearch()
+    {
+        searchKeyword = "";
+        displayedServices = serviceList;
+        errorMessage = null;
     }
 
     private void AddNewService()
