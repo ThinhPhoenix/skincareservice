@@ -1,28 +1,39 @@
 ﻿@page "/Error"
 @using System.Diagnostics
 
-<PageTitle>Error</PageTitle>
+<PageTitle>Lỗi - SkinCare Spa</PageTitle>
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
-
-@if (ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@RequestId</code>
-    </p>
-}
-
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+<div class="container mx-auto px-4 py-10">
+    <div class="max-w-lg mx-auto bg-white rounded-lg shadow-lg p-8">
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-pink-600 mb-4">Đã xảy ra lỗi</h1>
+            <div class="text-6xl mb-6">😕</div>
+            <p class="text-gray-600 mb-6">Đã có lỗi xảy ra trong quá trình xử lý yêu cầu của bạn.</p>
+            
+            @if (ShowRequestId)
+            {
+                <div class="bg-gray-100 p-4 rounded-md mb-6">
+                    <p class="text-sm">
+                        <strong>Mã yêu cầu:</strong> <code class="bg-gray-200 px-2 py-1 rounded">@RequestId</code>
+                    </p>
+                </div>
+            }
+            
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Chế độ phát triển</h3>
+            <p class="text-gray-600 mb-4">
+                Chuyển sang môi trường <strong>Development</strong> sẽ hiển thị thông tin chi tiết hơn về lỗi đã xảy ra.
+            </p>
+            <p class="text-sm text-gray-500 mb-6">
+                <strong>Chú ý:</strong> Không nên bật môi trường Development cho ứng dụng đã triển khai.
+                Điều này có thể dẫn đến việc hiển thị thông tin nhạy cảm từ các ngoại lệ cho người dùng cuối.
+            </p>
+            
+            <a href="/" class="inline-block px-6 py-2 bg-gradient-to-r from-pink-500 to-pink-700 text-white font-medium rounded-md shadow-md hover:shadow-lg transition-all duration-300">
+                Quay lại trang chủ
+            </a>
+        </div>
+    </div>
+</div>
 
 @code{
     [CascadingParameter]

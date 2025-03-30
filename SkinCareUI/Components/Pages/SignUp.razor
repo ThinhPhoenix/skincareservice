@@ -207,7 +207,8 @@
     private string? errorMessage;
     private bool isSubmitting = false;
     private bool showSuccessMessage = false;
-    private async Task HandleRegistration()
+    
+    private void HandleRegistration()
     {
         try
         {
@@ -222,18 +223,15 @@
                 return;
             }
 
-
-
             // Create user account
             var newUser = new SkinCareBussinessObject.User
-        {
-            Email = registrationModel.Email,
-            Password = registrationModel.Password,
-            Role = "Customer", // Default role for registration
-            Status = "Active", // Active by default
+            {
+                Email = registrationModel.Email,
+                Password = registrationModel.Password,
+                Role = "Customer", // Default role for registration
+                Status = "Active", // Active by default
                 CreatedAt = DateTime.UtcNow // Set creation timestamp to current UTC time
-
-        };
+            };
 
             // Save user to database and get the generated ID
             UserRepository.Add(newUser);
@@ -242,34 +240,32 @@
             string pass = MyUtils.Decrypt(createdUser.Password);
             // Create customer record with additional details
             var newCustomer = new SkinCareBussinessObject.Customer
+            {
+                UserId = createdUser.Id, // Link to the user account
+                FirstName = registrationModel.FirstName,
+                LastName = registrationModel.LastName,
+                PhoneNumber = registrationModel.PhoneNumber,
+                Address = registrationModel.Address,
+                DateOfBirth = DateTime.SpecifyKind(registrationModel.DateOfBirth, DateTimeKind.Utc),
+                Gender = registrationModel.Gender
+            };
+
+            CustomerRepository.Add(newCustomer);
+
+            // Show success message
+            showSuccessMessage = true;
+
+            NavigationManager.NavigateTo("/signin");
+        }
+        catch
         {
-            UserId = createdUser.Id, // Link to the user account
-            FirstName = registrationModel.FirstName,
-            LastName = registrationModel.LastName,
-            PhoneNumber = registrationModel.PhoneNumber,
-            Address = registrationModel.Address,
-            DateOfBirth = DateTime.SpecifyKind(registrationModel.DateOfBirth, DateTimeKind.Utc),
-            Gender = registrationModel.Gender
-        };
-
-        CustomerRepository.Add(newCustomer);
-
-        // Show success message
-        showSuccessMessage = true;
-
-                NavigationManager.NavigateTo("/signin");
-
-
+            errorMessage = "Đăng ký thất bại: Email đã tồn tại";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
     }
-    catch (Exception ex)
-    {
-        errorMessage = $"Registration failed: Email has existed";
-    }
-    finally
-    {
-        isSubmitting = false;
-    }
-}
 
     private void SignUpWithGoogle()
     {

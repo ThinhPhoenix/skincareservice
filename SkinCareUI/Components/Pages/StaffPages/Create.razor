@@ -71,7 +71,7 @@
 @code {
     private StaffCreateModel staffData = new StaffCreateModel();
 
-    private async Task CreateStaff()
+    private void CreateStaff()
     {
         try {
             // Create user account
@@ -88,11 +88,10 @@
 
             var curUser = UserRepository.GetUserByEmail(staffData.Email);
 
-
             // Create staff record
             var staff = new SkinCareBussinessObject.Staff
             {
-                    Id = Guid.NewGuid().ToString(),
+                Id = Guid.NewGuid().ToString(),
                 UserId = curUser.Id,
                 FirstName = staffData.FirstName,
                 LastName = staffData.LastName,
@@ -102,10 +101,7 @@
             };
             StaffRepository.Add(staff);
 
-           
-                NavigationManager.NavigateTo("/staff");
-
-        
+            NavigationManager.NavigateTo("/staff");
         }
         catch (Exception ex) {
             // Handle exception
