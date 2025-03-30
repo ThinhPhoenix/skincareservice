@@ -10,7 +10,6 @@ namespace SkinCareRepository
 {
     public class ServiceCategoryDAO
     {
-
         private SkinCareDBContext _dbContext;
         private static ServiceCategoryDAO instance;
 
@@ -31,7 +30,6 @@ namespace SkinCareRepository
             }
         }
 
-
         public ServiceCategory GetOne(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -39,14 +37,12 @@ namespace SkinCareRepository
                 return null;
             }
 
-            return _dbContext.ServiceCategories
-                .SingleOrDefault(a => a.Id.Equals(id));
+            return _dbContext.ServiceCategories.SingleOrDefault(a => a.Id.Equals(id));
         }
 
         public List<ServiceCategory> GetAll()
         {
-            return _dbContext.ServiceCategories
-                .ToList();
+            return _dbContext.ServiceCategories.ToList();
         }
 
         public void Add(ServiceCategory a)
@@ -66,8 +62,10 @@ namespace SkinCareRepository
             
             try
             {
+                Console.WriteLine("Adding category: " + a.CategoryName);
                 _dbContext.ServiceCategories.Add(a);
                 _dbContext.SaveChanges();
+                Console.WriteLine("Category added successfully.");
             }
             catch (Exception ex)
             {
@@ -95,7 +93,5 @@ namespace SkinCareRepository
                 _dbContext.SaveChanges(); // Delete the object
             }
         }
-
-
     }
 }
