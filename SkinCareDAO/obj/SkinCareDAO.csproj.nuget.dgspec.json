@@ -1,31 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareDAO\\SkinCareDAO.csproj": {}
+    "/Users/laith/Desktop/skincare-mng/SkinCareDAO/SkinCareDAO.csproj": {}
   },
   "projects": {
-    "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj": {
+    "/Users/laith/Desktop/skincare-mng/SkinCareBussinessObject/SkinCareBussinessObject.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj",
+        "projectUniqueName": "/Users/laith/Desktop/skincare-mng/SkinCareBussinessObject/SkinCareBussinessObject.csproj",
         "projectName": "SkinCareBussinessObject",
-        "projectPath": "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj",
-        "packagesPath": "C:\\Users\\2004d\\.nuget\\packages\\",
-        "outputPath": "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareBussinessObject\\obj\\",
+        "projectPath": "/Users/laith/Desktop/skincare-mng/SkinCareBussinessObject/SkinCareBussinessObject.csproj",
+        "packagesPath": "/Users/laith/.nuget/packages/",
+        "outputPath": "/Users/laith/Desktop/skincare-mng/SkinCareBussinessObject/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\2004d\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/laith/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -86,40 +80,34 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.407/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareDAO\\SkinCareDAO.csproj": {
+    "/Users/laith/Desktop/skincare-mng/SkinCareDAO/SkinCareDAO.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareDAO\\SkinCareDAO.csproj",
+        "projectUniqueName": "/Users/laith/Desktop/skincare-mng/SkinCareDAO/SkinCareDAO.csproj",
         "projectName": "SkinCareDAO",
-        "projectPath": "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareDAO\\SkinCareDAO.csproj",
-        "packagesPath": "C:\\Users\\2004d\\.nuget\\packages\\",
-        "outputPath": "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareDAO\\obj\\",
+        "projectPath": "/Users/laith/Desktop/skincare-mng/SkinCareDAO/SkinCareDAO.csproj",
+        "packagesPath": "/Users/laith/.nuget/packages/",
+        "outputPath": "/Users/laith/Desktop/skincare-mng/SkinCareDAO/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\2004d\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/laith/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj": {
-                "projectPath": "D:\\TIEN'S LIBRABRY\\STUDY\\PRN222\\GROUP_PROJECT\\PRN222-SkinCare\\SkinCareBussinessObject\\SkinCareBussinessObject.csproj"
+              "/Users/laith/Desktop/skincare-mng/SkinCareBussinessObject/SkinCareBussinessObject.csproj": {
+                "projectPath": "/Users/laith/Desktop/skincare-mng/SkinCareBussinessObject/SkinCareBussinessObject.csproj"
               }
             }
           }
@@ -188,7 +176,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.407/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
