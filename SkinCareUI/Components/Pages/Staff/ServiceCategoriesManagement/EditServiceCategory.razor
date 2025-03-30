@@ -1,0 +1,111 @@
+@page "/staff/servicecategories/edit/{id}"
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@inject IServiceCategoryRepository ServiceCategoryRepository
+@inject NavigationManager NavigationManager
+
+<h3 class="text-3xl font-bold text-center text-gray-800 mb-6">Edit Service Category</h3>
+
+@if (errorMessage != null)
+{
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative text-center mb-4">
+        @errorMessage
+    </div>
+}
+
+@if (category == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="max-w-xl mx-auto bg-white p-8 rounded-xl shadow-lg space-y-6">
+        <div>
+            <label class="block text-sm font-semibold text-gray-700">Category Name</label>
+            <input type="text" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-primary focus:border-primary px-3 py-2" @bind="category.CategoryName" />
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700">Description</label>
+            <textarea class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-primary focus:border-primary px-3 py-2 resize-none h-24" @bind="category.Description"></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-3">
+            <button class="bg-gray-500 text-white px-5 py-2 rounded-lg shadow-md hover:bg-gray-600 transition text-sm font-medium" @onclick="Cancel">Cancel</button>
+            <button class="bg-primary text-white px-5 py-2 rounded-lg shadow-md hover:bg-primary/80 transition text-sm font-medium" @onclick="SaveCategory">Save</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private ServiceCategory category;
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Load the category to be edited
+            category = ServiceCategoryRepository.GetOne(Id);
+            if (category == null)
+            {
+                errorMessage = "Category not found.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading category: {ex.Message}";
+        }
+    }
+
+    private void SaveCategory()
+    {
+        try
+        {
+            // Validate input
+            if (string.IsNullOrWhiteSpace(category.CategoryName))
+            {
+                errorMessage = "Category Name cannot be empty";
+                return;
+            }
+
+            // Update the category
+            ServiceCategoryRepository.Update(category);
+
+            // Verify the category still exists
+            var updatedCategory = ServiceCategoryRepository.GetOne(category.Id);
+            if (updatedCategory == null)
+            {
+                errorMessage = "Category update failed.";
+                return;
+            }
+
+            // Log and navigate back to the service categories list
+            Console.WriteLine("EditServiceCategory.SaveCategory - Verified category still exists with name: " + updatedCategory.CategoryName);
+            Console.WriteLine("EditServiceCategory.SaveCategory - Navigating back to service categories list");
+            NavigationManager.NavigateTo("/staff/servicecategories");
+            Console.WriteLine("EditServiceCategory.SaveCategory - Completed");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error updating category: {ex.Message}";
+
+            if (ex.InnerException != null)
+            {
+                errorMessage += $" - Inner Exception: {ex.InnerException.Message}";
+
+                // Debug additional details
+                Console.WriteLine($"Error Details: {ex}");
+                Console.WriteLine($"Inner Exception Details: {ex.InnerException}");
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/staff/servicecategories");
+    }
+}
