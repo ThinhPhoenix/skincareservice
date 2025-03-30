@@ -1,0 +1,139 @@
+﻿@page "/questions"
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@inject IAssessmentQuestionRepository QuestionRepository
+
+<h3>Assessment Questions</h3>
+
+<div class="container">
+    <div class="row mb-3">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <label for="pageSize">Items per page:</label>
+                    <select id="pageSize" class="form-select form-select-sm d-inline-block mx-2" style="width: 80px;" @bind="PageSize">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+                </div>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary mx-1" @onclick="PreviousPage" disabled="@(CurrentPage <= 1)">Previous</button>
+                    <span>Page @CurrentPage</span>
+                    <button class="btn btn-sm btn-outline-primary mx-1" @onclick="NextPage" disabled="@(Questions == null || Questions.Count < PageSize)">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Questions == null)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!Questions.Any())
+    {
+        <div class="alert alert-info">No questions found.</div>
+    }
+    else
+    {
+        <div class="accordion" id="questionsAccordion">
+            @foreach (var question in Questions)
+            {
+                <div class="accordion-item mb-3">
+                    <h2 class="accordion-header" id="heading-@question.Id">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapse-@question.Id" aria-expanded="false" aria-controls="collapse-@question.Id">
+                            <span class="fw-bold">Q@(Questions.IndexOf(question) + 1):</span> @question.QuestionText
+                            <span class="badge bg-secondary ms-2">@question.QuestionType</span>
+                        </button>
+                    </h2>
+                    <div id="collapse-@question.Id" class="accordion-collapse collapse"
+                         aria-labelledby="heading-@question.Id" data-bs-parent="#questionsAccordion">
+                        <div class="accordion-body">
+                            <p><strong>Question Type:</strong> @question.QuestionType</p>
+                            <p><strong>Display Order:</strong> @question.DisplayOrder</p>
+
+                            @if (question.AssessmentOptions != null && question.AssessmentOptions.Any())
+                            {
+                                <h5>Options:</h5>
+                                <ul class="list-group">
+                                    @foreach (var option in question.AssessmentOptions.OrderBy(o => o.DisplayOrder))
+                                    {
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            @option.OptionText
+                                            <span class="badge bg-primary rounded-pill">Order: @option.DisplayOrder</span>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No options available for this question.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<AssessmentQuestion> Questions { get; set; }
+    private int CurrentPage { get; set; } = 1;
+    private int PageSize { get; set; } = 10;
+    private bool IsLoading { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Initialize Questions with an empty list to avoid null reference exceptions
+        Questions = new List<AssessmentQuestion>();
+        await LoadQuestions();
+    }
+
+    private async Task LoadQuestions()
+    {
+        IsLoading = true;
+        try
+        {
+            // Since your method is not async, we wrap it in Task.Run
+            Questions = await Task.Run(() => QuestionRepository.GetPagedAssessmentQuestions(CurrentPage, PageSize));
+        }
+        catch (Exception ex)
+        {
+            // In a real application, you might want to log this error
+            Console.WriteLine($"Error loading questions: {ex.Message}");
+            Questions = new List<AssessmentQuestion>(); // Ensure Questions is never null
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged(); // Explicitly notify Blazor that the state has changed
+        }
+    }
+
+    private async Task PreviousPage()
+    {
+        if (CurrentPage > 1)
+        {
+            CurrentPage--;
+            await LoadQuestions();
+        }
+    }
+
+    private async Task NextPage()
+    {
+        CurrentPage++;
+        await LoadQuestions();
+    }
+
+    // This method is triggered when PageSize is changed via the binding
+    protected async Task OnParametersSetAsync()
+    {
+        await LoadQuestions();
+    }
+}

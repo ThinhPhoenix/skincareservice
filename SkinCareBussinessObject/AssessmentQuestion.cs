@@ -16,5 +16,7 @@ namespace SkinCareBussinessObject
         public string QuestionType { get; set; }
 
         public int DisplayOrder { get; set; }
+
+        public virtual ICollection<AssessmentOption> AssessmentOptions { get; set; }
     }
 }

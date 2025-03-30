@@ -35,6 +35,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 
 builder.Services.AddScoped<SkinCareUI.Services.AuthService>();
+builder.Services.AddScoped<IAssessmentQuestionRepository, AssessmentQuestionRepository>();
 
 var app = builder.Build();
 

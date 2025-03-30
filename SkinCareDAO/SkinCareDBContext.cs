@@ -37,6 +37,7 @@ namespace SkinCareDAO
         public DbSet<Treatment> Treatments { get; set; }
         public DbSet<WorkingSchedule> WorkingSchedules { get; set; }
         public DbSet<TimeOffRequest> TimeOffRequests { get; set; }
+        public DbSet<AssessmentOption> AssessmentOptions { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
