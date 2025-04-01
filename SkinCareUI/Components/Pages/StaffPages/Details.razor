@@ -4,31 +4,131 @@
 @inject IStaffRepository StaffRepository
 @inject NavigationManager NavigationManager
 
-<h1>Staff Details</h1>
+<PageTitle>Chi Tiết Nhân Viên</PageTitle>
 
-@if (staff == null)
-{
-    <p>Loading...</p>
-}
-else
-{
-    <dl class="row">
-        <dt class="col-sm-2">First Name</dt>
-        <dd class="col-sm-10">@staff.FirstName</dd>
-        <dt class="col-sm-2">Last Name</dt>
-        <dd class="col-sm-10">@staff.LastName</dd>
-        <dt class="col-sm-2">Role</dt>
-        <dd class="col-sm-10">@staff.Role</dd>
-        <dt class="col-sm-2">HireDate</dt>
-        <dd class="col-sm-10">@staff.HireDate.ToString("MM/dd/yyyy")</dd>
-        <dt class="col-sm-2">IsManager</dt>
-        <dd class="col-sm-10">@staff.IsManager</dd>
-    </dl>
-    <div>
-        <a href="@($"/staff/edit?id={staff.Id}")">Edit</a> |
-        <a href="@($"/staff")">Back to List</a>
+<div class="container-fluid mt-4">
+    <div class="card shadow" style="background-color: #fdf2f8;">
+        <div class="card-header text-white" style="background-color: #db2777;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="m-0"><i class="bi bi-person-badge me-2"></i>Chi Tiết Nhân Viên</h2>
+                <button class="btn btn-light btn-lg" @onclick="@(() => NavigationManager.NavigateTo("/staff"))">
+                    <i class="bi bi-arrow-left me-1"></i> Quay Lại
+                </button>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            @if (staff == null)
+            {
+                <div class="d-flex justify-content-center py-5">
+                    <div class="spinner-border" role="status" style="color: #db2777; width: 4rem; height: 4rem;">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    <div class="col-md-4 mb-4 mb-md-0">
+                        <div class="card h-100" style="background-color: #fff1f7;">
+                            <div class="card-body text-center">
+                                <div class="py-4 d-flex flex-column align-items-center">
+                                    <div class="mb-3 text-white d-flex align-items-center justify-content-center" 
+                                         style="width: 120px; height: 120px; font-weight: bold; background-color: #db2777; border-radius: 50%; font-size: 3rem;">
+                                        @(staff.FirstName[0].ToString() + staff.LastName[0].ToString())
+                                    </div>
+                                    <h3 class="fw-bold mb-1">@staff.FirstName @staff.LastName</h3>
+                                    
+                                    @if (staff.IsManager)
+                                    {
+                                        <span class="badge rounded-pill fs-5 mb-3" style="background-color: #db2777; color: white;">Quản Lý</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill fs-5 mb-3" style="background-color: #fdf2f8; color: #db2777; border: 1px solid #db2777;">@staff.Role</span>
+                                    }
+                                </div>
+                                
+                                <div class="d-grid gap-2 mt-4">
+                                    <a href="@($"/staff/edit?id={staff.Id}")" class="btn btn-lg" style="background-color: #db2777; color: white;">
+                                        <i class="bi bi-pencil-square me-1"></i> Chỉnh Sửa
+                                    </a>
+                                    <a href="@($"/staff/delete?id={staff.Id}")" class="btn btn-outline-danger btn-lg">
+                                        <i class="bi bi-trash me-1"></i> Xóa Nhân Viên
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <div class="card h-100" style="background-color: #fff1f7;">
+                            <div class="card-header fs-4 fw-bold py-3" style="background-color: #fce7f3; color: #831843;">
+                                Thông Tin Chi Tiết
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-4 fs-5">
+                                    <div class="col-md-6">
+                                        <div class="card h-100" style="background-color: #fdf2f8;">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-muted mb-3">
+                                                    <i class="bi bi-person-vcard me-2"></i>Thông Tin Cá Nhân
+                                                </h5>
+                                                <ul class="list-group list-group-flush border-0">
+                                                    <li class="list-group-item" style="background-color: transparent;">
+                                                        <div class="fw-bold">Họ</div>
+                                                        <div>@staff.FirstName</div>
+                                                    </li>
+                                                    <li class="list-group-item" style="background-color: transparent;">
+                                                        <div class="fw-bold">Tên</div>
+                                                        <div>@staff.LastName</div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="card h-100" style="background-color: #fdf2f8;">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-muted mb-3">
+                                                    <i class="bi bi-briefcase me-2"></i>Thông Tin Công Việc
+                                                </h5>
+                                                <ul class="list-group list-group-flush border-0">
+                                                    <li class="list-group-item" style="background-color: transparent;">
+                                                        <div class="fw-bold">Chức Vụ</div>
+                                                        <div>
+                                                            @if (staff.IsManager)
+                                                            {
+                                                                <span>Quản Lý</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span>@staff.Role</span>
+                                                            }
+                                                        </div>
+                                                    </li>
+                                                    <li class="list-group-item" style="background-color: transparent;">
+                                                        <div class="fw-bold">Ngày Tuyển Dụng</div>
+                                                        <div>@staff.HireDate.ToString("dd/MM/yyyy")</div>
+                                                    </li>
+                                                    <li class="list-group-item" style="background-color: transparent;">
+                                                        <div class="fw-bold">Mã Nhân Viên</div>
+                                                        <div class="text-muted small">@staff.Id</div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
     </div>
-}
+</div>
 
 @code {
     private Staff? staff;

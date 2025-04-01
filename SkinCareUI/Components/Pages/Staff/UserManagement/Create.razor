@@ -1,0 +1,143 @@
+﻿@page "/staff/users/create"
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@inject IUserRepository UserRepository
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Tạo Người Dùng Mới</PageTitle>
+
+<div class="bg-white p-6 min-h-screen">
+    <div class="bg-pink-50 rounded-lg shadow-md p-6 mb-6">
+        <h1 class="text-3xl font-bold text-pink-500 mb-4">Tạo Người Dùng Mới</h1>
+
+        <div class="mb-4">
+            <a href="/staff/users" class="inline-flex items-center text-pink-600 hover:text-pink-800 mb-4">
+                <i class="fas fa-arrow-left mr-2"></i> Quay Lại Danh Sách
+            </a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <EditForm Model="@User" OnSubmit="@HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-red-500 mb-4" />
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="mb-4">
+                        <label for="email" class="block text-gray-700 font-medium mb-2">Email:</label>
+                        <InputText id="email" @bind-Value="User.Email"
+                                   class="px-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-pink-500" />
+                        <ValidationMessage For="@(() => User.Email)" class="text-red-500 text-sm mt-1" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="block text-gray-700 font-medium mb-2">Mật Khẩu:</label>
+                        <InputText id="password" type="password" @bind-Value="User.Password"
+                                   class="px-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-pink-500" />
+                        <ValidationMessage For="@(() => User.Password)" class="text-red-500 text-sm mt-1" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="role" class="block text-gray-700 font-medium mb-2">Vai Trò:</label>
+                        <InputSelect id="role" @bind-Value="User.Role"
+                                     class="px-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-pink-500">
+                            <option value="">-- Chọn Vai Trò --</option>
+                            <option value="customer">Khách Hàng</option>
+                            <option value="therapist">Chuyên Viên</option>
+                        </InputSelect>
+                        <ValidationMessage For="@(() => User.Role)" class="text-red-500 text-sm mt-1" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="status" class="block text-gray-700 font-medium mb-2">Trạng Thái:</label>
+                        <InputSelect id="status" @bind-Value="User.Status"
+                                     class="px-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-pink-500">
+                            <option value="Active">Hoạt Động</option>
+                            <option value="Inactive">Không Hoạt Động</option>
+                        </InputSelect>
+                        <ValidationMessage For="@(() => User.Status)" class="text-red-500 text-sm mt-1" />
+                    </div>
+                </div>
+
+                @if (errorMessage != null)
+                {
+                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                        <p>@errorMessage</p>
+                    </div>
+                }
+
+                <div class="mt-6 flex justify-end">
+                    <button type="button" @onclick="CancelCreate"
+                            class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all mr-3">
+                        Hủy
+                    </button>
+                    <button type="submit"
+                            class="px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-all shadow-md font-semibold">
+                        <i class="fas fa-save mr-2"></i> Lưu Người Dùng
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private User User { get; set; } = new();
+    private string errorMessage;
+
+    protected override void OnInitialized()
+    {
+        // Thiết lập giá trị mặc định với UTC datetime
+        User.CreatedAt = DateTime.UtcNow;
+        User.Status = "Active";
+    }
+
+    private void CancelCreate()
+    {
+        NavigationManager.NavigateTo("/staff/users");
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            errorMessage = null;
+
+            // Sử dụng UTC time cho timestamp
+            User.UpdatedAt = DateTime.UtcNow;
+
+            // Kiểm tra các trường bắt buộc
+            if (string.IsNullOrWhiteSpace(User.Email))
+            {
+                errorMessage = "Email không được để trống";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(User.Password))
+            {
+                errorMessage = "Mật khẩu không được để trống";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(User.Role))
+            {
+                errorMessage = "Vui lòng chọn vai trò";
+                return;
+            }
+
+            // Sử dụng repository để thêm người dùng
+            UserRepository.Add(User);
+
+            await JSRuntime.InvokeVoidAsync("alert", "Tạo người dùng thành công!");
+
+            // Chuyển hướng về trang danh sách
+            NavigationManager.NavigateTo("/staff/users");
+        }
+        catch (Exception ex)
+        {
+            // Xử lý lỗi
+            errorMessage = $"Lỗi: {ex.Message}";
+            await JSRuntime.InvokeVoidAsync("console.log", ex.Message);
+        }
+    }
+}

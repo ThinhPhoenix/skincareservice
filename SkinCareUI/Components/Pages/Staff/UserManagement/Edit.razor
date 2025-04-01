@@ -1,0 +1,206 @@
+﻿@page "/staff/users/edit"
+@using Microsoft.EntityFrameworkCore
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@inject IUserRepository UserRepository
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Chỉnh Sửa Người Dùng</PageTitle>
+
+<div class="bg-white p-6 min-h-screen">
+    <div class="bg-pink-50 rounded-lg shadow-md p-6 mb-6">
+        <h1 class="text-3xl font-bold text-pink-500 mb-4">Chỉnh Sửa Người Dùng</h1>
+        
+        <div class="mb-4">
+            <a href="/staff/users" class="inline-flex items-center text-pink-600 hover:text-pink-800 mb-4">
+                <i class="fas fa-arrow-left mr-2"></i> Quay Lại Danh Sách
+            </a>
+        </div>
+        
+        @if (user == null)
+        {
+            <div class="flex justify-center p-10">
+                <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-pink-500"></div>
+            </div>
+        }
+        else
+        {
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <EditForm Model="user" OnSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="mb-4">
+                            <label for="email" class="block text-gray-700 font-medium mb-2">Email:</label>
+                            <InputText id="email" @bind-Value="user.Email" 
+                                      class="px-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-pink-500" />
+                            <ValidationMessage For="@(() => user.Email)" class="text-red-500 text-sm mt-1" />
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="password" class="block text-gray-700 font-medium mb-2">Mật Khẩu:</label>
+                            <InputText id="password" type="password" @bind-Value="newPassword" 
+                                      placeholder="Để trống nếu không thay đổi mật khẩu"
+                                      class="px-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-pink-500" />
+                            <ValidationMessage For="@(() => newPassword)" class="text-red-500 text-sm mt-1" />
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="role" class="block text-gray-700 font-medium mb-2">Vai Trò:</label>
+                            <InputSelect id="role" @bind-Value="user.Role" 
+                                       class="px-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-pink-500">
+                                <option value="">-- Chọn Vai Trò --</option>
+                                <option value="customer">Khách Hàng</option>
+                                <option value="therapist">Chuyên Viên</option>
+                                @if (user.Role?.ToLower() == "staff")
+                                {
+                                    <option value="staff">Quản Lý</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => user.Role)" class="text-red-500 text-sm mt-1" />
+                            <div class="mt-1 text-sm text-gray-600">
+                                Vai trò hiện tại: 
+                                @switch (user.Role?.ToLower())
+                                {
+                                    case "customer":
+                                        <span class="font-medium">Khách Hàng</span>
+                                        break;
+                                    case "staff":
+                                        <span class="font-medium">Quản Lý</span>
+                                        break;
+                                    case "therapist":
+                                        <span class="font-medium">Chuyên Viên</span>
+                                        break;
+                                    default:
+                                        <span class="font-medium">@user.Role</span>
+                                        break;
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="status" class="block text-gray-700 font-medium mb-2">Trạng Thái:</label>
+                            <InputSelect id="status" @bind-Value="user.Status" 
+                                      class="px-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-pink-500">
+                                <option value="Active">Hoạt Động</option>
+                                <option value="Inactive">Không Hoạt Động</option>
+                            </InputSelect>
+                            <ValidationMessage For="@(() => user.Status)" class="text-red-500 text-sm mt-1" />
+                            <div class="mt-1 text-sm text-gray-600">
+                                Trạng thái hiện tại: 
+                                @if (user.Status == "Active" || user.Status == "active")
+                                {
+                                    <span class="text-green-600 font-medium">Hoạt Động</span>
+                                }
+                                else
+                                {
+                                    <span class="text-red-600 font-medium">Không Hoạt Động</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    
+                    @if (errorMessage != null)
+                    {
+                        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                            <p>@errorMessage</p>
+                        </div>
+                    }
+                    
+                    <div class="mt-6 flex justify-end">
+                        <button type="button" @onclick="CancelEdit"
+                                class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all mr-3">
+                            Hủy
+                        </button>
+                        <button type="submit" 
+                                class="px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-all shadow-md font-semibold">
+                            <i class="fas fa-save mr-2"></i> Lưu Thay Đổi
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    private User user;
+    private string originalPassword;
+    private string newPassword = "";
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try 
+        {
+            // Lấy thông tin người dùng từ repository
+            user = UserRepository.GetOne(Id);
+            
+            if (user == null)
+            {
+                NavigationManager.NavigateTo("/staff/users");
+                return;
+            }
+            
+            // Lưu lại mật khẩu gốc để kiểm tra có thay đổi không
+            originalPassword = user.Password;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi khi tải thông tin người dùng: {ex.Message}";
+            await JSRuntime.InvokeVoidAsync("console.error", ex.Message);
+        }
+    }
+
+    private void CancelEdit()
+    {
+        NavigationManager.NavigateTo("/staff/users");
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            errorMessage = null;
+            
+            // Kiểm tra các trường bắt buộc
+            if (string.IsNullOrWhiteSpace(user.Email))
+            {
+                errorMessage = "Email không được để trống";
+                return;
+            }
+            
+            if (string.IsNullOrWhiteSpace(user.Role))
+            {
+                errorMessage = "Vui lòng chọn vai trò";
+                return;
+            }
+            
+            // Nếu mật khẩu được nhập mới, cập nhật mật khẩu
+            if (!string.IsNullOrWhiteSpace(newPassword))
+            {
+                user.Password = newPassword;
+            }
+            
+            // Cập nhật thông tin thời gian
+            user.UpdatedAt = DateTime.Now;
+            
+            // Cập nhật thông tin người dùng
+            UserRepository.Update(user);
+            
+            await JSRuntime.InvokeVoidAsync("alert", "Cập nhật người dùng thành công!");
+            
+            // Chuyển hướng về trang danh sách
+            NavigationManager.NavigateTo("/staff/users");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi: {ex.Message}";
+            await JSRuntime.InvokeVoidAsync("console.error", ex.Message);
+        }
+    }
+}

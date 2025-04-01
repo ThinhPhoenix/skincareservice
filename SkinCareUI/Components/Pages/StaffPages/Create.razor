@@ -8,63 +8,151 @@
 @inject IStaffRepository StaffRepository
 @inject NavigationManager NavigationManager
 
-<PageTitle>Create Staff</PageTitle>
+<PageTitle>Thêm Nhân Viên Mới</PageTitle>
 
-<h1>Create Staff</h1>
-
-<h2>New Staff Member</h2>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <EditForm Model="staffData" OnValidSubmit="CreateStaff" FormName="create">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert"/>
-
-            <div class="mb-3">
-                <label for="email" class="form-label">Email:</label> 
-                <InputText id="email" @bind-Value="staffData.Email" class="form-control" aria-required="true"/> 
-                <ValidationMessage For="() => staffData.Email" class="text-danger" /> 
+<div class="container-fluid mt-4">
+    <div class="card shadow" style="background-color: #fdf2f8;">
+        <div class="card-header text-white" style="background-color: #db2777;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="m-0"><i class="bi bi-person-plus me-2"></i>Thêm Nhân Viên Mới</h2>
+                <button class="btn btn-light btn-lg" @onclick="@(() => NavigationManager.NavigateTo("/staff"))">
+                    <i class="bi bi-arrow-left me-1"></i> Quay Lại
+                </button>
             </div>
+        </div>
+        
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card" style="background-color: #fff1f7;">
+                        <div class="card-body p-4">
+                            <EditForm Model="staffData" OnValidSubmit="CreateStaff" FormName="create" class="fs-5">
+                                <DataAnnotationsValidator />
+                                
+                                <div class="alert alert-info mb-4" role="alert">
+                                    <i class="bi bi-info-circle-fill me-2"></i>
+                                    <span class="fw-bold">Lưu ý:</span> Tất cả các trường đánh dấu <span class="text-danger">*</span> đều bắt buộc phải nhập
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="firstname" class="form-label fw-bold">
+                                            Họ <span class="text-danger">*</span>
+                                        </label> 
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                            <InputText id="firstname" @bind-Value="staffData.FirstName" 
+                                                class="form-control form-control-lg" placeholder="Nhập họ" aria-required="true"/> 
+                                        </div>
+                                        <div class="text-danger mt-1 small">
+                                            <ValidationMessage For="() => staffData.FirstName" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="lastname" class="form-label fw-bold">
+                                            Tên <span class="text-danger">*</span>
+                                        </label> 
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                            <InputText id="lastname" @bind-Value="staffData.LastName" 
+                                                class="form-control form-control-lg" placeholder="Nhập tên" aria-required="true"/> 
+                                        </div>
+                                        <div class="text-danger mt-1 small">
+                                            <ValidationMessage For="() => staffData.LastName" />
+                                        </div>
+                                    </div>
+                                </div>
 
-            <div class="mb-3">
-                <label for="password" class="form-label">Password:</label> 
-                <InputText id="password" type="password" @bind-Value="staffData.Password" class="form-control" aria-required="true"/> 
-                <ValidationMessage For="() => staffData.Password" class="text-danger" /> 
+                                <div class="mb-3">
+                                    <label for="email" class="form-label fw-bold">
+                                        Email <span class="text-danger">*</span>
+                                    </label> 
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                        <InputText id="email" @bind-Value="staffData.Email" 
+                                            class="form-control form-control-lg" placeholder="example@skincare.com" aria-required="true"/> 
+                                    </div>
+                                    <div class="text-danger mt-1 small">
+                                        <ValidationMessage For="() => staffData.Email" />
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="password" class="form-label fw-bold">
+                                        Mật Khẩu <span class="text-danger">*</span>
+                                    </label> 
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-key"></i></span>
+                                        <InputText id="password" type="password" @bind-Value="staffData.Password" 
+                                            class="form-control form-control-lg" placeholder="Nhập mật khẩu" aria-required="true"/> 
+                                    </div>
+                                    <div class="text-danger mt-1 small">
+                                        <ValidationMessage For="() => staffData.Password" />
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="bi bi-shield-lock me-1"></i>
+                                        Mật khẩu phải có ít nhất 6 ký tự
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="role" class="form-label fw-bold">
+                                            Vị Trí <span class="text-danger">*</span>
+                                        </label> 
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-briefcase"></i></span>
+                                            <InputSelect id="role" @bind-Value="staffData.Role" class="form-select form-select-lg" aria-required="true">
+                                                <option value="Staff">Nhân Viên</option>
+                                                <option value="Therapist">Chuyên Viên Spa</option>
+                                                <option value="Consultant">Tư Vấn Viên</option>
+                                                <option value="Receptionist">Lễ Tân</option>
+                                                <option value="Accountant">Kế Toán</option>
+                                            </InputSelect>
+                                        </div>
+                                        <div class="text-danger mt-1 small">
+                                            <ValidationMessage For="() => staffData.Role" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="hiredate" class="form-label fw-bold">
+                                            Ngày Tuyển Dụng <span class="text-danger">*</span>
+                                        </label> 
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-calendar-date"></i></span>
+                                            <InputDate id="hiredate" @bind-Value="staffData.HireDate" 
+                                                class="form-control form-control-lg" aria-required="true"/> 
+                                        </div>
+                                        <div class="text-danger mt-1 small">
+                                            <ValidationMessage For="() => staffData.HireDate" />
+                                        </div>
+                                    </div>
+                                </div>      
+
+                                <div class="form-check form-switch mb-4">
+                                    <InputCheckbox id="ismanager" @bind-Value="staffData.IsManager" class="form-check-input" style="transform: scale(1.5);"/> 
+                                    <label for="ismanager" class="form-check-label ms-2 fs-5" style="cursor: pointer;">
+                                        <i class="bi bi-person-fill-gear me-1"></i>
+                                        Đây là vị trí quản lý
+                                    </label>
+                                </div>
+                                
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                    <a href="/staff" class="btn btn-outline-secondary btn-lg px-5">
+                                        <i class="bi bi-x-lg me-1"></i> Hủy Bỏ
+                                    </a>
+                                    <button type="submit" class="btn btn-lg px-5 text-white" style="background-color: #db2777;">
+                                        <i class="bi bi-check-lg me-1"></i> Tạo Nhân Viên
+                                    </button>
+                                </div>
+                            </EditForm>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <div class="mb-3">
-                <label for="firstname" class="form-label">First Name:</label> 
-                <InputText id="firstname" @bind-Value="staffData.FirstName" class="form-control" aria-required="true"/> 
-                <ValidationMessage For="() => staffData.FirstName" class="text-danger" /> 
-            </div>        
-
-            <div class="mb-3">
-                <label for="lastname" class="form-label">Last Name:</label> 
-                <InputText id="lastname" @bind-Value="staffData.LastName" class="form-control" aria-required="true"/> 
-                <ValidationMessage For="() => staffData.LastName" class="text-danger" /> 
-            </div>        
-
-            <div class="mb-3">
-                <label for="role" class="form-label">Role:</label> 
-                <InputText id="role" @bind-Value="staffData.Role" class="form-control" aria-required="true"/> 
-                <ValidationMessage For="() => staffData.Role" class="text-danger" /> 
-            </div>        
-
-            <div class="mb-3">
-                <label for="hiredate" class="form-label">Hire Date:</label> 
-                <InputDate id="hiredate" @bind-Value="staffData.HireDate" class="form-control" aria-required="true"/> 
-                <ValidationMessage For="() => staffData.HireDate" class="text-danger" /> 
-            </div>        
-
-            <div class="mb-3">
-                <label for="ismanager" class="form-label">Is Manager:</label> 
-                <InputCheckbox id="ismanager" @bind-Value="staffData.IsManager" class="form-check-input" aria-required="true"/> 
-                <ValidationMessage For="() => staffData.IsManager" class="text-danger" /> 
-            </div>        
-
-            <button type="submit" class="btn btn-primary">Create</button>
-            <a href="/staff" class="btn btn-secondary">Back to List</a>
-        </EditForm>
+        </div>
     </div>
 </div>
 
@@ -111,24 +199,24 @@
 
     public class StaffCreateModel
     {
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [Required(ErrorMessage = "Vui lòng nhập email")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Password is required")]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters long")]
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự")]
         public string Password { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "First name is required")]
+        [Required(ErrorMessage = "Vui lòng nhập họ")]
         public string FirstName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Last name is required")]
+        [Required(ErrorMessage = "Vui lòng nhập tên")]
         public string LastName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Role is required")]
+        [Required(ErrorMessage = "Vui lòng chọn vị trí")]
         public string Role { get; set; } = "Staff";
 
-        [Required(ErrorMessage = "Hire date is required")]
+        [Required(ErrorMessage = "Vui lòng chọn ngày tuyển dụng")]
         public DateTime HireDate { get; set; } = DateTime.Today;
 
         public bool IsManager { get; set; } = false;

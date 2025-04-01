@@ -1,0 +1,154 @@
+﻿@page "/staff/users"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using SkinCareBussinessObject
+@using SkinCareDAO
+@using SkinCareRepository
+@inject IUserRepository UserRepository
+
+<PageTitle>Quản Lý Người Dùng</PageTitle>
+
+<div class="bg-white p-6 min-h-screen">
+    <div class="bg-pink-50 rounded-lg shadow-md p-6 mb-6">
+        <h1 class="text-3xl font-bold text-pink-500 mb-6">Quản Lý Người Dùng</h1>
+        
+        <div class="mb-6 flex justify-between items-center">
+            <div class="flex gap-3">
+                <input @bind="searchText" 
+                       @bind:event="oninput" 
+                       class="px-4 py-2 border-2 border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 w-64" 
+                       placeholder="Tìm kiếm người dùng..." />
+                <button @onclick="FilterUsers" class="bg-pink-500 text-white px-6 py-2 rounded-lg hover:bg-pink-600 transition-all shadow-md font-semibold flex items-center">
+                    <i class="fas fa-search mr-2"></i>Tìm Kiếm
+                </button>
+            </div>
+            <a href="/staff/users/create" class="bg-pink-500 text-white px-6 py-2 rounded-lg hover:bg-pink-600 transition-all shadow-md font-semibold flex items-center">
+                <i class="fas fa-plus mr-2"></i>Tạo Người Dùng Mới
+            </a>
+        </div>
+        
+        @if (users == null)
+        {
+            <div class="flex justify-center p-10">
+                <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-pink-500"></div>
+            </div>
+        }
+        else if (!users.Any())
+        {
+            <div class="bg-pink-100 border-2 border-pink-300 text-pink-800 px-6 py-4 rounded-lg text-center">
+                <p class="font-medium text-lg">Không tìm thấy người dùng nào.</p>
+                <a href="users/create" class="inline-block mt-3 bg-pink-500 text-white px-5 py-2 rounded-lg hover:bg-pink-600 transition-all shadow-md font-semibold">
+                    <i class="fas fa-plus mr-2"></i>Tạo Người Dùng Mới
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="overflow-x-auto rounded-lg shadow-md">
+                <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                    <thead class="bg-pink-500 text-white">
+                        <tr>
+                            <th class="px-6 py-3 text-left font-semibold">Email</th>
+                            <th class="px-6 py-3 text-left font-semibold">Vai Trò</th>
+                            <th class="px-6 py-3 text-left font-semibold">Trạng Thái</th>
+                            <th class="px-6 py-3 text-left font-semibold">Ngày Tạo</th>
+                            <th class="px-6 py-3 text-left font-semibold">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in filteredUsers)
+                        {
+                            <tr class="border-b hover:bg-pink-50 transition-all">
+                                <td class="px-6 py-4">@user.Email</td>
+                                <td class="px-6 py-4">
+                                    @switch (user.Role?.ToLower())
+                                    {
+                                        case "customer":
+                                            <span>Khách Hàng</span>
+                                            break;
+                                        case "staff":
+                                            <span>Quản Lý</span>
+                                            break;
+                                        case "therapist":
+                                            <span>Chuyên Viên</span>
+                                            break;
+                                        default:
+                                            <span>@user.Role</span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if (user.Status == "Active" || user.Status == "active")
+                                    {
+                                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full font-medium">Hoạt Động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full font-medium">Không Hoạt Động</span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4">@user.CreatedAt.ToShortDateString()</td>
+                                <td class="px-6 py-4">
+                                    @if (user.Role?.ToLower() != "staff")
+                                    {
+                                        <div class="flex space-x-3">
+                                            <a href="@($"staff/users/edit?id={user.Id}")" class="bg-blue-500 text-white px-4 py-1 rounded-md hover:bg-blue-600 transition-all flex items-center">
+                                                <i class="fas fa-edit mr-1"></i> Sửa
+                                            </a>
+                                            <a href="@($"staff/users/details?id={user.Id}")" class="bg-green-500 text-white px-4 py-1 rounded-md hover:bg-green-600 transition-all flex items-center">
+                                                <i class="fas fa-info-circle mr-1"></i> Chi Tiết
+                                            </a>
+                                            
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-gray-500 italic">Không có thao tác</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<User> users;
+    private List<User> filteredUsers;
+    private string searchText = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        // Lấy danh sách người dùng từ repository
+        users = UserRepository.GetAll();
+        
+        // Sắp xếp theo ngày tạo giảm dần (mới nhất lên đầu)
+        users = users.OrderByDescending(u => u.CreatedAt).ToList();
+        
+        // Áp dụng cho danh sách đã lọc
+        filteredUsers = users;
+    }
+
+    private void FilterUsers()
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            filteredUsers = users;
+        }
+        else
+        {
+            filteredUsers = users
+                .Where(u => u.Email.Contains(searchText, StringComparison.OrdinalIgnoreCase) || 
+                           (u.Role?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false))
+                .ToList();
+        }
+    }
+}

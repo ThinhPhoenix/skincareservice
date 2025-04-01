@@ -38,6 +38,8 @@ namespace SkinCareDAO
                 u.Email.ToLower().Equals(email.ToLower())
                 &&
                 u.Password.Equals(MyUtils.Encrypt(password))
+               
+                
             );
         }
 

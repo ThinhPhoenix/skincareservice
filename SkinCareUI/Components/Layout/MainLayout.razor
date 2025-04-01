@@ -1,4 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
 
 <div class="page bg-gradient-to-b from-pink-100 to-white min-h-screen">
     <div class="sidebar">
@@ -6,10 +8,36 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <a href="/" class="mr-4 font-medium text-pink-600 hover:text-pink-800 transition-colors">Trang Chủ</a>
-            <a href="/staff/services" class="mr-4 font-medium text-pink-600 hover:text-pink-800 transition-colors">Dịch Vụ</a>
-            <a href="/staff/categories" class="font-medium text-pink-600 hover:text-pink-800 transition-colors">Danh Mục</a>
+        <div class="top-row px-4 justify-between">
+            <div class="flex items-center">
+                <a href="/" class="mr-4 font-medium text-pink-600 hover:text-pink-800 transition-colors">Trang Chủ</a>
+                <a href="/staff/services" class="mr-4 font-medium text-pink-600 hover:text-pink-800 transition-colors">Dịch Vụ</a>
+                <a href="/staff/categories" class="mr-4 font-medium text-pink-600 hover:text-pink-800 transition-colors">Danh Mục</a>
+            </div>
+            
+            <div class="flex items-center">
+                @if (isAuthenticated)
+                {
+                    <div class="flex items-center mr-4">
+                        <span class="flex items-center text-gray-700">
+                            <i class="fas fa-user-circle mr-2"></i>
+                            Xin chào, <span class="font-medium ml-1">@userEmail</span>
+                        </span>
+                    </div>
+                    <button @onclick="LogoutUser" class="bg-pink-500 hover:bg-pink-600 text-white px-3 py-1 rounded-md transition-colors flex items-center">
+                        <i class="fas fa-sign-out-alt mr-1"></i> Đăng xuất
+                    </button>
+                }
+                else
+                {
+                    <a href="/signin" class="bg-pink-500 hover:bg-pink-600 text-white px-3 py-1 rounded-md transition-colors flex items-center mr-2">
+                        <i class="fas fa-sign-in-alt mr-1"></i> Đăng nhập
+                    </a>
+                    <a href="/signup" class="bg-white border border-pink-500 text-pink-500 hover:bg-pink-50 px-3 py-1 rounded-md transition-colors flex items-center">
+                        <i class="fas fa-user-plus mr-1"></i> Đăng ký
+                    </a>
+                }
+            </div>
         </div>
 
         <article class="content px-4">
@@ -23,3 +51,59 @@
     <a href="" class="reload">Tải lại</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private bool isAuthenticated = false;
+    private string userEmail = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuthenticationStatus();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CheckAuthenticationStatus();
+        }
+    }
+
+    private async Task CheckAuthenticationStatus()
+    {
+        try
+        {
+            userEmail = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "email");
+            isAuthenticated = !string.IsNullOrEmpty(userEmail);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"CheckAuthenticationStatus error: {ex.Message}");
+            isAuthenticated = false;
+            userEmail = string.Empty;
+        }
+        StateHasChanged();
+    }
+
+    private async Task LogoutUser()
+    {
+        try
+        {
+            // Sử dụng phương pháp đơn giản hơn để xóa dữ liệu từ localStorage
+            await JSRuntime.InvokeVoidAsync("eval", "localStorage.removeItem('email')");
+            await JSRuntime.InvokeVoidAsync("eval", "localStorage.removeItem('role')");
+            await JSRuntime.InvokeVoidAsync("eval", "localStorage.removeItem('accountId')");
+            await JSRuntime.InvokeVoidAsync("eval", "localStorage.removeItem('isAdmin')");
+            
+            isAuthenticated = false;
+            userEmail = string.Empty;
+            
+            // Chuyển hướng về trang đăng nhập mà không sử dụng forceLoad
+            NavigationManager.NavigateTo("/signin");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Logout error: {ex.Message}");
+        }
+    }
+}

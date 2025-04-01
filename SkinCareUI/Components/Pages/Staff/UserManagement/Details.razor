@@ -1,0 +1,149 @@
+﻿@page "/staff/users/details"
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@inject IUserRepository UserRepository
+@inject NavigationManager NavigationManager
+
+<PageTitle>Chi Tiết Người Dùng</PageTitle>
+
+<div class="bg-white p-6 min-h-screen">
+    <div class="bg-pink-50 rounded-lg shadow-md p-6 mb-6">
+        <h1 class="text-3xl font-bold text-pink-500 mb-4">Chi Tiết Người Dùng</h1>
+        
+        <div class="mb-4">
+            <a href="/staff/users" class="inline-flex items-center text-pink-600 hover:text-pink-800 mb-4">
+                <i class="fas fa-arrow-left mr-2"></i> Quay Lại Danh Sách
+            </a>
+        </div>
+        
+        @if (user == null)
+        {
+            <div class="flex justify-center p-10">
+                <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-pink-500"></div>
+            </div>
+        }
+        else
+        {
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-pink-50 p-4 rounded-lg">
+                        <h2 class="text-xl font-semibold text-pink-500 mb-4">Thông Tin Cơ Bản</h2>
+                        
+                        <div class="mb-4">
+                            <p class="text-gray-500 text-sm">Email</p>
+                            <p class="font-medium">@user.Email</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <p class="text-gray-500 text-sm">Vai Trò</p>
+                            <p class="font-medium">
+                                @switch (user.Role?.ToLower())
+                                {
+                                    case "customer":
+                                        <span>Khách Hàng</span>
+                                        break;
+                                    case "staff":
+                                        <span>Quản Lý</span>
+                                        break;
+                                    case "therapist":
+                                        <span>Chuyên Viên</span>
+                                        break;
+                                    default:
+                                        <span>@user.Role</span>
+                                        break;
+                                }
+                            </p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <p class="text-gray-500 text-sm">Trạng Thái</p>
+                            <p>
+                                @if (user.Status == "Active" || user.Status == "active")
+                                {
+                                    <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Hoạt Động</span>
+                                }
+                                else
+                                {
+                                    <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">Không Hoạt Động</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-pink-50 p-4 rounded-lg">
+                        <h2 class="text-xl font-semibold text-pink-500 mb-4">Thông Tin Chi Tiết</h2>
+                        
+                        <div class="mb-4">
+                            <p class="text-gray-500 text-sm">Ngày Tạo</p>
+                            <p class="font-medium">@user.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <p class="text-gray-500 text-sm">Cập Nhật Lần Cuối</p>
+                            <p class="font-medium">
+                                @if (user.UpdatedAt.HasValue)
+                                {
+                                    @user.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss")
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400 italic">Chưa cập nhật</span>
+                                }
+                            </p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <p class="text-gray-500 text-sm">Ngày Xóa</p>
+                            <p class="font-medium">
+                                @if (user.DeletedAt.HasValue)
+                                {
+                                    @user.DeletedAt.Value.ToString("dd/MM/yyyy HH:mm:ss")
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400 italic">Chưa xóa</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-between">
+                    <div>
+                        <a href="/staff/users" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all inline-flex items-center">
+                            <i class="fas fa-arrow-left mr-2"></i> Quay Lại
+                        </a>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        @if (user.Role?.ToLower() == "Staff")
+                        {
+                            <a href="@($"edit?id={user.Id}")" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all shadow-md font-semibold inline-flex items-center">
+                                <i class="fas fa-edit mr-2"></i> Chỉnh Sửa
+                            </a>
+                            
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private User? user;
+
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Lấy thông tin chi tiết người dùng từ repository
+        user = UserRepository.GetOne(Id);
+
+        if (user == null)
+        {
+            NavigationManager.NavigateTo("/staff/users");
+        }
+    }
+}

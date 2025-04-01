@@ -25,7 +25,9 @@
 
             @if (!string.IsNullOrEmpty(errorMessage))
             {
-                <div class="mt-2 text-center text-red-600">@errorMessage</div>
+                <div class="mt-2 text-center text-red-600 bg-red-50 p-2 rounded-md border border-red-200">
+                    @errorMessage
+                </div>
             }
 
             <EditForm Model="@loginModel" OnValidSubmit="HandleLogin" class="mt-8" name="SignInForm">
@@ -65,7 +67,7 @@
                         </div>
                     </div>
                     <div>
-                        <button class="inline-flex w-full items-center justify-center rounded-md bg-black px-3.5 py-2.5 font-semibold leading-7 text-white hover:bg-black/80"
+                        <button class="inline-flex w-full items-center justify-center rounded-md bg-pink-500 px-3.5 py-2.5 font-semibold leading-7 text-white hover:bg-pink-600"
                         type="submit">
                             Sign in
                         </button>
@@ -121,9 +123,18 @@
                 string pass = MyUtils.Encrypt(loginModel.Password);
                 // Check regular user login
                 var account = UserRepository.SignIn(loginModel.Email, loginModel.Password);
+                
+                // Check if account exists
                 if (account == null)
                 {
-                    errorMessage = "Invalid email or password";
+                    errorMessage = "Email hoặc mật khẩu không đúng";
+                    return;
+                }
+                
+                // Check if account is active
+                if (account.Status != "Active" && account.Status != "active")
+                {
+                    errorMessage = "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.";
                     return;
                 }
 
@@ -133,9 +144,21 @@
                 authData.Add("accountId", account.Id);
 
                 // Determine redirect URL based on role
-                redirectUrl = account.Role.Equals("Customer") 
-                    ? "/" // Update this to match your actual route
-                    : "/unauthorized";
+                switch (account.Role?.ToLower())
+                {
+                    case "customer":
+                        redirectUrl = "/"; // Customer landing page
+                        break;
+                    case "staff":
+                        redirectUrl = "/dashboard"; // Staff dashboard
+                        break;
+                    case "therapist":
+                        redirectUrl = "/therapist-dashboard"; // Therapist dashboard
+                        break;
+                    default:
+                        redirectUrl = "/unauthorized";
+                        break;
+                }
             }
 
             // Store auth data in localStorage
@@ -149,22 +172,23 @@
         }
         catch (Exception ex)
         {
-            errorMessage = $"Login failed: {ex.Message}";
+            errorMessage = $"Đăng nhập thất bại: {ex.Message}";
         }
     }
 
     public class LoginViewModel
     {
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [Required(ErrorMessage = "Email là bắt buộc")]
+        [EmailAddress(ErrorMessage = "Định dạng email không hợp lệ")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Password is required")]
+        [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
         public string Password { get; set; } = string.Empty;
     }
+    
     private void SignInWithGoogle()
     {
         // Implement Google OAuth sign-in logic here
-        errorMessage = "Google sign-in is not yet implemented";
+        errorMessage = "Đăng nhập bằng Google chưa được triển khai";
     }
 }
