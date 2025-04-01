@@ -1,0 +1,519 @@
+﻿@page "/user/profile" 
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@using SkinCareDAO.Utils
+@using System.ComponentModel.DataAnnotations
+@using System.Text.RegularExpressions
+@inject IUserRepository UserRepository
+@inject ICustomerRepository CustomerRepository
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<PageTitle>Hồ Sơ Cá Nhân | SkinCare Spa</PageTitle>
+
+<div class="bg-gradient-to-b from-pink-50 to-white min-h-screen py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 text-center">Hồ Sơ Cá Nhân</h1>
+                <p class="text-center text-gray-600 mt-2">Quản lý thông tin cá nhân của bạn</p>
+            </div>
+            
+            @if (loading)
+            {
+                <!-- Loading state -->
+                <div class="bg-white rounded-xl shadow-md p-8 mb-6 animate-pulse">
+                    <div class="flex flex-col items-center mb-8">
+                        <div class="h-24 w-24 rounded-full bg-gray-300 mb-4"></div>
+                        <div class="h-6 bg-gray-300 rounded w-48 mb-2"></div>
+                        <div class="h-4 bg-gray-300 rounded w-32"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        @for (int i = 0; i < 6; i++)
+                        {
+                            <div>
+                                <div class="h-4 bg-gray-300 rounded w-24 mb-2"></div>
+                                <div class="h-10 bg-gray-300 rounded w-full"></div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else if (errorMessage != null)
+            {
+                <!-- Error state -->
+                <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-red-800">Có lỗi xảy ra</h3>
+                            <p class="mt-2 text-red-700">@errorMessage</p>
+                            <div class="mt-4">
+                                <button @onclick="RefreshPage" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                                    <i class="fas fa-sync-alt mr-2"></i> Tải lại trang
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Edit mode toggle -->
+                <div class="flex justify-end mb-4">
+                    <button @onclick="ToggleEditMode" class="px-4 py-2 rounded-lg flex items-center gap-2 @(isEditMode ? "bg-gray-600 text-white" : "bg-pink-500 text-white")">
+                        <i class="fas @(isEditMode ? "fa-times" : "fa-edit")"></i>
+                        @(isEditMode ? "Hủy chỉnh sửa" : "Chỉnh sửa thông tin")
+                    </button>
+                </div>
+                
+                <!-- Profile card -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+                    <!-- Profile header -->
+                    <div class="bg-gradient-to-r from-pink-500 to-pink-600 text-white p-8">
+                        <div class="flex flex-col md:flex-row items-center">
+                            <div class="flex-shrink-0 mb-4 md:mb-0">
+                                <div class="h-24 w-24 rounded-full bg-white border-4 border-white overflow-hidden shadow-lg">
+                                    <div class="h-full w-full bg-pink-200 flex items-center justify-center">
+                                        <i class="fas fa-user text-pink-500 text-4xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md:ml-6 text-center md:text-left">
+                                @if (customer != null)
+                                {
+                                    <h2 class="text-2xl font-bold">@(customer.FirstName ?? "") @(customer.LastName ?? "")</h2>
+                                }
+                                
+                                <p class="text-pink-100">@user?.Email</p>
+                                <p class="mt-1 text-pink-100">
+                                    <i class="fas fa-user-tag mr-1"></i> @GetRoleDisplay(user?.Role)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Profile form -->
+                    <div class="p-8">
+                        @if (isEditMode)
+                        {
+                            <!-- Edit mode form -->
+                            <EditForm Model="@editModel" OnValidSubmit="SaveChanges">
+                                <DataAnnotationsValidator />
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Họ</label>
+                                        <InputText @bind-Value="editModel.FirstName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500" />
+                                        <ValidationMessage For="@(() => editModel.FirstName)" class="text-red-600 text-sm" />
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Tên</label>
+                                        <InputText @bind-Value="editModel.LastName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500" />
+                                        <ValidationMessage For="@(() => editModel.LastName)" class="text-red-600 text-sm" />
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                        <input type="text" value="@user?.Email" class="w-full px-4 py-2 border border-gray-200 rounded-md bg-gray-100" readonly />
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
+                                        <InputText @bind-Value="editModel.PhoneNumber" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500" />
+                                        <ValidationMessage For="@(() => editModel.PhoneNumber)" class="text-red-600 text-sm" />
+                                    </div>
+                                    
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
+                                        <InputText @bind-Value="editModel.Address" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500" />
+                                        <ValidationMessage For="@(() => editModel.Address)" class="text-red-600 text-sm" />
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Ngày sinh</label>
+                                        <InputDate @bind-Value="editModel.DateOfBirth" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500" />
+                                        <ValidationMessage For="@(() => editModel.DateOfBirth)" class="text-red-600 text-sm" />
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Giới tính</label>
+                                        <div class="flex space-x-6 mt-1">
+                                            <div class="flex items-center">
+                                                <InputSelect @bind-Value="editModel.Gender" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500">
+                                                    <option value="Nam">Nam</option>
+                                                    <option value="Nữ">Nữ</option>
+                                                </InputSelect>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-end mt-8">
+                                    <button type="submit" class="px-6 py-3 bg-pink-500 hover:bg-pink-600 text-white rounded-lg shadow-md transition-colors">
+                                        <i class="fas fa-save mr-2"></i> Lưu thay đổi
+                                    </button>
+                                </div>
+                            </EditForm>
+                        }
+                        else
+                        {
+                            <!-- View mode information -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h3 class="text-sm font-medium text-gray-500 mb-1">Họ và tên</h3>
+                                    @if (customer != null)
+                                    {
+                                        <p class="text-gray-800 font-medium">@(customer.FirstName ?? "") @(customer.LastName ?? "")</p>
+                                    }
+                                    
+                                </div>
+                                
+                                <div>
+                                    <h3 class="text-sm font-medium text-gray-500 mb-1">Email</h3>
+                                    <p class="text-gray-800 font-medium">@(user?.Email ?? "Chưa cập nhật")</p>
+                                </div>
+                                
+                                <div>
+                                    <h3 class="text-sm font-medium text-gray-500 mb-1">Số điện thoại</h3>
+                                    <p class="text-gray-800 font-medium">@(customer?.PhoneNumber ?? "Chưa cập nhật")</p>
+                                </div>
+                                
+                                <div>
+                                    <h3 class="text-sm font-medium text-gray-500 mb-1">Địa chỉ</h3>
+                                    <p class="text-gray-800 font-medium">@(customer?.Address ?? "Chưa cập nhật")</p>
+                                </div>
+                                
+                                <div>
+                                    <h3 class="text-sm font-medium text-gray-500 mb-1">Ngày sinh</h3>
+                                    <p class="text-gray-800 font-medium">
+                                        @(customer?.DateOfBirth != null ? customer.DateOfBirth.ToString("dd/MM/yyyy") : "Chưa cập nhật")
+                                    </p>
+                                </div>
+                                
+                                <div>
+                                    <h3 class="text-sm font-medium text-gray-500 mb-1">Giới tính</h3>
+                                    <p class="text-gray-800 font-medium">
+                                        @(customer?.Gender ?? "Chưa cập nhật")
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                
+                <!-- Password change card -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-8">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-lock text-pink-500 mr-2"></i> Đổi mật khẩu
+                        </h3>
+                        
+                        @if (passwordChangeSuccess)
+                        {
+                            <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg mb-6">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-green-700">Mật khẩu đã được thay đổi thành công!</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        
+                        <EditForm Model="@passwordModel" OnValidSubmit="ChangePassword">
+                            <DataAnnotationsValidator />
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hiện tại</label>
+                                    <InputText @bind-Value="passwordModel.CurrentPassword" type="password" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500" />
+                                    <ValidationMessage For="@(() => passwordModel.CurrentPassword)" class="text-red-600 text-sm" />
+                                    @if (!string.IsNullOrEmpty(passwordErrorMessage))
+                                    {
+                                        <p class="text-red-600 text-sm mt-1">@passwordErrorMessage</p>
+                                    }
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới</label>
+                                    <InputText @bind-Value="passwordModel.NewPassword" type="password" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500" />
+                                    <ValidationMessage For="@(() => passwordModel.NewPassword)" class="text-red-600 text-sm" />
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu mới</label>
+                                    <InputText @bind-Value="passwordModel.ConfirmPassword" type="password" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500" />
+                                    <ValidationMessage For="@(() => passwordModel.ConfirmPassword)" class="text-red-600 text-sm" />
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <button type="submit" class="px-6 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded-lg shadow-md transition-colors">
+                                    <i class="fas fa-key mr-2"></i> Đổi mật khẩu
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private User user;
+    private Customer customer;
+    private bool loading = true;
+    private string errorMessage;
+    private bool isEditMode = false;
+    private string currentUserId;
+    private UserEditModel editModel = new();
+    private PasswordChangeModel passwordModel = new();
+    private bool passwordChangeSuccess = false;
+    private string passwordErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserData();
+    }
+
+    private async Task LoadUserData()
+    {
+        try
+        {
+            loading = true;
+            errorMessage = null;
+            passwordChangeSuccess = false;
+            passwordErrorMessage = null;
+
+            // Lấy ID người dùng từ localStorage
+            currentUserId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "accountId");
+            
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                // Không tìm thấy ID người dùng, chuyển hướng về trang đăng nhập
+                NavigationManager.NavigateTo("/signin");
+                return;
+            }
+
+            // Lấy thông tin người dùng
+            user = UserRepository.GetOne(currentUserId);
+            
+            if (user == null)
+            {
+                errorMessage = "Không tìm thấy thông tin người dùng.";
+                return;
+            }
+                customer = CustomerRepository.GetOne(currentUserId);
+
+            // Nếu là khách hàng, lấy thêm thông tin khách hàng
+            if (user.Role?.ToLower() == "customer")
+            {
+            }
+
+            // Thiết lập model chỉnh sửa
+            if (customer != null)
+            {
+                editModel = new UserEditModel
+                {
+                    FirstName = customer.FirstName ?? "",
+                    LastName = customer.LastName ?? "",
+                    PhoneNumber = customer.PhoneNumber ?? "",
+                    Address = customer.Address ?? "",
+                    DateOfBirth = customer.DateOfBirth,
+                    Gender = customer.Gender ?? "Male"
+                };
+            }
+            else
+            {
+                // Nếu không có customer nhưng có user
+                editModel = new UserEditModel
+                {
+                    FirstName = "",
+                    LastName = "",
+                    PhoneNumber = "",
+                    Address = "",
+                    DateOfBirth = DateTime.Now,
+                    Gender = "Nam"
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Đã xảy ra lỗi: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleEditMode()
+    {
+        isEditMode = !isEditMode;
+        
+        // Nếu hủy chỉnh sửa, reset dữ liệu
+        if (!isEditMode)
+        {
+            if (customer != null)
+            {
+                editModel = new UserEditModel
+                {
+                    FirstName = customer.FirstName ?? "",
+                    LastName = customer.LastName ?? "",
+                    PhoneNumber = customer.PhoneNumber ?? "",
+                    Address = customer.Address ?? "",
+                    DateOfBirth = customer.DateOfBirth,
+                    Gender = customer.Gender ?? "Nam"
+                };
+            }
+            else if (user != null)
+            {
+                editModel = new UserEditModel
+                {
+                    FirstName = "",
+                    LastName = "",
+                    PhoneNumber = "",
+                    Address = "",
+                    DateOfBirth = DateTime.Now,
+                    Gender = "Nam"
+                };
+            }
+        }
+    }
+
+    private async Task SaveChanges()
+    {
+        try
+        {
+            // Nếu là khách hàng, cập nhật thông tin khách hàng
+            if (user.Role?.ToLower() == "customer")
+            {
+               
+                    // Update existing customer
+                    customer.FirstName = editModel.FirstName;
+                    customer.LastName = editModel.LastName;
+                    customer.PhoneNumber = editModel.PhoneNumber;
+                    customer.Address = editModel.Address;
+                    customer.DateOfBirth = editModel.DateOfBirth;
+                    customer.Gender = editModel.Gender;
+                    
+                    CustomerRepository.Update(customer);
+                    
+                    // Update user's full name
+                    UserRepository.Update(user);
+             
+            }
+        
+
+            isEditMode = false;
+            await LoadUserData();
+            await JSRuntime.InvokeVoidAsync("alert", "Cập nhật thông tin thành công!");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Không thể cập nhật thông tin: {ex.Message}";
+        }
+    }
+
+    private async Task ChangePassword()
+    {
+        try
+        {
+            passwordErrorMessage = null;
+            passwordChangeSuccess = false;
+            
+            // Giải mã mật khẩu hiện tại và xác thực
+            string decryptedPassword = MyUtils.Decrypt(user.Password);
+            
+            if (decryptedPassword != passwordModel.CurrentPassword)
+            {
+                passwordErrorMessage = "Mật khẩu hiện tại không chính xác.";
+                return;
+            }
+            
+            // Kiểm tra xác nhận mật khẩu
+            if (passwordModel.NewPassword != passwordModel.ConfirmPassword)
+            {
+                passwordErrorMessage = "Xác nhận mật khẩu mới không khớp.";
+                return;
+            }
+
+            // Mã hóa và cập nhật mật khẩu mới
+            user.Password = MyUtils.Encrypt(passwordModel.NewPassword);
+            UserRepository.Update(user);
+            
+            // Reset form và hiển thị thông báo thành công
+            passwordModel = new PasswordChangeModel();
+            passwordChangeSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            passwordErrorMessage = $"Không thể đổi mật khẩu: {ex.Message}";
+        }
+    }
+
+    private void RefreshPage()
+    {
+        NavigationManager.NavigateTo(NavigationManager.Uri, true);
+    }
+
+    private string GetRoleDisplay(string role)
+    {
+        if (string.IsNullOrEmpty(role))
+            return "Khách hàng";
+            
+        return role.ToLower() switch
+        {
+            "admin" => "Quản trị viên",
+            "staff" => "Nhân viên",
+            "therapist" => "Chuyên viên",
+            "customer" => "Khách hàng",
+            _ => role
+        };
+    }
+
+    // Models cho form
+    public class UserEditModel
+    {
+        [Required(ErrorMessage = "Vui lòng nhập họ")]
+        [StringLength(50, ErrorMessage = "Họ không được quá 50 ký tự")]
+        public string FirstName { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập tên")]
+        [StringLength(50, ErrorMessage = "Tên không được quá 50 ký tự")]
+        public string LastName { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập số điện thoại")]
+        [RegularExpression(@"^(0[0-9]{9,10})$", ErrorMessage = "Số điện thoại không hợp lệ")]
+        public string PhoneNumber { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập địa chỉ")]
+        public string Address { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng chọn ngày sinh")]
+        public DateTime DateOfBirth { get; set; }
+
+        public string Gender { get; set; }
+    }
+
+    public class PasswordChangeModel
+    {
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu hiện tại")]
+        public string CurrentPassword { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập mật khẩu mới")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự")]
+        public string NewPassword { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu")]
+        [Compare("NewPassword", ErrorMessage = "Xác nhận mật khẩu không khớp")]
+        public string ConfirmPassword { get; set; }
+    }
+}

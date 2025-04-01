@@ -2,6 +2,7 @@
 @using SkinCareBussinessObject
 @using SkinCareRepository
 @inject IAssessmentQuestionRepository QuestionRepository
+@inject NavigationManager NavigationManager
 
 <h3>Assessment Questions</h3>
 
@@ -11,10 +12,10 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <label for="pageSize">Items per page:</label>
-                    <select id="pageSize" class="form-select form-select-sm d-inline-block mx-2" style="width: 80px;" @bind="PageSize">
-                        <option value="5">5</option>
-                        <option value="10">10</option>
-                        <option value="20">20</option>
+                    <select id="pageSize" class="form-select form-select-sm d-inline-block mx-2" style="width: 80px;" @onchange="HandlePageSizeChange">
+                        <option value="5" selected="@(PageSize == 5)">5</option>
+                        <option value="10" selected="@(PageSize == 10)">10</option>
+                        <option value="20" selected="@(PageSize == 20)">20</option>
                     </select>
                 </div>
                 <div>
@@ -26,7 +27,7 @@
         </div>
     </div>
 
-    @if (Questions == null)
+    @if (IsLoading)
     {
         <div class="text-center">
             <div class="spinner-border" role="status">
@@ -34,7 +35,7 @@
             </div>
         </div>
     }
-    else if (!Questions.Any())
+    else if (Questions == null || !Questions.Any())
     {
         <div class="alert alert-info">No questions found.</div>
     }
@@ -47,8 +48,12 @@
                     <h2 class="accordion-header" id="heading-@question.Id">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#collapse-@question.Id" aria-expanded="false" aria-controls="collapse-@question.Id">
-                            <span class="fw-bold">Q@(Questions.IndexOf(question) + 1):</span> @question.QuestionText
-                            <span class="badge bg-secondary ms-2">@question.QuestionType</span>
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <span class="fw-bold">Q@(Questions.IndexOf(question) + 1):</span> @question.QuestionText
+                                </div>
+                                <span class="badge bg-secondary">@question.QuestionType</span>
+                            </div>
                         </button>
                     </h2>
                     <div id="collapse-@question.Id" class="accordion-collapse collapse"
@@ -74,6 +79,12 @@
                             {
                                 <p class="text-muted">No options available for this question.</p>
                             }
+                            
+                            <div class="mt-3">
+                                <button class="btn btn-primary" @onclick="() => SelectQuestion(question.Id)">
+                                    Select Question
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -98,6 +109,8 @@
     private async Task LoadQuestions()
     {
         IsLoading = true;
+        StateHasChanged(); // Update UI to show loading state
+        
         try
         {
             // Since your method is not async, we wrap it in Task.Run
@@ -130,10 +143,20 @@
         CurrentPage++;
         await LoadQuestions();
     }
-
-    // This method is triggered when PageSize is changed via the binding
-    protected async Task OnParametersSetAsync()
+    
+    private async Task HandlePageSizeChange(ChangeEventArgs e)
     {
-        await LoadQuestions();
+        if (int.TryParse(e.Value?.ToString(), out int newSize))
+        {
+            PageSize = newSize;
+            CurrentPage = 1; // Reset to first page when changing page size
+            await LoadQuestions();
+        }
+    }
+    
+    private void SelectQuestion(string questionId)
+    {
+        // Navigate to question detail or edit page
+        NavigationManager.NavigateTo($"/questions/{questionId}");
     }
 }

@@ -1,6 +1,13 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">SkinCare Spa</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
     </div>
 </div>
 
@@ -10,21 +17,168 @@
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Trang Chủ
+                <span class="" aria-hidden="true"></span> Trang Chủ
             </NavLink>
         </div>
 
+        <!-- Menu cho tất cả users (kể cả chưa đăng nhập) -->
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="staff/services">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Quản Lý Dịch Vụ
+            <NavLink class="nav-link" href="services">
+                <span class="fas fa-spa" aria-hidden="true"></span> Dịch Vụ
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="staff/categories">
-                <span class="bi bi-bookmark-fill-nav-menu" aria-hidden="true"></span> Danh Mục
-            </NavLink>
-        </div>
+        @if (isAuthenticated)
+        {
+            @if (userRole?.ToLower() == "staff")
+            {
+                <!-- Menu cho Staff -->
+                <div class="nav-item px-3 mt-3">
+                    <h6 class="text-white fw-bold text-uppercase px-2">Quản Lý</h6>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="staff/users">
+                        <span class="fas fa-users" aria-hidden="true"></span> Quản Lý Tài Khoản
+                    </NavLink>
+                </div>
+                
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="staff/appointments">
+                        <span class="fas fa-calendar-alt" aria-hidden="true"></span> Quản Lý Lịch Hẹn
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="staff/services">
+                        <span class="fas fa-concierge-bell" aria-hidden="true"></span> Quản Lý Dịch Vụ
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="staff/categories">
+                        <span class="fas fa-list-ul" aria-hidden="true"></span> Quản Lý Danh Mục
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="staff/payments">
+                        <span class="fas fa-money-bill-wave" aria-hidden="true"></span> Quản Lý Thanh Toán
+                    </NavLink>
+                </div>
+            }
+            else if (userRole?.ToLower() == "therapist")
+            {
+                <!-- Menu cho Therapist -->
+                <div class="nav-item px-3 mt-3">
+                    <h6 class="text-white fw-bold text-uppercase px-2">Chuyên Viên</h6>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="therapist/clients">
+                        <span class="fas fa-user-friends" aria-hidden="true"></span> Khách Hàng Của Tôi
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="therapist/appointments">
+                        <span class="fas fa-calendar-check" aria-hidden="true"></span> Lịch Hẹn Của Tôi
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="therapist/treatments">
+                        <span class="fas fa-clipboard-list" aria-hidden="true"></span> Liệu Trình Điều Trị
+                    </NavLink>
+                </div>
+            }
+            else if (userRole?.ToLower() == "customer")
+            {
+                <!-- Menu cho Customer -->
+                <div class="nav-item px-3 mt-3">
+                    <h6 class="text-white fw-bold text-uppercase px-2">Tài Khoản Của Tôi</h6>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="user/appointments">
+                        <span class="fas fa-calendar" aria-hidden="true"></span> Lịch Hẹn Của Tôi
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="user/services">
+                        <span class="fas fa-heart" aria-hidden="true"></span> Dịch Vụ Đã Chọn
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="user/payments">
+                        <span class="fas fa-credit-card" aria-hidden="true"></span> Lịch Sử Thanh Toán
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="user/profile">
+                        <span class="fas fa-id-card" aria-hidden="true"></span> Hồ Sơ Cá Nhân
+                    </NavLink>
+                </div>
+            }
+        }
+        
+
+
+      
     </nav>
 </div>
+
+@code {
+    private bool collapseNavMenu = true;
+    private bool isAuthenticated = false;
+    private string userEmail = string.Empty;
+    private string userRole = string.Empty;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuthenticationStatus();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CheckAuthenticationStatus();
+        }
+    }
+
+    private async Task CheckAuthenticationStatus()
+    {
+        try
+        {
+            userEmail = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "email");
+            userRole = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "role");
+            isAuthenticated = !string.IsNullOrEmpty(userEmail);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"CheckAuthenticationStatus error: {ex.Message}");
+            isAuthenticated = false;
+            userEmail = string.Empty;
+            userRole = string.Empty;
+        }
+        StateHasChanged();
+    }
+
+
+    public void Dispose()
+    {
+        // Clean up resources if needed
+    }
+}
 

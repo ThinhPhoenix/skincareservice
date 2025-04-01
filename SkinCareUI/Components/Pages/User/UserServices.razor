@@ -98,21 +98,25 @@
                 {
                     <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                         <div class="relative h-48 overflow-hidden">
-                           
-                                <div class="h-full w-full bg-gradient-to-br from-pink-100 to-pink-50 flex items-center justify-center">
-                                    <i class="fas fa-spa text-pink-300 text-5xl"></i>
-                                </div>
-                          
-                            <div class="absolute top-0 right-0 m-2 px-3 py-1 bg-gradient-to-r from-pink-500 to-pink-600 text-white text-sm font-semibold rounded-full shadow-md">
-                                @FormatPrice(service.Price)
+                            <!-- Sử dụng hình ảnh được chỉ định cho tất cả dịch vụ -->
+                            <img src="https://isharedigital.com/wp-content/uploads/2020/11/kinh-doanh-spa-bi-quyet-quang-cao-spa-lam-dep-hieu-qua.jpeg" 
+                                 alt="@service.ServiceName" 
+                                 class="h-full w-full object-cover" 
+                                 loading="lazy"
+                                 onerror="this.onerror=null; this.src='https://placehold.co/600x400/pink/white?text=SkinCare+Spa'; this.classList.add('object-contain');" />
+                            
+                            <!-- Thời gian ở góc trên phải -->
+                            <div class="absolute top-0 right-0 m-2 px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-full shadow-md">
+                                <i class="far fa-clock mr-1"></i> @(service.DurationMinutes > 0 ? $"{service.DurationMinutes} phút" : "Linh hoạt")
                             </div>
                         </div>
                         <div class="p-5">
                             <h3 class="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">@service.ServiceName</h3>
                             <p class="text-gray-600 text-sm mb-4 line-clamp-3">@service.Description</p>
                             <div class="flex justify-between items-center">
-                                <span class="text-xs bg-pink-100 text-pink-800 px-2 py-1 rounded-full font-medium">
-                                    @(service.DurationMinutes > 0 ? $"{service.DurationMinutes} phút" : "Linh hoạt")
+                                <!-- Giá tiền ở góc dưới bên trái -->
+                                <span class="text-sm bg-pink-100 text-pink-800 px-3 py-1 rounded-full font-medium">
+                                    <i class="fas fa-tag mr-1"></i> @FormatPrice(service.Price)
                                 </span>
                                 <button @onclick="() => ViewServiceDetails(service.Id)" 
                                         class="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white px-4 py-2 rounded-lg transition-all text-sm flex items-center">
@@ -161,7 +165,6 @@
                 }
             }
 
-            
             filteredServices = services;
 
             ApplyFilters();
