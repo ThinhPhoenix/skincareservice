@@ -29,13 +29,9 @@ namespace SkinCareBussinessObject
 
         public string Recommendations { get; set; }
 
-        [Required]
-        public string TherapistId { get; set; }
-
         [ForeignKey("CustomerId")]
         public virtual Customer Customer { get; set; }
 
-        [ForeignKey("TherapistId")]
-        public virtual Therapist Therapist { get; set; }
+      
     }
 }

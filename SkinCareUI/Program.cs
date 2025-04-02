@@ -43,6 +43,10 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<ISkinAssesmentRepository, SkinAssesmentRepository>();
 builder.Services.AddScoped<IAssesmentOptionsRepository, AssesmentOptionsRepository>();
 builder.Services.AddScoped<IAssessmentQuestionRepository, AssessmentQuestionRepository>();
+builder.Services.AddScoped<IAssessmentResponseRepository, AssessmentResponseRepository>();
+
+
+
 builder.Services.AddScoped<SkinCareUI.Services.AuthService>();
 
 var app = builder.Build();

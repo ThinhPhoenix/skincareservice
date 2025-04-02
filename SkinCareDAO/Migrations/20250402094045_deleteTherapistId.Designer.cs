@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SkinCareDAO;
@@ -11,9 +12,11 @@ using SkinCareDAO;
 namespace SkinCareDAO.Migrations
 {
     [DbContext(typeof(SkinCareDBContext))]
-    partial class SkinCareDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250402094045_deleteTherapistId")]
+    partial class deleteTherapistId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -595,6 +598,10 @@ namespace SkinCareDAO.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("SkinType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TherapistId")
                         .IsRequired()
                         .HasColumnType("text");
 

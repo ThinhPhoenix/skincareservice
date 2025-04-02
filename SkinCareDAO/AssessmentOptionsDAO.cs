@@ -8,23 +8,23 @@ using SkinCareBussinessObject;
 
 namespace SkinCareDAO
 {
-    public class AssesmentOptionsDAO
+    public class AssessmentOptionsDAO
     {
         private SkinCareDBContext _dbContext;
-        private static AssesmentOptionsDAO instance;
+        private static AssessmentOptionsDAO instance;
 
-        public AssesmentOptionsDAO()
+        public AssessmentOptionsDAO()
         {
             _dbContext = new SkinCareDBContext();
         }
 
-        public static AssesmentOptionsDAO Instance
+        public static AssessmentOptionsDAO Instance
         {
             get
             {
                 if (instance == null)
                 {
-                    instance = new AssesmentOptionsDAO();
+                    instance = new AssessmentOptionsDAO();
                 }
                 return instance;
             }

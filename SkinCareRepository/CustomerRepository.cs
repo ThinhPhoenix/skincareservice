@@ -21,6 +21,11 @@ namespace SkinCareRepository
             return CustomerDAO.Instance.GetAll();
         }
 
+        public Customer GetCustomerByUserId(string userId)
+        {
+            return CustomerDAO.Instance.GetCustomerByUserId(userId);
+        }
+
         public void Add(Customer a)
         {
             CustomerDAO.Instance.Add(a);

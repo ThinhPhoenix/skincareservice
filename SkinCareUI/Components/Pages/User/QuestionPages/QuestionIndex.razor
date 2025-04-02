@@ -1,162 +1,382 @@
 ﻿@page "/questions"
 @using SkinCareBussinessObject
 @using SkinCareRepository
+@using Microsoft.JSInterop
 @inject IAssessmentQuestionRepository QuestionRepository
+@inject ISkinAssesmentRepository SkinAssessmentRepository
+@inject IAssesmentOptionsRepository OptionsRepository
+@inject IAssessmentResponseRepository AssessmentResponseRepository
+@inject ICustomerRepository CustomerRepository
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
-<h3>Assessment Questions</h3>
-
-<div class="container">
-    <div class="row mb-3">
+<div class="container py-4">
+    <div class="row mb-4">
         <div class="col">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <label for="pageSize">Items per page:</label>
-                    <select id="pageSize" class="form-select form-select-sm d-inline-block mx-2" style="width: 80px;" @onchange="HandlePageSizeChange">
-                        <option value="5" selected="@(PageSize == 5)">5</option>
-                        <option value="10" selected="@(PageSize == 10)">10</option>
-                        <option value="20" selected="@(PageSize == 20)">20</option>
-                    </select>
-                </div>
-                <div>
-                    <button class="btn btn-sm btn-outline-primary mx-1" @onclick="PreviousPage" disabled="@(CurrentPage <= 1)">Previous</button>
-                    <span>Page @CurrentPage</span>
-                    <button class="btn btn-sm btn-outline-primary mx-1" @onclick="NextPage" disabled="@(Questions == null || Questions.Count < PageSize)">Next</button>
-                </div>
+            <h2 class="text-pink-500 fw-bold">Đánh Giá Da</h2>
+            <div class="progress mb-3" style="height: 10px; border-radius: 8px; background-color: #fdf2f8;">
+                <div class="progress-bar" role="progressbar" 
+                     style="width: @(CurrentStep == 1 ? "50%" : "100%"); border-radius: 8px; background-color: #db2777;" 
+                     aria-valuenow="@(CurrentStep == 1 ? 50 : 100)" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
+            <p class="text-muted">Bước @CurrentStep / 2: @(CurrentStep == 1 ? "Thông Tin Cơ Bản" : "Câu Hỏi Đánh Giá")</p>
         </div>
     </div>
 
+    @if (ErrorMessage != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+            <strong><i class="bi bi-exclamation-triangle-fill me-2"></i>Lỗi!</strong> @ErrorMessage
+            <button type="button" class="btn-close" @onclick="() => ErrorMessage = null" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (SuccessMessage != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+            <strong><i class="bi bi-check-circle-fill me-2"></i>Thành công!</strong> @SuccessMessage
+            <button type="button" class="btn-close" @onclick="() => SuccessMessage = null" aria-label="Close"></button>
+        </div>
+    }
+
     @if (IsLoading)
     {
-        <div class="text-center">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
+        <div class="text-center my-5 py-5">
+            <div class="spinner-border" style="width: 3rem; height: 3rem; color: #db2777;" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+            </div>
+            <p class="mt-3 fw-bold" style="color: #db2777;">Đang tải thông tin đánh giá...</p>
+        </div>
+    }
+    else if (CurrentStep == 1)
+    {
+        <div class="card shadow rounded-4 border-0 mb-4">
+            <div class="card-header text-white rounded-top-4 py-3" style="background-color: #db2777;">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-clipboard-data me-2"></i>Thông Tin Cơ Bản Về Da</h4>
+            </div>
+            <div class="card-body p-4" style="background-color: #fdf2f8;">
+                <div class="bg-white p-3 rounded-3 mb-4 shadow-sm">
+                    <p class="mb-0"><i class="bi bi-info-circle me-2"></i>Vui lòng cung cấp thông tin chính xác để chúng tôi có thể đề xuất liệu trình chăm sóc da phù hợp nhất.</p>
+                </div>
+                
+                <EditForm Model="@SkinAssessment" OnValidSubmit="HandleBasicInfoSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-4">
+                        <label for="skinType" class="form-label fw-bold">Loại Da</label>
+                        <select id="skinType" class="form-select form-select-lg rounded-3 shadow-sm" @bind="SkinAssessment.SkinType">
+                            <option value="">Chọn loại da của bạn</option>
+                            <option value="Normal">Da thường</option>
+                            <option value="Dry">Da khô</option>
+                            <option value="Oily">Da dầu</option>
+                            <option value="Combination">Da hỗn hợp</option>
+                            <option value="Sensitive">Da nhạy cảm</option>
+                        </select>
+                        <ValidationMessage For="@(() => SkinAssessment.SkinType)" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="concerns" class="form-label fw-bold">Vấn Đề Da</label>
+                        <textarea id="concerns" class="form-control rounded-3 shadow-sm" rows="3" 
+                                  placeholder="Mô tả các vấn đề da bạn đang gặp phải (mụn, lão hóa, nám, sạm, v.v.)"
+                                  @bind="SkinAssessment.Concerns"></textarea>
+                        <ValidationMessage For="@(() => SkinAssessment.Concerns)" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="allergies" class="form-label fw-bold">Dị Ứng</label>
+                        <textarea id="allergies" class="form-control rounded-3 shadow-sm" rows="2"
+                                  placeholder="Liệt kê các thành phần mỹ phẩm mà bạn bị dị ứng"
+                                  @bind="SkinAssessment.Allergies"></textarea>
+                        <ValidationMessage For="@(() => SkinAssessment.Allergies)" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="productsUsed" class="form-label fw-bold">Sản Phẩm Hiện Tại</label>
+                        <textarea id="productsUsed" class="form-control rounded-3 shadow-sm" rows="3"
+                                  placeholder="Liệt kê các sản phẩm chăm sóc da bạn đang sử dụng"
+                                  @bind="SkinAssessment.ProductsUsed"></textarea>
+                        <ValidationMessage For="@(() => SkinAssessment.ProductsUsed)" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="medications" class="form-label fw-bold">Thuốc Đang Sử Dụng</label>
+                        <textarea id="medications" class="form-control rounded-3 shadow-sm" rows="2"
+                                  placeholder="Liệt kê các loại thuốc có thể ảnh hưởng đến da bạn"
+                                  @bind="SkinAssessment.Medications"></textarea>
+                        <ValidationMessage For="@(() => SkinAssessment.Medications)" />
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <button type="submit" class="btn btn-lg rounded-3 px-5 text-white" style="background-color: #db2777;">
+                            Tiếp Theo: Câu Hỏi Đánh Giá
+                            <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </EditForm>
             </div>
         </div>
     }
-    else if (Questions == null || !Questions.Any())
+    else if (CurrentStep == 2)
     {
-        <div class="alert alert-info">No questions found.</div>
-    }
-    else
-    {
-        <div class="accordion" id="questionsAccordion">
-            @foreach (var question in Questions)
-            {
-                <div class="accordion-item mb-3">
-                    <h2 class="accordion-header" id="heading-@question.Id">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#collapse-@question.Id" aria-expanded="false" aria-controls="collapse-@question.Id">
-                            <div class="d-flex w-100 justify-content-between align-items-center">
-                                <div>
-                                    <span class="fw-bold">Q@(Questions.IndexOf(question) + 1):</span> @question.QuestionText
-                                </div>
-                                <span class="badge bg-secondary">@question.QuestionType</span>
-                            </div>
-                        </button>
-                    </h2>
-                    <div id="collapse-@question.Id" class="accordion-collapse collapse"
-                         aria-labelledby="heading-@question.Id" data-bs-parent="#questionsAccordion">
-                        <div class="accordion-body">
-                            <p><strong>Question Type:</strong> @question.QuestionType</p>
-                            <p><strong>Display Order:</strong> @question.DisplayOrder</p>
-
-                            @if (question.AssessmentOptions != null && question.AssessmentOptions.Any())
-                            {
-                                <h5>Options:</h5>
-                                <ul class="list-group">
-                                    @foreach (var option in question.AssessmentOptions.OrderBy(o => o.DisplayOrder))
-                                    {
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            @option.OptionText
-                                            <span class="badge bg-primary rounded-pill">Order: @option.DisplayOrder</span>
-                                        </li>
-                                    }
-                                </ul>
-                            }
-                            else
-                            {
-                                <p class="text-muted">No options available for this question.</p>
-                            }
-                            
-                            <div class="mt-3">
-                                <button class="btn btn-primary" @onclick="() => SelectQuestion(question.Id)">
-                                    Select Question
-                                </button>
-                            </div>
-                        </div>
+        <div class="card shadow rounded-4 border-0 mb-4">
+            <div class="card-header text-white rounded-top-4 py-3" style="background-color: #db2777;">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-question-circle me-2"></i>Câu Hỏi Đánh Giá</h4>
+            </div>
+            <div class="card-body p-4" style="background-color: #fdf2f8;">
+                @if (Questions == null || !Questions.Any())
+                {
+                    <div class="alert alert-info rounded-3 shadow-sm">
+                        <i class="bi bi-info-circle-fill me-2"></i>Hiện tại không có câu hỏi đánh giá. Vui lòng thử lại sau.
                     </div>
-                </div>
-            }
+                }
+                else
+                {
+                    <div class="bg-white p-3 rounded-3 mb-4 shadow-sm">
+                        <p class="mb-0"><i class="bi bi-info-circle me-2"></i>Vui lòng trả lời tất cả các câu hỏi để hoàn thành đánh giá da.</p>
+                    </div>
+
+                    <div id="assessmentQuestions">
+                        @for (int i = 0; i < Questions.Count; i++)
+                        {
+                            var question = Questions[i];
+                            var questionIndex = i;
+                            
+                            <div class="card mb-4 border-0 shadow-sm rounded-4 bg-white">
+                                <div class="card-header border-0 rounded-top-4" style="background-color: #fdf2f8;">
+                                    <h5 class="mb-0 fw-bold" style="color: #db2777;">Câu hỏi @(i + 1): @question.QuestionText</h5>
+                                </div>
+                                <div class="card-body p-4">
+                                    @if (QuestionOptions.ContainsKey(question.Id) && QuestionOptions[question.Id].Any())
+                                    {
+                                        <div class="options-container">
+                                            @foreach (var option in QuestionOptions[question.Id].OrderBy(o => o.DisplayOrder))
+                                            {
+                                                <div class="form-check custom-radio-container mb-3">
+                                                    <input class="form-check-input custom-radio" type="radio" 
+                                                           name="question-@question.Id" 
+                                                           id="option-@option.Id"
+                                                           checked="@(Responses.ContainsKey(question.Id) && Responses[question.Id] == option.Id)"
+                                                           @onchange="() => SelectResponse(question.Id, option.Id)" />
+                                                    <label class="form-check-label ps-2" for="option-@option.Id">
+                                                        @option.OptionText
+                                                    </label>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-danger"><i class="bi bi-exclamation-circle me-2"></i>Không có tùy chọn cho câu hỏi này.</p>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-grid gap-3 d-md-flex justify-content-md-between mt-4">
+                        <button class="btn btn-outline btn-lg rounded-3 px-4" style="color: #db2777; border-color: #db2777;" @onclick="BackToBasicInfo">
+                            <i class="bi bi-arrow-left me-2"></i>
+                            Quay Lại Thông Tin Cơ Bản
+                        </button>
+                        <button class="btn btn-lg rounded-3 px-5 text-white" style="background-color: #db2777;" @onclick="SubmitAssessment" 
+                                disabled="@(!IsAssessmentComplete())">
+                            Gửi Đánh Giá
+                            <i class="bi bi-check2-circle ms-2"></i>
+                        </button>
+                    </div>
+                }
+            </div>
         </div>
     }
 </div>
 
+<style>
+    .custom-radio-container {
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 12px 16px;
+        transition: all 0.2s ease;
+    }
+    
+    .custom-radio-container:hover {
+        background-color: #fdf2f8;
+        border-color: #db2777;
+    }
+    
+    input[type="radio"]:checked + label {
+        font-weight: bold;
+        color: #db2777;
+    }
+    
+    input[type="radio"]:checked + .custom-radio-container {
+        border-color: #db2777;
+        background-color: #fdf2f8;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #db2777;
+        box-shadow: 0 0 0 0.25rem rgba(219, 39, 119, 0.25);
+    }
+    
+    .btn:disabled {
+        background-color: #f472b6 !important;
+        border-color: #f472b6 !important;
+    }
+</style>
+
 @code {
-    private List<AssessmentQuestion> Questions { get; set; }
-    private int CurrentPage { get; set; } = 1;
-    private int PageSize { get; set; } = 10;
-    private bool IsLoading { get; set; } = true;
+    // State properties
+    private int CurrentStep { get; set; } = 1;
+    private bool IsLoading { get; set; } = false;
+    private string? ErrorMessage { get; set; }
+    private string? SuccessMessage { get; set; }
+    private string UserId { get; set; }
+    
+    // Data models
+    private SkinAssessment SkinAssessment { get; set; } = new SkinAssessment();
+    private List<AssessmentQuestion> Questions { get; set; } = new List<AssessmentQuestion>();
+    private Dictionary<string, List<AssessmentOption>> QuestionOptions { get; set; } = new Dictionary<string, List<AssessmentOption>>();
+    private Dictionary<string, string> Responses { get; set; } = new Dictionary<string, string>();
 
     protected override async Task OnInitializedAsync()
     {
-        // Initialize Questions with an empty list to avoid null reference exceptions
-        Questions = new List<AssessmentQuestion>();
-        await LoadQuestions();
+        try {
+            IsLoading = true;
+            // Get user ID from local storage
+            UserId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "accountId");
+            
+            if (string.IsNullOrEmpty(UserId)) {
+                ErrorMessage = "Bạn phải đăng nhập để hoàn thành đánh giá da.";
+                NavigationManager.NavigateTo("/login");
+                return;
+            }
+
+
+
+            var customer = CustomerRepository.GetCustomerByUserId(UserId);
+            if (customer == null) {
+                ErrorMessage = "Không tìm thấy thông tin khách hàng của bạn.";
+                return;
+            }
+
+            // Initialize the skin assessment
+            SkinAssessment = new SkinAssessment
+            {
+                    CustomerId = customer.Id,
+                AssessmentDate = DateTime.UtcNow,
+                Concerns = string.Empty,
+                Allergies = string.Empty,
+                ProductsUsed = string.Empty,
+                Medications = string.Empty,
+                Recommendations = string.Empty,
+                
+            };
+        }
+        finally {
+            IsLoading = false;
+        }
     }
 
-    private async Task LoadQuestions()
+    private async Task HandleBasicInfoSubmit()
     {
-        IsLoading = true;
-        StateHasChanged(); // Update UI to show loading state
-        
+        if (string.IsNullOrWhiteSpace(SkinAssessment.SkinType))
+        {
+            ErrorMessage = "Vui lòng chọn loại da của bạn.";
+            return;
+        }
+
         try
         {
-            // Since your method is not async, we wrap it in Task.Run
-            Questions = await Task.Run(() => QuestionRepository.GetAssessmentQuestions());
+            IsLoading = true;
+            
+            // Load questions for the next step
+            Questions = QuestionRepository.GetAssessmentQuestions();
+            
+            // Load options for each question
+            foreach (var question in Questions)
+            {
+                var options = OptionsRepository.GetOptionsByQuestionId(question.Id);
+                QuestionOptions[question.Id] = options;
+            }
+            
+            // Move to next step
+            CurrentStep = 2;
         }
         catch (Exception ex)
         {
-            // In a real application, you might want to log this error
-            Console.WriteLine($"Error loading questions: {ex.Message}");
-            Questions = new List<AssessmentQuestion>(); // Ensure Questions is never null
+            ErrorMessage = $"Lỗi khi tải câu hỏi đánh giá: {ex.Message}";
         }
         finally
         {
             IsLoading = false;
-            StateHasChanged(); // Explicitly notify Blazor that the state has changed
-        }
-    }
-
-    private async Task PreviousPage()
-    {
-        if (CurrentPage > 1)
-        {
-            CurrentPage--;
-            await LoadQuestions();
-        }
-    }
-
-    private async Task NextPage()
-    {
-        CurrentPage++;
-        await LoadQuestions();
-    }
-    
-    private async Task HandlePageSizeChange(ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value?.ToString(), out int newSize))
-        {
-            PageSize = newSize;
-            CurrentPage = 1; // Reset to first page when changing page size
-            await LoadQuestions();
         }
     }
     
-    private void SelectQuestion(string questionId)
+    private void SelectResponse(string questionId, string optionId)
     {
-        // Navigate to question detail or edit page
-        NavigationManager.NavigateTo($"/questions/{questionId}");
+        Responses[questionId] = optionId;
+    }
+    
+    private void BackToBasicInfo()
+    {
+        CurrentStep = 1;
+    }
+    
+    private bool IsAssessmentComplete()
+    {
+        // Check if all questions have responses
+        return Questions.All(q => Responses.ContainsKey(q.Id));
+    }
+    
+    private async Task SubmitAssessment()
+    {
+        if (!IsAssessmentComplete())
+        {
+            ErrorMessage = "Vui lòng trả lời tất cả các câu hỏi để hoàn thành đánh giá.";
+            return;
+        }
+        
+        try
+        {
+            IsLoading = true;
+            
+            // First save the skin assessment to get an ID
+            SkinAssessmentRepository.Add(SkinAssessment);
+            
+            // Now create and save the assessment responses
+            foreach (var response in Responses)
+            {
+                var questionId = response.Key;
+                var optionId = response.Value;
+                
+                var assessmentResponse = new AssessmentResponse
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    AssessmentId = SkinAssessment.Id,
+                    QuestionId = questionId,
+                    OptionId = optionId,
+                    ResponseText = string.Empty
+                };
+                
+                // Save this response (you would need to implement AssessmentResponseRepository)
+                AssessmentResponseRepository.Add(assessmentResponse);
+            }
+            
+            SuccessMessage = "Đánh giá da của bạn đã được gửi thành công! Chuyên gia của chúng tôi sẽ đánh giá và cung cấp lời khuyên được cá nhân hóa cho bạn.";
+            
+            // Wait a moment for the user to see the success message, then redirect
+            await Task.Delay(3000);
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Lỗi khi gửi đánh giá: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 }

@@ -21,5 +21,7 @@ namespace SkinCareRepository
 
         public void Delete(string id);
         public int[] GetDashBoardCustomer(int year);
+
+        public Customer GetCustomerByUserId(string userId);
     }
 }

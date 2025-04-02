@@ -37,6 +37,11 @@ namespace SkinCareDAO
                 .SingleOrDefault(a => a.Id.Equals(id));
         }
 
+        public Customer GetCustomerByUserId(string userId)
+        {
+            return _dbContext.Customers.FirstOrDefault(c => c.UserId == userId);
+        }
+
         public List<Customer> GetAll()
         {
             return _dbContext.Customers
