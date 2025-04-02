@@ -18,9 +18,7 @@ namespace SkinCareBussinessObject
 
         [Required]
         public string ServiceId { get; set; }
-
-        [Required]
-        public string LocationId { get; set; }
+        
 
         [Required]
         public DateTime AppointmentDateTime { get; set; }
@@ -36,9 +34,6 @@ namespace SkinCareBussinessObject
         [Required]
         public DateTime CreatedAt { get; set; }
 
-        [Required]
-        public string CreatedBy { get; set; }
-
         public DateTime? LastModified { get; set; }
 
         public string? ModifiedBy { get; set; }
@@ -52,12 +47,6 @@ namespace SkinCareBussinessObject
 
         [ForeignKey("ServiceId")]
         public virtual Service Service { get; set; }
-
-        [ForeignKey("LocationId")]
-        public virtual CenterLocation CenterLocation { get; set; }
-
-        [ForeignKey("CreatedBy")]
-        public virtual Staff CreatedByStaff { get; set; }
 
         [ForeignKey("ModifiedBy")]
         public virtual Staff ModifiedByStaff { get; set; }

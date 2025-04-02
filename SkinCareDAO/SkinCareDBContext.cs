@@ -20,7 +20,6 @@ namespace SkinCareDAO
         public DbSet<AssessmentResponse> AssessmentResponses { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<AppointmentHistory> AppointmentHistories { get; set; }
-        public DbSet<CenterLocation> CenterLocations { get; set; }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<Payment> Payments { get; set; }
