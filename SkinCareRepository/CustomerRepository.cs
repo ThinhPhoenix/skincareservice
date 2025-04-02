@@ -35,5 +35,10 @@ namespace SkinCareRepository
         {
             CustomerDAO.Instance.Delete(id);
         }
+
+        public int[] GetDashBoardCustomer(int year)
+        {
+            return CustomerDAO.Instance.GetDashBoardCustomer(year);
+        }
     }
 }

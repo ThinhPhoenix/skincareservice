@@ -1,0 +1,246 @@
+@page "/admin/dashboard"
+@using SkinCareRepository
+@using SkinCareBussinessObject
+@using System.Linq
+@inject IAppointmentRepository AppointmentRepository
+@inject IPaymentRepository PaymentRepository
+@inject ICustomerRepository CustomerRepository
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Admin Dashboard</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Dashboard</h3>
+    <div class="d-flex align-items-center">
+        <div class="input-group me-2" style="width: 150px;">
+            <input type="number" class="form-control" @bind="selectedYear" min="2000" max="2100" />
+        </div>
+        <button class="btn btn-primary" @onclick="LoadDataForYear">Load Data</button>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Total Customers</h5>
+                <h1 class="text-primary">@totalCustomers</h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Total Appointments</h5>
+                <h1 class="text-info">@totalAppointments</h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Total Revenue</h5>
+                <h1 class="text-success">$@totalRevenue.ToString("N2")</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Customers by Month (@selectedYear)</h5>
+                <div>
+                    <canvas id="customersChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Appointments by Month (@selectedYear)</h5>
+                <div>
+                    <canvas id="appointmentsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Revenue by Month (@selectedYear)</h5>
+                <div>
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int[] monthlyCustomers = new int[12];
+    private int[] monthlyAppointments = new int[12];
+    private decimal[] monthlyRevenue = new decimal[12];
+    private int totalCustomers;
+    private int totalAppointments;
+    private decimal totalRevenue;
+    private int selectedYear = DateTime.Now.Year;
+    private string[] months = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+    private bool dataLoaded = false;
+    private bool chartsInitialized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Only fetch data, do not interact with JavaScript
+        await FetchDataForYear();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (dataLoaded)
+        {
+            // Clear existing charts if they exist (only if not first render)
+            if (!firstRender && chartsInitialized)
+            {
+                await JSRuntime.InvokeVoidAsync("clearCharts");
+            }
+
+            // Initialize charts with the loaded data
+            await InitializeChartsAsync();
+            dataLoaded = false;
+            chartsInitialized = true;
+        }
+    }
+
+    private async Task LoadDataForYear()
+    {
+        // Only fetch data, do not interact with JavaScript yet
+        await FetchDataForYear();
+        
+        // Trigger a re-render, after which OnAfterRenderAsync will be called
+        StateHasChanged();
+    }
+
+    private async Task FetchDataForYear()
+    {
+        // Get data for the selected year
+        monthlyCustomers = CustomerRepository.GetDashBoardCustomer(selectedYear);
+        monthlyAppointments = AppointmentRepository.GetDashBoardAppointment(selectedYear);
+        monthlyRevenue = PaymentRepository.GetDashBoardRevenue(selectedYear);
+
+        // Calculate totals
+        totalCustomers = monthlyCustomers.Sum();
+        totalAppointments = monthlyAppointments.Sum();
+        totalRevenue = monthlyRevenue.Sum();
+
+        // Mark data as loaded so charts can be initialized in OnAfterRenderAsync
+        dataLoaded = true;
+    }
+
+    private async Task InitializeChartsAsync()
+    {
+        await JSRuntime.InvokeVoidAsync("initializeCharts", 
+            months, 
+            monthlyCustomers,
+            monthlyAppointments,
+            monthlyRevenue);
+    }
+}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let customerChart = null;
+    let appointmentChart = null;
+    let revenueChart = null;
+
+    window.clearCharts = () => {
+        if (customerChart) customerChart.destroy();
+        if (appointmentChart) appointmentChart.destroy();
+        if (revenueChart) revenueChart.destroy();
+    };
+
+    window.initializeCharts = (months, customerData, appointmentData, revenueData) => {
+        // Customers Chart
+        const customersCtx = document.getElementById('customersChart');
+        customerChart = new Chart(customersCtx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'New Customers',
+                    data: customerData,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+
+        // Appointments Chart
+        const appointmentsCtx = document.getElementById('appointmentsChart');
+        appointmentChart = new Chart(appointmentsCtx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Appointments',
+                    data: appointmentData,
+                    borderColor: 'rgb(54, 162, 235)',
+                    tension: 0.1,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart');
+        revenueChart = new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: revenueData,
+                    borderColor: 'rgb(255, 99, 132)',
+                    tension: 0.1,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    };
+</script>

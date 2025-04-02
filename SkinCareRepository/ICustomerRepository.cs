@@ -20,5 +20,6 @@ namespace SkinCareRepository
         public void Update(Customer a);
 
         public void Delete(string id);
+        public int[] GetDashBoardCustomer(int year);
     }
 }
