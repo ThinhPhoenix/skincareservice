@@ -309,7 +309,7 @@
                 errorMessage = "Không tìm thấy thông tin người dùng.";
                 return;
             }
-                customer = CustomerRepository.GetOne(currentUserId);
+                customer = CustomerRepository.GetCustomerByUserId(currentUserId);
 
             // Nếu là khách hàng, lấy thêm thông tin khách hàng
             if (user.Role?.ToLower() == "customer")
