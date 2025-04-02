@@ -1,1 +1,516 @@
-﻿
+﻿@page "/user/appointments"
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@using Microsoft.JSInterop
+@inject IAppointmentRepository AppointmentRepository
+@inject IServiceRepository ServiceRepository
+@inject ITherapistRepository TherapistRepository
+@inject ICustomerRepository CustomerRepository
+@inject IPaymentRepository PaymentRepository
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Lịch Hẹn Của Tôi | SkinCare Spa</PageTitle>
+
+<div class="container py-4">
+    <h2 class="mb-4 fw-bold" style="color: #db2777;"><i class="bi bi-calendar2-check me-2"></i>Lịch Hẹn Của Tôi</h2>
+
+    @if (IsLoading)
+    {
+        <div class="text-center my-5 py-5">
+            <div class="spinner-border" style="width: 3rem; height: 3rem; color: #db2777;" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+            </div>
+            <p class="mt-3 fw-bold" style="color: #db2777;">Đang tải lịch hẹn...</p>
+        </div>
+    }
+    else if (!Appointments.Any())
+    {
+        <div class="card shadow-sm border-0 rounded-4 mb-4" style="background-color: #fdf2f8;">
+            <div class="card-body p-5 text-center">
+                <img src="https://cdn-icons-png.flaticon.com/512/3589/3589030.png" alt="No Appointments" style="width: 120px; height: 120px; opacity: 0.7;" class="mb-4">
+                <h4 style="color: #be185d;" class="mb-3">Bạn chưa có lịch hẹn nào</h4>
+                <p class="text-muted mb-4">Hãy đặt lịch và trải nghiệm dịch vụ của chúng tôi</p>
+                <a href="/services" class="btn py-2 px-4 rounded-pill text-white" style="background-color: #db2777;">
+                    <i class="bi bi-calendar-plus me-2"></i>Đặt lịch ngay
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="input-group mb-3">
+                    <span class="input-group-text bg-white border-end-0" style="color: #db2777;">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" class="form-control border-start-0" placeholder="Tìm kiếm lịch hẹn..."
+                           @bind="SearchTerm" @bind:event="oninput">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-md-end gap-3">
+                    <select class="form-select" style="max-width: 200px;" @bind="StatusFilter">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="Pending">Đang chờ xác nhận</option>
+                        <option value="Confirmed">Đã xác nhận</option>
+                        <option value="Completed">Đã hoàn thành</option>
+                        <option value="Cancelled">Đã hủy</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            @foreach (var appointment in FilteredAppointments)
+            {
+                var service = Services.FirstOrDefault(s => s.Id == appointment.ServiceId);
+                var therapist = Therapists.FirstOrDefault(t => t.Id == appointment.TherapistId);
+                var payment = Payments.FirstOrDefault(p => p.AppointmentId == appointment.Id);
+
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0 rounded-4 position-relative">
+                        @if (!string.IsNullOrEmpty(appointment.Status))
+                        {
+                            <div class="position-absolute top-0 end-0 m-3">
+                                <span class="badge rounded-pill @GetStatusBadgeClass(appointment.Status) px-3 py-2">
+                                    @GetStatusName(appointment.Status)
+                                </span>
+                            </div>
+                        }
+
+                        <div class="row g-0 h-100">
+                            <div class="col-4 d-none d-md-block" style="background-color: #fdf2f8;">
+                                <div class="d-flex flex-column align-items-center justify-content-center h-100 px-3 py-4 text-center">
+                                    <div class="bg-white rounded-circle p-2 mb-2 shadow-sm" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                                        <div class="fw-bold fs-4" style="color: #db2777;">
+                                            @appointment.AppointmentDateTime.ToLocalTime().Day
+                                        </div>
+                                    </div>
+                                    <div class="fw-bold" style="color: #be185d;">
+                                        @GetMonthNameInVietnamese(appointment.AppointmentDateTime.ToLocalTime().Month)
+                                    </div>
+                                    <div class="small text-muted">
+                                        @GetWeekdayInVietnamese(appointment.AppointmentDateTime.ToLocalTime().DayOfWeek)
+                                    </div>
+                                    <div class="mt-3 fw-bold" style="color: #db2777;">
+                                        @appointment.AppointmentDateTime.ToLocalTime().ToString("HH:mm")
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="@(IsDesktop ? "col-8" : "col-12")">
+                                <div class="card-body p-4">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="d-block d-md-none me-3">
+                                            <div class="bg-pink-100 rounded-circle p-2" style="width: 50px; height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                                <div class="fw-bold" style="color: #db2777; font-size: 1.1rem;">@appointment.AppointmentDateTime.ToLocalTime().Day</div>
+                                                <div class="small" style="color: #be185d; font-size: 0.7rem;">@(GetMonthNameInVietnamese(appointment.AppointmentDateTime.ToLocalTime().Month).Replace("Tháng ", "T"))</div>
+                                            </div>
+                                        </div>
+
+                                        <h5 class="card-title mb-0" style="color: #be185d;">
+                                            @(service?.ServiceName ?? "Dịch vụ không xác định")
+                                        </h5>
+                                    </div>
+
+                                    <div class="d-flex flex-column gap-2 mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-person me-2" style="color: #db2777;"></i>
+                                            <span>Chuyên gia: @(therapist != null ? $"{therapist.FirstName} {therapist.LastName}" : "Chưa xác định")</span>
+                                        </div>
+
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-clock me-2" style="color: #db2777;"></i>
+                                            <span>Thời gian: @appointment.DurationMinutes phút</span>
+                                        </div>
+
+                                        @if (payment != null)
+                                        {
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-cash me-2" style="color: #db2777;"></i>
+                                                <span>
+                                                    @FormatCurrencyVND(payment.Amount) •
+                                                    @GetPaymentMethodName(payment.PaymentMethod) •
+                                                    <span class="@GetPaymentStatusBadgeClass(payment.PaymentStatus)">@GetPaymentStatusName(payment.PaymentStatus)</span>
+                                                </span>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <div class="d-flex gap-2 mt-3">
+                                        <button class="btn btn-sm rounded-pill"
+                                                style="background-color: #fdf2f8; color: #db2777; border-color: #fbcfe8;"
+                                                @onclick="() => ViewAppointmentDetails(appointment.Id)">
+                                            <i class="bi bi-info-circle me-1"></i>Chi tiết
+                                        </button>
+
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (CurrentAppointmentId != null)
+        {
+            <div class="modal fade show" style="display: block; z-index: 1050;" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg" style="z-index: 1051;">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header text-white border-0" style="background-color: #db2777;">
+                    <h5 class="modal-title">Chi Tiết Lịch Hẹn</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body p-4" style="background-color: #fdf2f8;">
+                    @if (CurrentAppointment != null && CurrentService != null && CurrentTherapist != null)
+                    {
+                                <div class="card shadow-sm border-0 rounded-4 mb-4">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex justify-content-between flex-wrap mb-3">
+                                            <h5 class="fw-bold" style="color: #be185d;">@CurrentService.ServiceName</h5>
+                                            <span class="badge rounded-pill @GetStatusBadgeClass(CurrentAppointment.Status) px-3 py-2">
+                                                @GetStatusName(CurrentAppointment.Status)
+                                            </span>
+                                        </div>
+
+                                        <div class="row g-4">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <p class="mb-1 fw-bold" style="color: #db2777;">Ngày</p>
+                                                    <p class="border-bottom pb-2">@FormatDateInVietnamese(CurrentAppointment.AppointmentDateTime.ToLocalTime())</p>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <p class="mb-1 fw-bold" style="color: #db2777;">Giờ</p>
+                                                    <p class="border-bottom pb-2">@CurrentAppointment.AppointmentDateTime.ToLocalTime().ToString("HH:mm")</p>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <p class="mb-1 fw-bold" style="color: #db2777;">Chuyên gia</p>
+                                                    <p class="border-bottom pb-2">@CurrentTherapist.FirstName @CurrentTherapist.LastName</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <p class="mb-1 fw-bold" style="color: #db2777;">Thời gian</p>
+                                                    <p class="border-bottom pb-2">@CurrentAppointment.DurationMinutes phút</p>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <p class="mb-1 fw-bold" style="color: #db2777;">Chi phí</p>
+                                                    <p class="border-bottom pb-2">
+                                                        @if (CurrentPayment != null)
+                                                        {
+                                                            @FormatCurrencyVND(CurrentPayment.Amount)
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>Chưa có thông tin thanh toán</span>
+                                                        }
+                                                    </p>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <p class="mb-1 fw-bold" style="color: #db2777;">Thanh toán</p>
+                                                    <p class="border-bottom pb-2">
+                                                        @if (CurrentPayment != null)
+                                                        {
+                                                            <span>
+                                                                @GetPaymentMethodName(CurrentPayment.PaymentMethod) •
+                                                                <span class="@GetPaymentStatusBadgeClass(CurrentPayment.PaymentStatus)">
+                                                                    @GetPaymentStatusName(CurrentPayment.PaymentStatus)
+                                                                </span>
+                                                            </span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>Chưa có thông tin thanh toán</span>
+                                                        }
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <div class="mb-3">
+                                                    <p class="mb-1 fw-bold" style="color: #db2777;">Thông tin dịch vụ</p>
+                                                    <div class="border p-3 rounded-3 bg-white">
+                                                        <p class="text-muted mb-0">@CurrentService.Description</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            @if (!string.IsNullOrEmpty(CurrentAppointment.Notes))
+                                            {
+                                                <div class="col-12">
+                                                    <div class="mb-3">
+                                                        <p class="mb-1 fw-bold" style="color: #db2777;">Ghi chú</p>
+                                                        <div class="border p-3 rounded-3 bg-white">
+                                                            <p class="text-muted mb-0">@CurrentAppointment.Notes</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+
+                               
+                            }
+                            else
+                            {
+                                <div class="text-center my-3">
+                                    <div class="spinner-border" style="color: #db2777;" role="status">
+                                        <span class="visually-hidden">Đang tải...</span>
+                                    </div>
+                                    <p class="mt-2">Đang tải thông tin lịch hẹn...</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-backdrop fade show"></div>
+            </div>
+        }
+
+       
+    }
+</div>
+
+@code {
+    private bool IsLoading { get; set; } = true;
+    private Customer Customer { get; set; }
+    private List<Appointment> Appointments { get; set; } = new();
+    private List<Service> Services { get; set; } = new();
+    private List<Therapist> Therapists { get; set; } = new();
+    private List<Payment> Payments { get; set; } = new();
+
+    private string SearchTerm { get; set; } = "";
+    private string StatusFilter { get; set; } = "";
+
+    private string CurrentAppointmentId { get; set; }
+    private Appointment CurrentAppointment { get; set; }
+    private Service CurrentService { get; set; }
+    private Therapist CurrentTherapist { get; set; }
+    private Payment CurrentPayment { get; set; }
+
+    private string AppointmentToCancel { get; set; }
+    private bool ShowCancelModal { get; set; } = false;
+
+    private bool IsDesktop => true;  // You can implement device detection if needed
+
+    private List<Appointment> FilteredAppointments => Appointments
+        .Where(a =>
+            (string.IsNullOrEmpty(SearchTerm) ||
+             (Services.FirstOrDefault(s => s.Id == a.ServiceId)?.ServiceName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+             (Therapists.FirstOrDefault(t => t.Id == a.TherapistId)?.FirstName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+             (Therapists.FirstOrDefault(t => t.Id == a.TherapistId)?.LastName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
+            && (string.IsNullOrEmpty(StatusFilter) || a.Status == StatusFilter))
+        .OrderBy(a => a.AppointmentDateTime)
+        .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            IsLoading = true;
+
+            // Get user ID from local storage
+            var userId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "accountId");
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                // Redirect to login if user isn't logged in
+                NavigationManager.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}");
+                return;
+            }
+
+            // Get customer info
+            Customer = CustomerRepository.GetCustomerByUserId(userId);
+            if (Customer == null)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Không tìm thấy thông tin khách hàng của bạn. Vui lòng liên hệ với quản trị viên.");
+                NavigationManager.NavigateTo("/");
+                return;
+            }
+
+            // Get appointments for the customer
+            Appointments = AppointmentRepository.GetAppointmentsByCustomerId(Customer.Id);
+
+            // Get related data
+            await LoadRelatedData();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("console.error", $"Error loading appointments: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task LoadRelatedData()
+    {
+        // Load service details for all appointments
+        var serviceIds = Appointments.Select(a => a.ServiceId).Distinct().ToList();
+        foreach (var serviceId in serviceIds)
+        {
+            var service = ServiceRepository.GetOne(serviceId);
+            if (service != null)
+            {
+                Services.Add(service);
+            }
+        }
+
+        // Load therapist details for all appointments
+        var therapistIds = Appointments.Select(a => a.TherapistId).Distinct().ToList();
+        foreach (var therapistId in therapistIds)
+        {
+            var therapist = TherapistRepository.GetOne(therapistId);
+            if (therapist != null)
+            {
+                Therapists.Add(therapist);
+            }
+        }
+
+        // Load payment details for all appointments
+        var appointmentIds = Appointments.Select(a => a.Id).ToList();
+        foreach (var appointmentId in appointmentIds)
+        {
+            var payment = PaymentRepository.GetByAppointmentId(appointmentId);
+            if (payment != null)
+            {
+                Payments.Add(payment);
+            }
+        }
+    }
+
+    private async Task ViewAppointmentDetails(string appointmentId)
+    {
+        CurrentAppointmentId = appointmentId;
+        CurrentAppointment = null;
+        CurrentService = null;
+        CurrentTherapist = null;
+        CurrentPayment = null;
+
+        // Get appointment details
+        CurrentAppointment = AppointmentRepository.GetOne(appointmentId);
+
+        if (CurrentAppointment != null)
+        {
+            // Get related data
+            CurrentService = ServiceRepository.GetOne(CurrentAppointment.ServiceId);
+            CurrentTherapist = TherapistRepository.GetOne(CurrentAppointment.TherapistId);
+            CurrentPayment = PaymentRepository.GetByAppointmentId(appointmentId);
+        }
+    }
+
+    private void CloseModal()
+    {
+        CurrentAppointmentId = null;
+        CurrentAppointment = null;
+        CurrentService = null;
+        CurrentTherapist = null;
+        CurrentPayment = null;
+    }
+
+    private string GetStatusBadgeClass(string status) => status?.ToLower() switch
+    {
+        "pending" => "bg-warning text-dark",
+        "confirmed" => "bg-info text-dark",
+        "completed" => "bg-success",
+        "cancelled" => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    private string GetStatusName(string status) => status?.ToLower() switch
+    {
+        "pending" => "Đang chờ xác nhận",
+        "confirmed" => "Đã xác nhận",
+        "completed" => "Đã hoàn thành",
+        "cancelled" => "Đã hủy",
+        _ => "Không xác định"
+    };
+
+    private string GetPaymentStatusBadgeClass(string status) => status?.ToLower() switch
+    {
+        "pending" => "badge rounded-pill bg-warning text-dark",
+        "pending confirmation" => "badge rounded-pill bg-warning text-dark",
+        "paid" => "badge rounded-pill bg-success",
+        "failed" => "badge rounded-pill bg-danger",
+        "refunded" => "badge rounded-pill bg-secondary",
+        _ => "badge rounded-pill bg-secondary"
+    };
+
+    private string GetPaymentStatusName(string status) => status?.ToLower() switch
+    {
+        "pending" => "Chờ thanh toán",
+        "pending confirmation" => "Chờ xác nhận",
+        "paid" => "Đã thanh toán",
+        "failed" => "Thanh toán thất bại",
+        "refunded" => "Đã hoàn tiền",
+        _ => "Không xác định"
+    };
+
+    private string GetPaymentMethodName(string method) => method?.ToLower() switch
+    {
+        "cash" => "Tiền mặt",
+        "banktransfer" => "Chuyển khoản",
+        _ => method
+    };
+
+    private string FormatCurrencyVND(decimal price)
+    {
+        // Format with dot as thousands separator and no decimal places
+        return string.Format("{0:#,##0}", price).Replace(",", ".") + " VNĐ";
+    }
+
+    // Helper method for Vietnamese month name
+    private string GetMonthNameInVietnamese(int month)
+    {
+        return month switch
+        {
+            1 => "Tháng 1",
+            2 => "Tháng 2",
+            3 => "Tháng 3",
+            4 => "Tháng 4",
+            5 => "Tháng 5",
+            6 => "Tháng 6",
+            7 => "Tháng 7",
+            8 => "Tháng 8",
+            9 => "Tháng 9",
+            10 => "Tháng 10",
+            11 => "Tháng 11",
+            12 => "Tháng 12",
+            _ => $"Tháng {month}"
+        };
+    }
+
+    // Helper method for Vietnamese weekday
+    private string GetWeekdayInVietnamese(DayOfWeek dayOfWeek)
+    {
+        return dayOfWeek switch
+        {
+            DayOfWeek.Sunday => "Chủ nhật",
+            DayOfWeek.Monday => "Thứ hai",
+            DayOfWeek.Tuesday => "Thứ ba",
+            DayOfWeek.Wednesday => "Thứ tư",
+            DayOfWeek.Thursday => "Thứ năm",
+            DayOfWeek.Friday => "Thứ sáu",
+            DayOfWeek.Saturday => "Thứ bảy",
+            _ => dayOfWeek.ToString()
+        };
+    }
+
+    // Helper method for Vietnamese date format
+    private string FormatDateInVietnamese(DateTime date)
+    {
+        string[] weekdays = { "Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy" };
+        return $"{weekdays[(int)date.DayOfWeek]}, ngày {date.Day} {GetMonthNameInVietnamese(date.Month)} {date.Year}";
+    }
+}

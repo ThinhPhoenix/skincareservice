@@ -31,6 +31,8 @@ namespace SkinCareDAO
         }
 
 
+
+
         public Appointment GetOne(string id)
         {
             return _dbContext.Appointments
@@ -92,6 +94,26 @@ namespace SkinCareDAO
             }
 
             return monthlyAppointments;
+        }
+
+        public List<Appointment> GetAppointmentsByCustomerId(string customerId)
+        {
+            List<Appointment> appointments = new List<Appointment>();
+
+            try
+            {
+                
+                appointments = _dbContext.Appointments
+                    .Where(a => a.CustomerId == customerId)
+                    .OrderByDescending(a => a.AppointmentDateTime)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving appointments by customer ID: {ex.Message}", ex);
+            }
+
+            return appointments;
         }
     }
 }

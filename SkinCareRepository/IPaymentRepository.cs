@@ -21,5 +21,7 @@ namespace SkinCareRepository
 
         public void Update(Payment a);
         public void Delete(string id);
+
+        public Payment GetByAppointmentId(string appointmentId);
     }
 }

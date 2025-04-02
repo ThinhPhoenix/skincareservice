@@ -20,7 +20,9 @@ namespace SkinCareRepository
 
         public List<Appointment> GetAll() => AppointmentDAO.Instance.GetAll();
 
-        public void Add(Appointment a) => AppointmentDAO.Instance.Add(a);   
-       
+        public void Add(Appointment a) => AppointmentDAO.Instance.Add(a);
+
+        public List<Appointment> GetAppointmentsByCustomerId(string customerId) => AppointmentDAO.Instance.GetAppointmentsByCustomerId(customerId);
+
     }
 }

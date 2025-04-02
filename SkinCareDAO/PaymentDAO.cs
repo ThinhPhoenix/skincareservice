@@ -57,7 +57,7 @@ namespace SkinCareDAO
         public List<Payment> GetAll()
         {
             return _dbContext.Payments
-               
+
                 .ToList();
         }
 
@@ -91,6 +91,25 @@ namespace SkinCareDAO
                 _dbContext.Payments.Remove(cur);
                 _dbContext.SaveChanges(); // Delete the object
             }
+        }
+
+         public Payment GetByAppointmentId(string appointmentId)
+        {
+            Payment payment = null;
+
+            try
+            {
+                
+                payment = _dbContext.Payments
+                    .Where(p => p.AppointmentId == appointmentId)
+                    .FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving payment by appointment ID: {ex.Message}", ex);
+            }
+
+            return payment;
         }
             
     }

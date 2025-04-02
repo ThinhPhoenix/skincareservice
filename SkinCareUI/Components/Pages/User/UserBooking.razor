@@ -627,7 +627,7 @@
                 // For each expertise entry, get the associated therapist
                 foreach (var expertise in therapistExpertiseList)
                 {
-                    var therapist = await Task.Run(() => TherapistRepository.GetOneAsync(expertise.Id));
+                    var therapist = await Task.Run(() => TherapistRepository.GetOne(expertise.Id));
                     if (therapist != null)
                     {
                         Experts.Add(therapist);
@@ -796,7 +796,6 @@
             0);
         
         // Convert to UTC explicitly
-        var bookingDateTime = DateTime.SpecifyKind(localBookingDateTime, DateTimeKind.Utc);
             
         // Create a new appointment with UTC DateTimes
         string appointmentId = Guid.NewGuid().ToString();
@@ -806,7 +805,7 @@
             CustomerId = Customer.Id,
             TherapistId = SelectedExpert.Id,
             ServiceId = ServiceId,
-            AppointmentDateTime = bookingDateTime, // UTC DateTime
+            AppointmentDateTime = localBookingDateTime, // UTC DateTime
             DurationMinutes = Service.DurationMinutes,
             Status = "Pending",
             Notes = "",
