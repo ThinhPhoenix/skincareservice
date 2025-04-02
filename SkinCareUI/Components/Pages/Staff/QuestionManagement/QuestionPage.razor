@@ -1,0 +1,1468 @@
+﻿@page "/staff/questions"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using SkinCareBussinessObject
+@using SkinCareDAO
+@using SkinCareRepository
+@inject IAssessmentQuestionRepository QuestionRepository
+@inject IAssesmentOptionsRepository OptionsRepository
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Quản Lý Câu Hỏi</PageTitle>
+
+<div class="container-fluid">
+    <div class="dashboard-header">
+        <div class="dashboard-title">
+            <h1><i class="bi bi-question-circle me-2"></i>Quản Lý Câu Hỏi</h1>
+            <p class="text-muted">Quản lý các câu hỏi đánh giá và các lựa chọn của chúng</p>
+        </div>
+        <div class="dashboard-actions">
+            <button class="btn btn-theme btn-lg" @onclick="CreateNewQuestion">
+                <i class="bi bi-plus-circle me-2"></i>Tạo Câu Hỏi Mới
+            </button>
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="loading-container">
+    <div class="spinner-border text-theme" role="status" style="width: 60px; height: 60px;">
+        <span class="visually-hidden">Đang tải...</span>
+    </div>
+    <p class="mt-3">Đang tải câu hỏi...</p>
+</div>
+    }
+    else if (!FilteredQuestions.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-question-diamond"></i>
+            </div>
+            <h3>Không tìm thấy câu hỏi nào</h3>
+            <p>Sử dụng nút "Tạo Câu Hỏi Mới" để thêm câu hỏi đánh giá mới.</p>
+            <button class="btn btn-theme mt-3" @onclick="CreateNewQuestion">
+                <i class="bi bi-plus-circle me-2"></i>Tạo Câu Hỏi Mới
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="search-container">
+            <div class="search-box">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Tìm kiếm câu hỏi..." @bind="SearchQuery" @bind:event="oninput" />
+                @if (!string.IsNullOrEmpty(SearchQuery))
+                {
+                    <button class="search-clear" @onclick="() => SearchQuery = string.Empty">
+                        <i class="bi bi-x"></i>
+                    </button>
+                }
+            </div>
+        </div>
+
+        <div class="questions-container">
+            @foreach (var question in FilteredQuestions.OrderBy(q => q.DisplayOrder))
+            {
+                <div class="question-card @(selectedQuestionId == question.Id ? "selected" : "")" @onclick="() => SelectQuestion(question.Id)">
+                    <div class="question-header">
+                        <div class="question-order">@question.DisplayOrder</div>
+                        <div class="question-text" @ondblclick="() => StartEditingQuestion(question)">
+                            @if (editingQuestionId == question.Id)
+                            {
+                                <input type="text" class="form-control form-control-edit" value="@question.QuestionText" 
+                                    @onchange="e => UpdateQuestionText(question, e.Value?.ToString())" 
+                                    @onblur="() => StopEditingQuestion()" 
+                                    @onclick:stopPropagation
+                                    @ref="editQuestionInput" />
+                            }
+                            else
+                            {
+                                <h3>@question.QuestionText</h3>
+                                <div class="edit-hint">
+                                    <i class="bi bi-pencil-square me-1"></i>
+                                    <span>Nhấp đúp để chỉnh sửa</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="question-actions">
+    <button class="action-btn edit" @onclick:stopPropagation="true" @onclick="() => StartEditingQuestion(question)" title="Chỉnh sửa câu hỏi">
+        Sửa
+    </button>
+    <button class="action-btn move" @onclick:stopPropagation="true" @onclick="() => EditQuestionOrder(question)" title="Thay đổi vị trí">
+        Thứ tự
+    </button>
+    <button class="action-btn delete" @onclick:stopPropagation="true" @onclick="() => DeleteQuestion(question)" title="Xóa câu hỏi">
+        Xóa
+    </button>
+</div>
+                    </div>
+
+                    <div class="options-section">
+                        <div class="options-header">
+                            <h4><i class="bi bi-list-check me-2"></i>Lựa Chọn Trả Lời</h4>
+                            <button class="btn btn-outline-theme btn-add-option" @onclick:stopPropagation="true" @onclick="() => AddOptionToQuestion(question)">
+                                <i class="bi bi-plus-lg me-1"></i>Thêm Lựa Chọn
+                            </button>
+                        </div>
+
+                        @if (!QuestionOptions.ContainsKey(question.Id))
+                        {
+                            <div class="loading-options">
+                                <div class="spinner-border-sm spinner-border text-theme" role="status">
+                                    <span class="visually-hidden">Đang tải...</span>
+                                </div>
+                                <span>Đang tải lựa chọn...</span>
+                            </div>
+                        }
+                        else if (!QuestionOptions[question.Id].Any())
+                        {
+                            <div class="no-options">
+                                <i class="bi bi-exclamation-circle me-2"></i>
+                                <span>Chưa có lựa chọn nào. Vui lòng thêm lựa chọn.</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="options-list">
+                                @foreach (var option in QuestionOptions[question.Id].OrderBy(o => o.DisplayOrder))
+                                {
+                                    <div class="option-item" @key="option.Id" @onclick:stopPropagation="true">
+                                        <div class="option-order">@option.DisplayOrder</div>
+                                        <div class="option-content" @ondblclick="() => StartEditingOption(option)">
+                                            @if (editingOptionId == option.Id)
+                                            {
+                                                <input type="text" class="form-control form-control-edit" value="@option.OptionText" 
+                                                    @onchange="e => UpdateOptionText(option, e.Value?.ToString())" 
+                                                    @onblur="() => StopEditingOption()" 
+                                                    @ref="editOptionInput" />
+                                            }
+                                            else
+                                            {
+                                                <span>@option.OptionText</span>
+                                            }
+                                        </div>
+                                        <div class="option-actions">
+    <button class="option-btn edit" @onclick="() => StartEditingOption(option)" title="Chỉnh sửa lựa chọn">
+        Sửa
+    </button>
+    <button class="option-btn order" @onclick="() => EditOptionOrder(option)" title="Thay đổi thứ tự">
+        Thứ tự
+    </button>
+    <button class="option-btn delete" @onclick="() => DeleteOption(option)" title="Xóa lựa chọn">
+        Xóa
+    </button>
+</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Create Question Modal -->
+@if (IsCreateQuestionModalVisible)
+{
+    <div class="custom-modal">
+        <div class="custom-modal-overlay" @onclick="CloseCreateQuestionModal"></div>
+        <div class="custom-modal-container">
+            <div class="custom-modal-header theme">
+                <h3><i class="bi bi-plus-circle me-2"></i>Tạo Câu Hỏi Mới</h3>
+                <button class="custom-modal-close" @onclick="CloseCreateQuestionModal">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="custom-modal-body">
+                <div class="form-group mb-4">
+                    <label for="questionText" class="form-label">Nội Dung Câu Hỏi</label>
+                    <textarea class="form-control form-control-lg" id="questionText" rows="3" 
+                        placeholder="Nhập nội dung câu hỏi..." @bind="NewQuestion.QuestionText"></textarea>
+                    <small class="text-muted">Thứ tự hiển thị sẽ tự động được đặt là @(Questions.Any() ? Questions.Max(q => q.DisplayOrder) + 1 : 1)</small>
+                </div>
+            </div>
+            <div class="custom-modal-footer">
+                <button class="btn btn-outline-secondary" @onclick="CloseCreateQuestionModal">Hủy</button>
+                <button class="btn btn-theme" @onclick="SaveNewQuestion">
+                    <i class="bi bi-check-lg me-1"></i>Lưu Câu Hỏi
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Edit Question Order Modal -->
+@if (IsEditQuestionOrderModalVisible)
+{
+    <div class="custom-modal">
+        <div class="custom-modal-overlay" @onclick="CloseEditQuestionOrderModal"></div>
+        <div class="custom-modal-container">
+            <div class="custom-modal-header theme">
+                <h3><i class="bi bi-arrow-down-up me-2"></i>Thay Đổi Thứ Tự Câu Hỏi</h3>
+                <button class="custom-modal-close" @onclick="CloseEditQuestionOrderModal">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="custom-modal-body">
+                <div class="form-group">
+                    <label for="questionOrder" class="form-label">Thứ Tự Hiển Thị</label>
+                    <input type="number" class="form-control form-control-lg" id="questionOrder" min="1"
+                        placeholder="Nhập thứ tự hiển thị (1, 2, 3...)" @bind="EditingQuestionOrder" />
+                    <small class="form-text text-muted">Thứ tự hiện tại: @EditingQuestion?.DisplayOrder</small>
+                </div>
+            </div>
+            <div class="custom-modal-footer">
+                <button class="btn btn-outline-secondary" @onclick="CloseEditQuestionOrderModal">Hủy</button>
+                <button class="btn btn-theme" @onclick="SaveQuestionOrder">
+                    <i class="bi bi-check-lg me-1"></i>Lưu Thay Đổi
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Edit Option Modal -->
+@if (IsEditModalVisible)
+{
+    <div class="custom-modal">
+        <div class="custom-modal-overlay" @onclick="CloseModal"></div>
+        <div class="custom-modal-container">
+            <div class="custom-modal-header theme">
+                <h3><i class="bi bi-@(string.IsNullOrEmpty(EditingOption.Id) ? "plus-circle" : "pencil-square") me-2"></i>@(string.IsNullOrEmpty(EditingOption.Id) ? "Thêm Lựa Chọn Mới" : "Chỉnh Sửa Lựa Chọn")</h3>
+                <button class="custom-modal-close" @onclick="CloseModal">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="custom-modal-body">
+                <div class="form-group mb-4">
+                    <label for="optionText" class="form-label">Nội Dung Lựa Chọn</label>
+                    <input type="text" class="form-control form-control-lg" id="optionText" 
+                        placeholder="Nhập nội dung lựa chọn..." @bind="EditingOption.OptionText" />
+                    @if (string.IsNullOrEmpty(EditingOption.Id))
+                    {
+                        <small class="text-muted">Thứ tự hiển thị sẽ tự động được đặt là @GetNextOptionOrder(EditingOption.QuestionId)</small>
+                    }
+                </div>
+                @if (!string.IsNullOrEmpty(EditingOption.Id))
+                {
+                    <div class="form-group mb-4">
+                        <label for="optionOrder" class="form-label">Thứ Tự Hiển Thị</label>
+                        <input type="number" class="form-control" id="optionOrder" min="1"
+                            placeholder="Thứ tự hiển thị (1, 2, 3...)" @bind="EditingOption.DisplayOrder" />
+                    </div>
+                }
+            </div>
+            <div class="custom-modal-footer">
+                <button class="btn btn-outline-secondary" @onclick="CloseModal">Hủy</button>
+                <button class="btn btn-theme" @onclick="SaveOption">
+                    <i class="bi bi-check-lg me-1"></i>Lưu Lựa Chọn
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Edit Option Order Modal -->
+@if (IsEditOptionOrderModalVisible)
+{
+    <div class="custom-modal">
+        <div class="custom-modal-overlay" @onclick="CloseEditOptionOrderModal"></div>
+        <div class="custom-modal-container">
+            <div class="custom-modal-header theme">
+                <h3><i class="bi bi-arrow-down-up me-2"></i>Thay Đổi Thứ Tự Lựa Chọn</h3>
+                <button class="custom-modal-close" @onclick="CloseEditOptionOrderModal">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="custom-modal-body">
+                <div class="form-group">
+                    <label for="optionDisplayOrder" class="form-label">Thứ Tự Hiển Thị</label>
+                    <input type="number" class="form-control form-control-lg" id="optionDisplayOrder" min="1"
+                        placeholder="Nhập thứ tự hiển thị (1, 2, 3...)" @bind="EditingOptionOrder" />
+                    <small class="form-text text-muted">Thứ tự hiện tại: @EditingOptionForOrder?.DisplayOrder</small>
+                </div>
+            </div>
+            <div class="custom-modal-footer">
+                <button class="btn btn-outline-secondary" @onclick="CloseEditOptionOrderModal">Hủy</button>
+                <button class="btn btn-theme" @onclick="SaveOptionOrder">
+                    <i class="bi bi-check-lg me-1"></i>Lưu Thay Đổi
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Delete Option Confirmation Modal -->
+@if (IsDeleteModalVisible)
+{
+    <div class="custom-modal">
+        <div class="custom-modal-overlay" @onclick="CloseDeleteModal"></div>
+        <div class="custom-modal-container">
+            <div class="custom-modal-header warning">
+                <h3><i class="bi bi-exclamation-triangle me-2"></i>Xác Nhận Xóa Lựa Chọn</h3>
+                <button class="custom-modal-close" @onclick="CloseDeleteModal">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="custom-modal-body">
+                <div class="confirm-message">
+                    <p>Bạn có chắc chắn muốn xóa lựa chọn này?</p>
+                    <p class="highlighted-text">@DeletingOption?.OptionText</p>
+                    <p class="warning-text">Hành động này không thể hoàn tác.</p>
+                </div>
+            </div>
+            <div class="custom-modal-footer">
+                <button class="btn btn-outline-secondary" @onclick="CloseDeleteModal">Hủy</button>
+                <button class="btn btn-danger" @onclick="ConfirmDeleteOption">
+                    <i class="bi bi-trash me-1"></i>Xóa
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Delete Question Modal -->
+@if (IsDeleteQuestionModalVisible)
+{
+    <div class="custom-modal">
+        <div class="custom-modal-overlay" @onclick="() => IsDeleteQuestionModalVisible = false"></div>
+        <div class="custom-modal-container">
+            <div class="custom-modal-header danger">
+                <h3><i class="bi bi-exclamation-triangle me-2"></i>Xác Nhận Xóa Câu Hỏi</h3>
+                <button class="custom-modal-close" @onclick="() => IsDeleteQuestionModalVisible = false">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="custom-modal-body">
+                <div class="confirm-message">
+                    <p>Bạn có chắc chắn muốn xóa câu hỏi này?</p>
+                    <p class="highlighted-text">@DeletingQuestion?.QuestionText</p>
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-octagon me-2"></i>
+                        <span>Tất cả các lựa chọn liên quan cũng sẽ bị xóa. Hành động này không thể hoàn tác.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="custom-modal-footer">
+                <button class="btn btn-outline-secondary" @onclick="() => IsDeleteQuestionModalVisible = false">Hủy</button>
+                <button class="btn btn-danger" @onclick="ConfirmDeleteQuestion">
+                    <i class="bi bi-trash me-1"></i>Xóa Câu Hỏi
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Toast Notifications -->
+@if (ShowSuccessToast)
+{
+    <div class="toast-container">
+        <div class="toast success show">
+            <div class="toast-icon">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <div class="toast-content">
+                <p>@ToastMessage</p>
+            </div>
+            <button class="toast-close" @onclick="() => ShowSuccessToast = false">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    </div>
+}
+
+@if (ShowErrorToast)
+{
+    <div class="toast-container">
+        <div class="toast error show">
+            <div class="toast-icon">
+                <i class="bi bi-x-circle-fill"></i>
+            </div>
+            <div class="toast-content">
+                <p>@ToastMessage</p>
+            </div>
+            <button class="toast-close" @onclick="() => ShowErrorToast = false">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    </div>
+}
+
+<style>
+    /* Màu sắc SkinCare Theme */
+:root {
+    --theme-primary: #db2777;
+    --theme-primary-dark: #be185d;
+    --theme-secondary: #fdf2f8;
+    --theme-light: #fbcfe8;
+    --theme-accent: #ec4899;
+    --theme-text: #333333;
+    --component-bg: #fdf2f8;
+    --bg-white: #ffffff;
+}
+
+/* Modern Dashboard Styling */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--bs-gray-200);
+}
+
+.dashboard-title h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--theme-primary);
+}
+
+/* Button với màu chủ đạo */
+.btn-theme {
+    background: var(--theme-primary);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(219, 39, 119, 0.3);
+}
+
+.btn-theme:hover {
+    background: var(--theme-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 7px 20px rgba(219, 39, 119, 0.5);
+    color: white;
+}
+
+.btn-outline-theme {
+    color: var(--theme-primary);
+    border: 2px solid var(--theme-primary);
+}
+
+.btn-outline-theme:hover {
+    background: var(--theme-primary);
+    color: white;
+}
+
+/* Loading State */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+}
+
+.spinner-pulse {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 5px solid var(--theme-light);
+    border-top-color: var(--theme-primary);
+    margin-bottom: 1.5rem;
+}
+
+/* Empty State */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5rem 1rem;
+    background-color: var(--component-bg);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    color: var(--theme-primary);
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h3 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--theme-primary);
+}
+
+.empty-state p {
+    color: var(--theme-text);
+    font-size: 1.1rem;
+    max-width: 500px;
+}
+
+/* Search Box */
+.search-container {
+    margin-bottom: 2rem;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg-white);
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.search-box:focus-within {
+    box-shadow: 0 8px 20px rgba(219, 39, 119, 0.2);
+}
+
+.search-icon {
+    color: var(--theme-primary);
+    font-size: 1.2rem;
+    margin-right: 1rem;
+}
+
+.search-input {
+    flex-grow: 1;
+    border: none;
+    background: transparent;
+    padding: 0.5rem 0;
+    font-size: 1.1rem;
+    color: var(--theme-text);
+    outline: none;
+}
+
+.search-clear {
+    background: none;
+    border: none;
+    color: var(--theme-primary);
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0.25rem;
+}
+
+/* Question Cards */
+.questions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.question-card {
+    background-color: var(--bg-white);
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border-left: 4px solid transparent;
+}
+
+.question-card.selected {
+    border-left-color: var(--theme-primary);
+    box-shadow: 0 8px 25px rgba(219, 39, 119, 0.15);
+    transform: translateY(-4px);
+}
+
+.question-card:hover {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transform: translateY(-4px);
+}
+
+.question-header {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    position: relative;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.question-order {
+    background: var(--theme-primary);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-right: 1.5rem;
+    box-shadow: 0 4px 10px rgba(219, 39, 119, 0.3);
+}
+
+.question-text {
+    flex-grow: 1;
+    margin-right: 1.5rem;
+}
+
+.question-text h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--theme-text);
+}
+
+.edit-hint {
+    font-size: 0.85rem;
+    color: var(--theme-primary);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.question-card:hover .edit-hint {
+    opacity: 1;
+}
+
+.question-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    min-width: 70px;
+    height: 38px;
+    border-radius: 6px;
+    border: 2px solid #f1f1f1;
+    background: var(--bg-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.action-btn.edit:hover {
+    border-color: var(--theme-primary);
+    color: var(--theme-primary);
+}
+
+.action-btn.move:hover {
+    border-color: var(--theme-accent);
+    color: var(--theme-accent);
+}
+
+.action-btn.delete:hover {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+/* Options Section */
+.options-section {
+    padding: 1.5rem;
+    background-color: var(--component-bg);
+}
+
+.options-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.options-header h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--theme-primary);
+}
+
+.loading-options {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    color: var(--theme-primary);
+}
+
+.no-options {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--theme-light);
+    border-radius: 8px;
+    color: var(--theme-primary);
+}
+
+.options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-white);
+    border-radius: 8px;
+    padding: 0.75rem 1.25rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+}
+
+.option-item:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.option-order {
+    width: 28px;
+    height: 28px;
+    background-color: var(--theme-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-right: 1rem;
+    color: var(--theme-primary);
+}
+
+.option-content {
+    flex-grow: 1;
+    margin-right: 1rem;
+}
+
+.option-actions {
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.option-item:hover .option-actions {
+    opacity: 1;
+}
+
+.option-btn {
+    min-width: 60px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    background: var(--bg-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+}
+
+.option-btn.edit:hover {
+    border-color: var(--theme-primary);
+    color: var(--theme-primary);
+}
+
+.option-btn.order:hover {
+    border-color: var(--theme-accent);
+    color: var(--theme-accent);
+}
+
+.option-btn.delete:hover {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+/* Form Control Edit */
+.form-control-edit {
+    border: 2px solid var(--theme-primary);
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(219, 39, 119, 0.1);
+}
+
+.form-control-edit:focus {
+    box-shadow: 0 6px 15px rgba(219, 39, 119, 0.2);
+    border-color: var(--theme-primary);
+}
+
+.form-control:focus {
+    border-color: var(--theme-primary);
+    box-shadow: 0 0 0 0.25rem rgba(219, 39, 119, 0.25);
+}
+
+/* Custom Modal */
+.custom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+}
+
+.custom-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.custom-modal-container {
+    width: 100%;
+    max-width: 600px;
+    background-color: var(--bg-white);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 1051;
+    overflow: hidden;
+}
+
+.custom-modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.custom-modal-header.theme {
+    background-color: var(--component-bg);
+    color: var(--theme-primary);
+}
+
+.custom-modal-header.warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.custom-modal-header.danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.custom-modal-header h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.custom-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6c757d;
+    transition: color 0.2s ease;
+}
+
+.custom-modal-close:hover {
+    color: var(--theme-text);
+}
+
+.custom-modal-body {
+    padding: 1.5rem;
+}
+
+.custom-modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--theme-primary);
+    margin-bottom: 0.5rem;
+}
+
+.confirm-message {
+    text-align: center;
+}
+
+.highlighted-text {
+    padding: 1rem;
+    background-color: var(--theme-light);
+    border-radius: 8px;
+    font-weight: 600;
+    margin: 1rem 0;
+}
+
+.warning-text {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-white);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    margin-bottom: 10px;
+    overflow: hidden;
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.toast.success {
+    border-left: 4px solid #28a745;
+}
+
+.toast.error {
+    border-left: 4px solid #dc3545;
+}
+
+.toast-icon {
+    padding: 16px;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toast.success .toast-icon {
+    color: #28a745;
+}
+
+.toast.error .toast-icon {
+    color: #dc3545;
+}
+
+.toast-content {
+    flex-grow: 1;
+    padding: 16px 8px;
+}
+
+.toast-content p {
+    margin: 0;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 16px;
+}
+
+.toast-close:hover {
+    color: var(--theme-text);
+}
+
+.text-theme {
+    color: var(--theme-primary) !important;
+}
+</style>
+
+@code {
+    private List<AssessmentQuestion> Questions = new List<AssessmentQuestion>();
+    private Dictionary<string, List<AssessmentOption>> QuestionOptions = new Dictionary<string, List<AssessmentOption>>();
+    private bool IsLoading = true;
+    private bool IsLoadingOptions = false;
+    private string SearchQuery = string.Empty;
+    private string selectedQuestionId = string.Empty;
+    
+    // Question creation
+    private bool IsCreateQuestionModalVisible = false;
+    private AssessmentQuestion NewQuestion = new AssessmentQuestion();
+    
+    // Question order editing
+    private bool IsEditQuestionOrderModalVisible = false;
+    private AssessmentQuestion EditingQuestion = null;
+    private int EditingQuestionOrder = 0;
+    
+    // Option editing properties
+    private bool IsEditModalVisible = false;
+    private bool IsDeleteModalVisible = false;
+    private bool IsDeleteQuestionModalVisible = false;
+    private bool IsEditOptionOrderModalVisible = false;
+    private AssessmentOption EditingOption = new AssessmentOption();
+    private AssessmentOption EditingOptionForOrder = null;
+    private int EditingOptionOrder = 0;
+    private AssessmentOption DeletingOption = null;
+    private AssessmentQuestion DeletingQuestion = null;
+    
+    // Inline editing
+    private string editingQuestionId = null;
+    private string editingOptionId = null;
+    private ElementReference editQuestionInput;
+    private ElementReference editOptionInput;
+    
+    // Toast notifications
+    private bool ShowSuccessToast = false;
+    private bool ShowErrorToast = false;
+    private string ToastMessage = string.Empty;
+    private System.Timers.Timer ToastTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ToastTimer = new System.Timers.Timer(5000);
+        ToastTimer.Elapsed += HideToasts;
+        ToastTimer.AutoReset = false;
+        
+        await LoadAllQuestionsAsync();
+    }
+    
+    
+    private void HideToasts(object source, System.Timers.ElapsedEventArgs e)
+    {
+        ShowSuccessToast = false;
+        ShowErrorToast = false;
+        StateHasChanged();
+    }
+    
+    private void ShowSuccess(string message)
+    {
+        ToastMessage = message;
+        ShowSuccessToast = true;
+        ShowErrorToast = false;
+        ToastTimer.Stop();
+        ToastTimer.Start();
+        StateHasChanged();
+    }
+    
+    private void ShowError(string message)
+    {
+        ToastMessage = message;
+        ShowErrorToast = true;
+        ShowSuccessToast = false;
+        ToastTimer.Stop();
+        ToastTimer.Start();
+        StateHasChanged();
+    }
+
+    private async Task LoadAllQuestionsAsync()
+    {
+        IsLoading = true;
+        try
+        {
+            // Get all questions without pagination
+            Questions = await Task.Run(() => QuestionRepository.GetAssessmentQuestions());
+            
+            // Clear options dictionary
+            QuestionOptions.Clear();
+            
+            // Load options for all questions
+            foreach (var question in Questions)
+            {
+                await LoadOptionsForQuestion(question.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading questions: {ex.Message}");
+            Questions = new List<AssessmentQuestion>();
+            ShowError("Không thể tải câu hỏi. Vui lòng thử lại sau.");
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadOptionsForQuestion(string questionId)
+    {
+        try
+        {
+            // Load options without showing loading state
+            var options = await Task.Run(() => OptionsRepository.GetOptionsByQuestionId(questionId));
+            QuestionOptions[questionId] = options;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading options for question {questionId}: {ex.Message}");
+            QuestionOptions[questionId] = new List<AssessmentOption>();
+        }
+    }
+    
+    private int GetNextQuestionOrder()
+    {
+        return Questions.Any() ? Questions.Max(q => q.DisplayOrder) + 1 : 1;
+    }
+    
+    private int GetNextOptionOrder(string questionId)
+    {
+        if (QuestionOptions.ContainsKey(questionId) && QuestionOptions[questionId].Any())
+            return QuestionOptions[questionId].Max(o => o.DisplayOrder) + 1;
+        return 1;
+    }
+    
+    private void SelectQuestion(string id)
+    {
+        if (selectedQuestionId == id)
+            selectedQuestionId = string.Empty; // Deselect
+        else
+            selectedQuestionId = id; // Select new question
+    }
+    
+    private void CreateNewQuestion()
+    {
+        NewQuestion = new AssessmentQuestion
+        {
+            DisplayOrder = GetNextQuestionOrder()
+        };
+        IsCreateQuestionModalVisible = true;
+    }
+    
+    private void CloseCreateQuestionModal()
+    {
+        IsCreateQuestionModalVisible = false;
+        NewQuestion = new AssessmentQuestion();
+    }
+    
+    private async Task SaveNewQuestion()
+    {
+        if (string.IsNullOrWhiteSpace(NewQuestion.QuestionText))
+        {
+            ShowError("Vui lòng nhập nội dung câu hỏi.");
+            return;
+        }
+            
+        try
+        {
+            // Generate a new ID for the question
+            NewQuestion.Id = Guid.NewGuid().ToString();
+            
+            // Add to database
+            await Task.Run(() => QuestionRepository.Add(NewQuestion));
+            
+            // Add to local collection
+            Questions.Add(NewQuestion);
+            
+            // Initialize options collection for this question
+            QuestionOptions[NewQuestion.Id] = new List<AssessmentOption>();
+            
+            // Close modal
+            CloseCreateQuestionModal();
+            
+            ShowSuccess("Câu hỏi mới đã được tạo thành công!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating question: {ex.Message}");
+            ShowError("Không thể tạo câu hỏi. Vui lòng thử lại sau.");
+        }
+    }
+    
+    private void EditQuestionOrder(AssessmentQuestion question)
+    {
+        EditingQuestion = question;
+        EditingQuestionOrder = question.DisplayOrder;
+        IsEditQuestionOrderModalVisible = true;
+    }
+    
+    private void CloseEditQuestionOrderModal()
+    {
+        IsEditQuestionOrderModalVisible = false;
+        EditingQuestion = null;
+        EditingQuestionOrder = 0;
+    }
+    
+    private async Task SaveQuestionOrder()
+    {
+        if (EditingQuestion == null)
+            return;
+            
+        try
+        {
+            // Update question order
+            EditingQuestion.DisplayOrder = EditingQuestionOrder;
+            
+            // Update in database
+            await Task.Run(() => QuestionRepository.Update(EditingQuestion));
+            
+            CloseEditQuestionOrderModal();
+            ShowSuccess("Đã cập nhật thứ tự hiển thị câu hỏi.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating question order: {ex.Message}");
+            ShowError("Không thể cập nhật thứ tự hiển thị. Vui lòng thử lại sau.");
+        }
+    }
+    
+    private void AddOptionToQuestion(AssessmentQuestion question)
+    {
+        EditingOption = new AssessmentOption
+        {
+            QuestionId = question.Id,
+            DisplayOrder = GetNextOptionOrder(question.Id)
+        };
+        IsEditModalVisible = true;
+    }
+    
+    private void EditOption(AssessmentOption option)
+    {
+        EditingOption = new AssessmentOption
+        {
+            Id = option.Id,
+            QuestionId = option.QuestionId,
+            OptionText = option.OptionText,
+            DisplayOrder = option.DisplayOrder
+        };
+        IsEditModalVisible = true;
+    }
+    
+    private void EditOptionOrder(AssessmentOption option)
+    {
+        EditingOptionForOrder = option;
+        EditingOptionOrder = option.DisplayOrder;
+        IsEditOptionOrderModalVisible = true;
+    }
+    
+    private void CloseEditOptionOrderModal()
+    {
+        IsEditOptionOrderModalVisible = false;
+        EditingOptionForOrder = null;
+        EditingOptionOrder = 0;
+    }
+    
+    private async Task SaveOptionOrder()
+    {
+        if (EditingOptionForOrder == null)
+            return;
+            
+        try
+        {
+            // Update option order
+            EditingOptionForOrder.DisplayOrder = EditingOptionOrder;
+            
+            // Update in database
+            await Task.Run(() => OptionsRepository.UpdateOption(EditingOptionForOrder));
+            
+            // Update in local collection
+            var options = QuestionOptions[EditingOptionForOrder.QuestionId];
+            var index = options.FindIndex(o => o.Id == EditingOptionForOrder.Id);
+            if (index >= 0)
+            {
+                options[index] = EditingOptionForOrder;
+            }
+            
+            CloseEditOptionOrderModal();
+            ShowSuccess("Đã cập nhật thứ tự hiển thị lựa chọn.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating option order: {ex.Message}");
+            ShowError("Không thể cập nhật thứ tự hiển thị. Vui lòng thử lại sau.");
+        }
+    }
+    
+    private void DeleteOption(AssessmentOption option)
+    {
+        DeletingOption = option;
+        IsDeleteModalVisible = true;
+    }
+    
+    private void DeleteQuestion(AssessmentQuestion question)
+    {
+        DeletingQuestion = question;
+        IsDeleteQuestionModalVisible = true;
+    }
+    
+    private async Task ConfirmDeleteQuestion()
+    {
+        if (DeletingQuestion != null)
+        {
+            try
+            {
+                // Delete from database
+                await Task.Run(() => QuestionRepository.Delete(DeletingQuestion.Id));
+                
+                // Remove from local collection
+                Questions.RemoveAll(q => q.Id == DeletingQuestion.Id);
+                
+                // Remove related options
+                QuestionOptions.Remove(DeletingQuestion.Id);
+                
+                IsDeleteQuestionModalVisible = false;
+                DeletingQuestion = null;
+                
+                ShowSuccess("Câu hỏi đã được xóa thành công.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting question: {ex.Message}");
+                ShowError("Không thể xóa câu hỏi. Vui lòng thử lại sau.");
+            }
+        }
+    }
+    
+    private async Task SaveOption()
+    {
+        if (string.IsNullOrWhiteSpace(EditingOption.OptionText))
+        {
+            ShowError("Vui lòng nhập nội dung lựa chọn.");
+            return;
+        }
+        
+        try
+        {
+            if (string.IsNullOrEmpty(EditingOption.Id))
+            {
+                // Generate a new ID for the option
+                EditingOption.Id = Guid.NewGuid().ToString();
+                
+                // Add new option
+                var result = await Task.Run(() => OptionsRepository.AddOption(EditingOption));
+                
+                if (result != null)
+                {
+                    // Add to local collection
+                    if (!QuestionOptions.ContainsKey(EditingOption.QuestionId))
+                    {
+                        QuestionOptions[EditingOption.QuestionId] = new List<AssessmentOption>();
+                    }
+                    
+                    QuestionOptions[EditingOption.QuestionId].Add(result);
+                    ShowSuccess("Thêm lựa chọn mới thành công!");
+                }
+            }
+            else
+            {
+                // Update existing option
+                await Task.Run(() => OptionsRepository.UpdateOption(EditingOption));
+                
+                // Update local collection
+                var options = QuestionOptions[EditingOption.QuestionId];
+                var index = options.FindIndex(o => o.Id == EditingOption.Id);
+                if (index >= 0)
+                {
+                    options[index] = EditingOption;
+                }
+                ShowSuccess("Cập nhật lựa chọn thành công!");
+            }
+            
+            CloseModal();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving option: {ex.Message}");
+            ShowError("Không thể lưu lựa chọn. Vui lòng thử lại sau.");
+        }
+    }
+    
+    private async Task ConfirmDeleteOption()
+    {
+        if (DeletingOption != null)
+        {
+            try
+            {
+                // Delete from database
+                await Task.Run(() => OptionsRepository.DeleteOption(DeletingOption.Id));
+                
+                // Remove from local collection
+                if (QuestionOptions.ContainsKey(DeletingOption.QuestionId))
+                {
+                    QuestionOptions[DeletingOption.QuestionId].RemoveAll(o => o.Id == DeletingOption.Id);
+                }
+                
+                CloseDeleteModal();
+                ShowSuccess("Xóa lựa chọn thành công!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting option: {ex.Message}");
+                ShowError("Không thể xóa lựa chọn. Vui lòng thử lại sau.");
+            }
+        }
+    }
+    
+    private void CloseModal()
+    {
+        IsEditModalVisible = false;
+        EditingOption = new AssessmentOption();
+    }
+    
+    private void CloseDeleteModal()
+    {
+        IsDeleteModalVisible = false;
+        DeletingOption = null;
+    }
+    
+    // Inline editing methods
+    private void StartEditingQuestion(AssessmentQuestion question)
+    {
+        editingQuestionId = question.Id;
+        StateHasChanged();
+    }
+
+    private void StopEditingQuestion()
+    {
+        editingQuestionId = null;
+        StateHasChanged();
+    }
+    
+    private async Task UpdateQuestionText(AssessmentQuestion question, string newText)
+    {
+        if (!string.IsNullOrWhiteSpace(newText) && newText != question.QuestionText)
+        {
+            question.QuestionText = newText;
+            // Update in database
+            await Task.Run(() => QuestionRepository.Update(question));
+            ShowSuccess("Cập nhật câu hỏi thành công!");
+        }
+        editingQuestionId = null;
+    }
+    
+    private void StartEditingOption(AssessmentOption option)
+    {
+        editingOptionId = option.Id;
+        StateHasChanged();
+    }
+
+    private void StopEditingOption()
+    {
+        editingOptionId = null;
+        StateHasChanged();
+    }
+    
+    private async Task UpdateOptionText(AssessmentOption option, string newText)
+    {
+        if (!string.IsNullOrWhiteSpace(newText) && newText != option.OptionText)
+        {
+            option.OptionText = newText;
+            // Update in database
+            await Task.Run(() => OptionsRepository.UpdateOption(option));
+            
+            // Update in local collection
+            var options = QuestionOptions[option.QuestionId];
+            var index = options.FindIndex(o => o.Id == option.Id);
+            if (index >= 0)
+            {
+                options[index] = option;
+            }
+            ShowSuccess("Cập nhật lựa chọn thành công!");
+        }
+        editingOptionId = null;
+    }
+    
+    // Filter questions based on search query
+    private IEnumerable<AssessmentQuestion> FilteredQuestions
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(SearchQuery))
+                return Questions;
+                
+            return Questions.Where(q => 
+                q.QuestionText.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+}

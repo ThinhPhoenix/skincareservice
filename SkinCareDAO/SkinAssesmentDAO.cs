@@ -1,63 +1,63 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SkinCareBussinessObject;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SkinCareBussinessObject;
 
 namespace SkinCareDAO
 {
-    public class AssessmentQuestionDAO
+    public class SkinAssesmentDAO
     {
-        private SkinCareDBContext _dbContext;
-        private static AssessmentQuestionDAO instance;
 
-        public AssessmentQuestionDAO()
+        private SkinCareDBContext _dbContext;
+        private static SkinAssesmentDAO instance;
+
+        public SkinAssesmentDAO()
         {
             _dbContext = new SkinCareDBContext();
         }
 
-        public static AssessmentQuestionDAO Instance
+        public static SkinAssesmentDAO Instance
         {
             get
             {
                 if (instance == null)
                 {
-                    instance = new AssessmentQuestionDAO();
+                    instance = new SkinAssesmentDAO();
                 }
                 return instance;
             }
         }
 
 
-        public AssessmentQuestion GetOne(string id)
+        public SkinAssessment GetOne(string id)
         {
-            return _dbContext.AssessmentQuestions
+            return _dbContext.SkinAssessments
                 .SingleOrDefault(a => a.Id.Equals(id));
         }
 
-        public List<AssessmentQuestion> GetAllQuestions()
+        public List<SkinAssessment> GetAll()
         {
-            return _dbContext.AssessmentQuestions
+            return _dbContext.SkinAssessments
                 
                 .ToList();
         }
 
-        public void Add(AssessmentQuestion a)
+        public void Add(SkinAssessment a)
         {
-            AssessmentQuestion cur = GetOne(a.Id);
+            SkinAssessment cur = GetOne(a.Id);
             if (cur != null)
             {
                 throw new Exception();
             }
-            _dbContext.AssessmentQuestions.Add(a);
+            _dbContext.SkinAssessments.Add(a);
             _dbContext.SaveChanges();
         }
 
-        public void Update(AssessmentQuestion a)
+        public void Update(SkinAssessment a)
         {
-            AssessmentQuestion cur = GetOne(a.Id);
+            SkinAssessment cur = GetOne(a.Id);
             if (cur == null)
             {
                 throw new Exception();
@@ -68,15 +68,13 @@ namespace SkinCareDAO
 
         public void Delete(string id)
         {
-            AssessmentQuestion cur = GetOne(id);
+            SkinAssessment cur = GetOne(id);
             if (cur != null)
             {
-                _dbContext.AssessmentQuestions.Remove(cur);
+                _dbContext.SkinAssessments.Remove(cur);
                 _dbContext.SaveChanges(); // Delete the object
             }
         }
 
-
-        
     }
 }

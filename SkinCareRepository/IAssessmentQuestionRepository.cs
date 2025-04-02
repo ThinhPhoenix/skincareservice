@@ -1,4 +1,5 @@
-﻿using SkinCareBussinessObject;
+﻿using Microsoft.EntityFrameworkCore;
+using SkinCareBussinessObject;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,16 @@ namespace SkinCareRepository
 {
     public interface IAssessmentQuestionRepository
     {
-        public List<AssessmentQuestion> GetPagedAssessmentQuestions(int pageNumber, int pageSize);
+        public List<AssessmentQuestion> GetAssessmentQuestions();
+        public AssessmentQuestion GetOne(string id);
+
+        public void Add(AssessmentQuestion a);
+
+        public void Update(AssessmentQuestion a);
+
+        public void Delete(string id);
+
+
+
     }
 }

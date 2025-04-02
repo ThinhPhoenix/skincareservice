@@ -114,7 +114,7 @@
         try
         {
             // Since your method is not async, we wrap it in Task.Run
-            Questions = await Task.Run(() => QuestionRepository.GetPagedAssessmentQuestions(CurrentPage, PageSize));
+            Questions = await Task.Run(() => QuestionRepository.GetAssessmentQuestions());
         }
         catch (Exception ex)
         {
