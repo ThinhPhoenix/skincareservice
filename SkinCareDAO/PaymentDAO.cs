@@ -93,19 +93,34 @@ namespace SkinCareDAO
             }
         }
 
-         public Payment GetByAppointmentId(string appointmentId)
+        public Payment GetByAppointmentId(string appointmentId)
         {
             Payment payment = null;
 
             try
             {
+                Console.WriteLine($"Searching for payment with AppointmentId: {appointmentId}");
                 
                 payment = _dbContext.Payments
                     .Where(p => p.AppointmentId == appointmentId)
                     .FirstOrDefault();
+                
+                if (payment != null)
+                {
+                    Console.WriteLine($"Payment found for appointment {appointmentId}: ID={payment.Id}, Method={payment.PaymentMethod}, Status={payment.PaymentStatus}");
+                }
+                else
+                {
+                    Console.WriteLine($"No payment found for appointment {appointmentId}");
+                }
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error retrieving payment by appointment ID: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
                 throw new Exception($"Error retrieving payment by appointment ID: {ex.Message}", ex);
             }
 
