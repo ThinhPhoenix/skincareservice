@@ -17,6 +17,11 @@ namespace SkinCareRepository
             return Task.FromResult(result);
         }
 
-        public Therapist GetOne(string id) => TherapistDAO.Instance.GetOne(id); 
+        public Therapist GetOne(string id) => TherapistDAO.Instance.GetOne(id);
+
+        public void Add(Therapist therapist)
+        {
+            TherapistDAO.Instance.Add(therapist);
+        }
     }
 } 

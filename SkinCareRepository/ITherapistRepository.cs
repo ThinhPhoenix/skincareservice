@@ -11,5 +11,6 @@ namespace SkinCareRepository
     {
         Task<List<Therapist>> GetAllAsync();
         public Therapist GetOne(string id);
+        public void Add(Therapist therapist);
     }
 } 

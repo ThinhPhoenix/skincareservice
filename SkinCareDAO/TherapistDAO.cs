@@ -56,5 +56,20 @@ namespace SkinCareDAO
                 return null;
             }
         }
+
+        public void Add(Therapist therapist)
+        {
+            try
+            {
+                using var context = new SkinCareDBContext();
+                context.Therapists.Add(therapist);
+                context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in Add: {ex.Message}");
+                throw;
+            }
+        }
     }
 } 
