@@ -27,14 +27,10 @@ namespace SkinCareBussinessObject
 
         public string TransactionReference { get; set; }
 
-        [Required]
-        public string ProcessedBy { get; set; }
 
         // Navigation properties
         [ForeignKey("AppointmentId")]
         public virtual Appointment Appointment { get; set; }
 
-        [ForeignKey("ProcessedBy")]
-        public virtual Staff ProcessedByStaff { get; set; }
     }
 }
