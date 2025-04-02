@@ -63,5 +63,31 @@ namespace SkinCareDAO
                 return [];
             }
         }
+
+        public List<Therapist> GetTherapistsByServiceId(string serviceId)
+        {
+            try
+            {
+                using var context = new SkinCareDBContext();
+
+                // Get therapist IDs from TherapistExpertise table for the specified service
+                var therapistIds = context.TherapistExpertises
+                    .Where(te => te.ServiceId == serviceId)
+                    .Select(te => te.TherapistId)
+                    .ToList();
+
+                // Get therapist details for those IDs
+                return context.Therapists
+                    .Where(t => therapistIds.Contains(t.Id))
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetTherapistsByServiceId: {ex.Message}");
+                return [];
+            }
+        }
+
+
     }
 } 

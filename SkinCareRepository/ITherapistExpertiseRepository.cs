@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SkinCareBussinessObject;
+using SkinCareDAO;
 
 namespace SkinCareRepository
 {
@@ -11,5 +12,7 @@ namespace SkinCareRepository
     {
         Task<List<TherapistExpertise>> GetByTherapistIdAsync(string therapistId);
         Task<List<Service>> GetServicesByTherapistIdAsync(string therapistId);
+
+        public List<Therapist> GetTherapistsByServiceId(string serviceId);
     }
 } 
