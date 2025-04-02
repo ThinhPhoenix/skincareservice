@@ -35,7 +35,7 @@ namespace SkinCareDAO
             decimal[] monthlyRevenue = new decimal[12];
 
             var paymentsForYear = _dbContext.Payments
-                .Where(p => p.PaymentDateTime.Year == year && p.PaymentStatus == "PAID")
+                .Where(p => p.PaymentDateTime.Year == year && p.PaymentStatus == "Paid")
                 .ToList();
 
             foreach (var payment in paymentsForYear)
