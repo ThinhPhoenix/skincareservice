@@ -75,5 +75,22 @@ namespace SkinCareDAO
             }
         }
 
+        public int[] GetDashBoardCustomer(int year)
+        {
+            int[] monthlyCustomers = new int[12];
+
+            var customersForYear = _dbContext.Customers
+                .Where(c => c.User.CreatedAt.Year == year)
+                .ToList();
+
+            foreach (var customer in customersForYear)
+            {
+                // Month is 1-based, so subtract 1 for array index
+                int monthIndex = customer.User.CreatedAt.Month - 1;
+                monthlyCustomers[monthIndex]++;
+            }
+
+            return monthlyCustomers;
+        }
     }
 }
