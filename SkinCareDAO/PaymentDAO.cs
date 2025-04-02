@@ -46,5 +46,52 @@ namespace SkinCareDAO
             }
             return monthlyRevenue;
         }
+
+
+        public Payment GetOne(string id)
+        {
+            return _dbContext.Payments
+                .SingleOrDefault(a => a.Id.Equals(id));
+        }
+
+        public List<Payment> GetAll()
+        {
+            return _dbContext.Payments
+               
+                .ToList();
+        }
+
+        public void Add(Payment a)
+        {
+            Payment cur = GetOne(a.Id);
+            if (cur != null)
+            {
+                throw new Exception();
+            }
+            _dbContext.Payments.Add(a);
+            _dbContext.SaveChanges();
+        }
+
+        public void Update(Payment a)
+        {
+            Payment cur = GetOne(a.Id);
+            if (cur == null)
+            {
+                throw new Exception();
+            }
+            _dbContext.Entry(cur).CurrentValues.SetValues(a);
+            _dbContext.SaveChanges();
+        }
+
+        public void Delete(string id)
+        {
+            Payment cur = GetOne(id);
+            if (cur != null)
+            {
+                _dbContext.Payments.Remove(cur);
+                _dbContext.SaveChanges(); // Delete the object
+            }
+        }
+            
     }
 }
