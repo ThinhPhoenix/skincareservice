@@ -24,5 +24,7 @@ namespace SkinCareRepository
             var result = TherapistExpertiseDAO.Instance.GetServicesByTherapistId(therapistId);
             return Task.FromResult(result);
         }
+        public List<Therapist> GetTherapistsByServiceId(string serviceId) => TherapistExpertiseDAO.Instance.GetTherapistsByServiceId(
+            serviceId);
     }
 } 

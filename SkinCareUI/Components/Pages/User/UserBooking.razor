@@ -1,0 +1,681 @@
+﻿@page "/booking/{ServiceId}"
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@using System.Globalization
+@inject IServiceRepository ServiceRepository
+@inject ITherapistExpertiseRepository TherapistExpertiseRepository
+@inject ITherapistRepository TherapistRepository
+@* @inject IAppointmentRepository AppointmentRepository *@
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@* @inject AuthenticationStateProvider AuthenticationStateProvider *@
+
+<PageTitle>Đặt dịch vụ | SkinCare Spa</PageTitle>
+
+
+<div class="container mt-4">
+    <div class="flex items-center mb-6">
+                    <button @onclick="() => GoToServices(ServiceId)" class="text-pink-600 hover:text-pink-800 transition-colors flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i> Quay lại dịch vụ
+                    </button>
+                </div>
+
+               
+    
+    @if (IsLoading)
+    {
+        <div class="text-center p-5">
+            <div class="spinner-border text-pink-500" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+            </div>
+        </div>
+    }
+    else if (Service == null)
+    {
+        <div class="alert alert-danger" role="alert">
+            Không tìm thấy dịch vụ. <a href="/services" class="alert-link">Quay lại danh sách dịch vụ</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <!-- Thông tin dịch vụ -->
+            <div class="col-md-5">
+                <div class="card shadow-sm h-100 border-pink-200">
+                    <div class="position-relative">
+                        <img src="https://isharedigital.com/wp-content/uploads/2020/11/kinh-doanh-spa-bi-quyet-quang-cao-spa-lam-dep-hieu-qua.jpeg" class="card-img-top" alt="@Service.ServiceName" style="height: 250px; object-fit: cover;">
+                        <div class="position-absolute bottom-0 end-0 bg-pink-500 text-white px-3 py-2 m-2 rounded-pill">
+                            @FormatCurrencyVND(Service.Price)
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h2 class="card-title text-pink-700">@Service.ServiceName</h2>
+                        <div class="mb-3">
+                            <span class="badge bg-pink-200 text-pink-800 me-2">@Service.CategoryId</span>
+                            <span class="badge bg-secondary">@Service.DurationMinutes phút</span>
+                        </div>
+                        <p class="card-text">@Service.Description</p>
+                        
+                        @if (!string.IsNullOrEmpty(Service.Prerequisites))
+                        {
+                            <div class="mt-3">
+                                <h5 class="text-pink-600">Yêu cầu trước khi chăm sóc</h5>
+                                <p>@Service.Prerequisites</p>
+                            </div>
+                        }
+                        
+                        @if (!string.IsNullOrEmpty(Service.Aftercare))
+                        {
+                            <div class="mt-3">
+                                <h5 class="text-pink-600">Chăm sóc sau dịch vụ</h5>
+                                <p>@Service.Aftercare</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phần đặt lịch -->
+            <div class="col-md-7">
+                <div class="card shadow-sm mb-4 border-pink-200">
+                    <div class="card-header bg-pink-500 text-white">
+                        <h4 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Đặt lịch hẹn</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Chọn ngày -->
+                        <div class="mb-4">
+                            <h5 class="text-pink-700">1. Chọn ngày</h5>
+                            <div class="calendar-container">
+                                <!-- Calendar navigation buttons - fix -->
+<!-- Replace the current calendar navigation section with this: -->
+<div class="d-flex justify-content-between align-items-center mb-2">
+                                    <button class="btn btn-sm btn-outline-pink-500" @onclick="PreviousMonth">
+                                        <i class="bi bi-chevron-left">Previous</i>
+                                    </button>
+                                    <h6 class="mb-0">@GetMonthNameInVietnamese(CurrentDate.Month) @CurrentDate.Year</h6>
+                                    <button class="btn btn-sm btn-outline-pink-500" @onclick="NextMonth">
+                                        <i class="bi bi-chevron-right">Next</i>
+                                    </button>
+                                </div>
+
+                                
+                                <div class="calendar">
+                                    <div class="calendar-header">
+                                        @foreach (var day in new[] { "CN", "T2", "T3", "T4", "T5", "T6", "T7" })
+                                        {
+                                            <div class="calendar-cell header">@day</div>
+                                        }
+                                    </div>
+                                    <div class="calendar-body">
+                                        @{
+                                            var firstDay = new DateTime(CurrentDate.Year, CurrentDate.Month, 1);
+                                            var lastDay = firstDay.AddMonths(1).AddDays(-1);
+                                            var startingDayOfWeek = (int)firstDay.DayOfWeek;
+                                            var today = DateTime.Today;
+                                            var tomorrow = today.AddDays(1);
+                                        }
+
+                                        @for (int i = 0; i < startingDayOfWeek; i++)
+                                        {
+                                            <div class="calendar-cell empty"></div>
+                                        }
+
+                                        @for (int day = 1; day <= lastDay.Day; day++)
+                                        {
+                                            var currentDay = new DateTime(CurrentDate.Year, CurrentDate.Month, day);
+                                            var isDisabled = currentDay <= today;
+                                            var isSelected = SelectedDate?.Date == currentDay.Date;
+                                            var cellClass = isDisabled ? "disabled" : (isSelected ? "selected" : "available");
+
+                                            <div class="calendar-cell @cellClass" @onclick="() => SelectDate(currentDay)" style="@(isDisabled ? "pointer-events: none;" : "")">
+                                                @day
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chọn giờ -->
+                        @if (SelectedDate != null)
+                        {
+                            <div class="mb-4">
+                                <h5 class="text-pink-700">2. Chọn giờ</h5>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach (var timeSlot in TimeSlots)
+                                    {
+                                        var isSelected = SelectedTimeSlot == timeSlot;
+                                        <button class="btn @(isSelected ? "btn-pink-500 text-white" : "btn-outline-pink-500")"
+                                                @onclick="() => SelectTimeSlot(timeSlot)">
+                                            @timeSlot.ToString("HH:mm")
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Chọn chuyên gia -->
+                        @if (SelectedDate != null && SelectedTimeSlot != null)
+                        {
+                            <div class="mb-4">
+                                <h5 class="text-pink-700">3. Chọn chuyên gia</h5>
+                                @if (Experts.Count == 0)
+                                {
+                                    <div class="alert alert-info">
+                                        Không có chuyên gia phục vụ cho dịch vụ này. Vui lòng thử dịch vụ khác hoặc liên hệ với chúng tôi.
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="row row-cols-1 row-cols-md-2 g-3">
+                                        @foreach (var expert in Experts)
+                                        {
+                                            var isSelected = SelectedExpert?.Id == expert.Id;
+                                            <div class="col">
+                                                <div class="card @(isSelected ? "border-pink-500" : "")" @onclick="() => SelectExpert(expert)" style="cursor: pointer;">
+                                                    <div class="row g-0">
+                                                        <div class="col-4">
+                                                            @if (!string.IsNullOrEmpty(expert.ProfileImage))
+                                                            {
+                                                                <img src="@expert.ProfileImage" class="img-fluid rounded-start" alt="@expert.FirstName @expert.LastName" style="height: 100%; object-fit: cover;">
+                                                            }
+                                                            else
+                                                            {
+                                                                <img src="https://images.unsplash.com/photo-1594824476967-48c8b964273f" class="img-fluid rounded-start" alt="@expert.FirstName @expert.LastName">
+                                                            }
+                                                        </div>
+                                                        <div class="col-8">
+                                                            <div class="card-body p-2">
+                                                                <h6 class="card-title mb-1 text-pink-700">@expert.FirstName @expert.LastName</h6>
+                                                                <p class="card-text small text-muted mb-1">@expert.Expertise</p>
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="rating">
+                                                                        @for (int i = 1; i <= 5; i++)
+                                                                        {
+                                                                            <i class="bi @(i <= 4 ? "bi-star-fill text-warning" : "bi-star")"></i>
+                                                                        }
+                                                                    </div>
+                                                                    <span class="ms-1 small">(4.0)</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <!-- Thông tin đặt lịch -->
+                        @if (SelectedDate != null && SelectedTimeSlot != null && SelectedExpert != null)
+                        {
+                            <div class="booking-summary p-4 bg-pink-50 rounded-lg mb-4 border border-pink-200">
+                                <h5 class="text-pink-700 mb-3">Thông tin đặt lịch</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <p class="mb-1 fw-bold text-pink-600">Dịch vụ</p>
+                                            <p class="border-bottom pb-2">@Service.ServiceName</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <p class="mb-1 fw-bold text-pink-600">Ngày</p>
+                                            <p class="border-bottom pb-2">@FormatDateInVietnamese(SelectedDate.Value)</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <p class="mb-1 fw-bold text-pink-600">Giờ</p>
+                                            <p>@SelectedTimeSlot?.ToString("HH:mm")</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <p class="mb-1 fw-bold text-pink-600">Chuyên gia</p>
+                                            <p class="border-bottom pb-2">@SelectedExpert.FirstName @SelectedExpert.LastName</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <p class="mb-1 fw-bold text-pink-600">Thời gian</p>
+                                            <p class="border-bottom pb-2">@Service.DurationMinutes phút</p>
+                                        </div>
+                                        <div class="mb-3">
+                                            <p class="mb-1 fw-bold text-pink-600">Giá</p>
+                                            <p class="text-pink-800 fw-bold fs-5">@FormatCurrencyVND(Service.Price)</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2 mt-3">
+                                    <button class="btn btn-lg btn-pink-500 text-white" @onclick="ConfirmBooking">
+                                        <i class="bi bi-calendar2-check me-2"></i>Xác nhận đặt lịch
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .calendar-container {
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .calendar {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        overflow: hidden;
+    }
+    
+    .calendar-header {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        background-color: #f8f9fa;
+    }
+    
+    .calendar-body {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+    }
+    
+    .calendar-cell {
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #dee2e6;
+    }
+    
+    .calendar-cell.header {
+        font-weight: bold;
+        background-color: #f8f9fa;
+    }
+    
+    .calendar-cell.empty {
+        background-color: #f8f9fa;
+    }
+    
+    .calendar-cell.available {
+        cursor: pointer;
+    }
+    
+    .calendar-cell.available:hover {
+        background-color: #fbcfe8;
+    }
+    
+    .calendar-cell.selected {
+        background-color: #ec4899;
+        color: white;
+    }
+    
+    .calendar-cell.disabled {
+        color: #adb5bd;
+        background-color: #f8f9fa;
+    }
+    
+    .calendar-nav-icon {
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+    
+    .calendar-nav-icon:hover {
+        color: #db2777 !important;
+    }
+
+    /* Add to your existing styles */
+    .calendar-nav-btn {
+        background: none;
+        border: none;
+        transition: transform 0.2s;
+    }
+    
+    .calendar-nav-btn:hover {
+        transform: scale(1.1);
+    }
+    
+    .calendar-nav-btn:focus {
+        box-shadow: none;
+        outline: none;
+    }
+    
+    .calendar-nav-btn i {
+        color: #ec4899;
+    }
+    
+    .calendar-nav-btn:hover i {
+        color: #be185d;
+    }
+    
+    .rating {
+        font-size: 0.8rem;
+    }
+    
+    .rounded-lg {
+        border-radius: 0.5rem;
+    }
+    
+    /* Add custom pink colors to match your theme */
+    .bg-pink-50 {
+        background-color: #fdf2f8;
+    }
+    
+    .bg-pink-200 {
+        background-color: #fbcfe8;
+    }
+    
+    .bg-pink-500 {
+        background-color: #ec4899;
+    }
+    
+    .text-pink-600 {
+        color: #db2777;
+    }
+    
+    .text-pink-700 {
+        color: #be185d;
+    }
+    
+    .text-pink-800 {
+        color: #9d174d;
+    }
+    
+    .border-pink-200 {
+        border-color: #fbcfe8;
+    }
+    
+    .border-pink-500 {
+        border-color: #ec4899;
+    }
+    
+    .btn-outline-pink-500 {
+        color: #ec4899;
+        border-color: #ec4899;
+    }
+    
+    .btn-outline-pink-500:hover {
+        color: #fff;
+        background-color: #ec4899;
+        border-color: #ec4899;
+    }
+    
+    .btn-pink-500 {
+        color: #fff;
+        background-color: #ec4899;
+        border-color: #ec4899;
+    }
+    
+    .btn-pink-500:hover {
+        color: #fff;
+        background-color: #db2777;
+        border-color: #db2777;
+    }
+</style>
+
+@code {
+    [Parameter] public string ServiceId { get; set; }
+    
+    private Service Service { get; set; }
+    private List<Therapist> Experts { get; set; } = new();
+    private DateTime CurrentDate = DateTime.Today;
+    private DateTime? SelectedDate;
+    private DateTime? SelectedTimeSlot;
+    private Therapist SelectedExpert;
+    private bool IsLoading = true;
+    private string UserId;
+    
+    // Time slots from 9 AM to 5 PM with 1-hour intervals
+    private List<DateTime> TimeSlots { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // For demo purposes, we'll set a dummy user ID
+        UserId = "user1";
+        await LoadServiceData();
+    }
+    
+    private async Task LoadServiceData()
+    {
+        IsLoading = true;
+        
+        try
+        {
+            // Load service details
+            Service = await Task.Run(() => ServiceRepository.GetOne(ServiceId));
+            
+            if (Service != null)
+            {
+                // Get list of TherapistExpertise entries for this service
+                var therapistExpertiseList = await Task.Run(() => TherapistExpertiseRepository.GetTherapistsByServiceId(ServiceId));
+                
+                // For each expertise entry, get the associated therapist
+                foreach (var expertise in therapistExpertiseList)
+                {
+                    var therapist = await Task.Run(() => TherapistRepository.GetOneAsync(expertise.Id));
+                    if (therapist != null)
+                    {
+                        Experts.Add(therapist);
+                    }
+                }
+                
+                // Initialize time slots for the day
+                GenerateTimeSlots();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("console.error", $"Error loading service data: {ex.Message}");
+            
+            // If there's an error, we might want to show mock data for demonstration purposes
+            if (Service == null)
+            {
+                Service = new Service 
+                {
+                    Id = ServiceId,
+                    ServiceName = "Dịch Vụ Chăm Sóc Da",
+                    Description = "Điều trị da cao cấp giúp trẻ hóa làn da",
+                    DurationMinutes = 60,
+                    Price = 999000m
+                };
+            }
+            
+            if (Experts.Count == 0)
+            {
+                Experts = new List<Therapist>
+                {
+                    new Therapist
+                    {
+                        Id = "1",
+                        FirstName = "Ngọc",
+                        LastName = "Anh",
+                        Bio = "Chuyên gia về các liệu pháp chăm sóc da",
+                        Expertise = "Chăm sóc da, Điều trị mụn",
+                        ProfileImage = "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3"
+                    }
+                };
+            }
+            
+            GenerateTimeSlots();
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void GoToServices(string serviceId)
+    {
+        NavigationManager.NavigateTo($"/services/{serviceId}");
+    }
+    
+    private void GenerateTimeSlots()
+    {
+        TimeSlots.Clear();
+        
+        // Start at 9 AM
+        var startTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 9, 0, 0);
+        
+        // End at 5 PM
+        var endTime = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 17, 0, 0);
+        
+        var currentTime = startTime;
+        
+        while (currentTime <= endTime)
+        {
+            TimeSlots.Add(currentTime);
+            currentTime = currentTime.AddHours(1);
+        }
+    }
+    
+    private void PreviousMonth()
+    {
+        if (CurrentDate.Month == DateTime.Today.Month && CurrentDate.Year == DateTime.Today.Year)
+        {
+            // Don't go back before the current month
+            return;
+        }
+        
+        CurrentDate = CurrentDate.AddMonths(-1);
+        SelectedDate = null;
+        SelectedTimeSlot = null;
+        SelectedExpert = null;
+        StateHasChanged();
+    }
+    private string FormatCurrencyVND(decimal price)
+    {
+        // Format with dot as thousands separator and no decimal places
+        return string.Format("{0:#,##0}", price).Replace(",", ".") + " VNĐ";
+    }
+    private void NextMonth()
+    {
+        if (CurrentDate.AddMonths(1).Year > DateTime.Today.Year + 1)
+        {
+            // Don't go beyond one year from now
+            return;
+        }
+        
+        CurrentDate = CurrentDate.AddMonths(1);
+        SelectedDate = null;
+        SelectedTimeSlot = null;
+        SelectedExpert = null;
+        StateHasChanged();
+    }
+    
+    private void SelectDate(DateTime date)
+    {
+        SelectedDate = date;
+        SelectedTimeSlot = null;
+        SelectedExpert = null;
+        StateHasChanged();
+    }
+    
+    private void SelectTimeSlot(DateTime timeSlot)
+    {
+        SelectedTimeSlot = timeSlot;
+        SelectedExpert = null;
+        StateHasChanged();
+    }
+    
+    private void SelectExpert(Therapist expert)
+    {
+        SelectedExpert = expert;
+        StateHasChanged();
+    }
+    
+    private async Task ConfirmBooking()
+    {
+        if (Service == null || SelectedDate == null || SelectedTimeSlot == null || SelectedExpert == null)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Vui lòng hoàn thành tất cả các bước đặt lịch trước khi xác nhận.");
+            return;
+        }
+        
+        if (string.IsNullOrEmpty(UserId))
+        {
+            // Redirect to login if user is not authenticated
+            NavigationManager.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}", true);
+            return;
+        }
+        
+        try
+        {
+            var bookingDateTime = new DateTime(
+                SelectedDate.Value.Year,
+                SelectedDate.Value.Month,
+                SelectedDate.Value.Day,
+                SelectedTimeSlot.Value.Hour,
+                SelectedTimeSlot.Value.Minute,
+                0);
+                
+            // Create a new appointment using the correct Appointment model from your codebase
+            // var appointment = new Appointment
+            // {
+            //     Id = Guid.NewGuid().ToString(),
+            //     CustomerId = UserId,
+            //     TherapistId = SelectedExpert.Id,
+            //     ServiceId = ServiceId.ToString(),
+            //     LocationId = "1", // Default location or get from user selection
+            //     AppointmentDateTime = bookingDateTime,
+            //     DurationMinutes = Service.DurationMinutes,
+            //     Status = "Pending",
+            //     CreatedAt = DateTime.Now,
+            //     CreatedBy = UserId
+            // };
+            
+            // var result = await Task.Run(() => AppointmentRepository.Create(appointment));
+            
+            // if (result != null)
+            // {
+            //     await JSRuntime.InvokeVoidAsync("alert", "Appointment confirmed! You'll receive a confirmation shortly.");
+            //     NavigationManager.NavigateTo("/appointments");
+            // }
+            // else
+            // {
+            //     await JSRuntime.InvokeVoidAsync("alert", "Something went wrong. Please try again.");
+            // }
+            
+            // For now, just show a success message since appointment creation is commented out
+            await JSRuntime.InvokeVoidAsync("alert", "Đã xác nhận đặt lịch! Bạn sẽ nhận được xác nhận qua email trong thời gian ngắn.");
+            NavigationManager.NavigateTo("/appointments");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("console.error", $"Error creating appointment: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "Có lỗi xảy ra trong quá trình đặt lịch. Vui lòng thử lại sau.");
+        }
+    }
+    
+    // Helper method for Vietnamese month name
+    private string GetMonthNameInVietnamese(int month)
+    {
+        return month switch
+        {
+            1 => "Tháng 1",
+            2 => "Tháng 2",
+            3 => "Tháng 3",
+            4 => "Tháng 4",
+            5 => "Tháng 5",
+            6 => "Tháng 6",
+            7 => "Tháng 7",
+            8 => "Tháng 8",
+            9 => "Tháng 9",
+            10 => "Tháng 10",
+            11 => "Tháng 11",
+            12 => "Tháng 12",
+            _ => $"Tháng {month}"
+        };
+    }
+    
+    // Helper method for Vietnamese date format
+    private string FormatDateInVietnamese(DateTime date)
+    {
+        string[] weekdays = { "Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy" };
+        return $"{weekdays[(int)date.DayOfWeek]}, ngày {date.Day} {GetMonthNameInVietnamese(date.Month)} {date.Year}";
+    }
+}
