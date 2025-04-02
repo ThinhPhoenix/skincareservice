@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using SkinCareBussinessObject;
 
 namespace SkinCareDAO
@@ -80,7 +81,8 @@ namespace SkinCareDAO
             int[] monthlyCustomers = new int[12];
 
             var customersForYear = _dbContext.Customers
-                .Where(c => c.User.CreatedAt.Year == year)
+                .Include(c => c.User)  // Explicitly include the User navigation property
+                .Where(c => c.User != null && c.User.CreatedAt.Year == year)
                 .ToList();
 
             foreach (var customer in customersForYear)
