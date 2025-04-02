@@ -7,15 +7,15 @@
 @inject ICustomerRepository CustomerRepository
 @inject IJSRuntime JSRuntime
 
-<PageTitle>Admin Dashboard</PageTitle>
+<PageTitle>Bảng Điều Khiển Quản Trị</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3>Dashboard</h3>
+    <h3>Bảng Điều Khiển</h3>
     <div class="d-flex align-items-center">
         <div class="input-group me-2" style="width: 150px;">
             <input type="number" class="form-control" @bind="selectedYear" min="2000" max="2100" />
         </div>
-        <button class="btn btn-primary" @onclick="LoadDataForYear">Load Data</button>
+        <button class="btn btn-primary" @onclick="LoadDataForYear">Tải Dữ Liệu</button>
     </div>
 </div>
 
@@ -23,7 +23,7 @@
     <div class="col-md-4">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Total Customers</h5>
+                <h5 class="card-title">Tổng Số Khách Hàng</h5>
                 <h1 class="text-primary">@totalCustomers</h1>
             </div>
         </div>
@@ -31,7 +31,7 @@
     <div class="col-md-4">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Total Appointments</h5>
+                <h5 class="card-title">Tổng Số Cuộc Hẹn</h5>
                 <h1 class="text-info">@totalAppointments</h1>
             </div>
         </div>
@@ -39,9 +39,9 @@
     <div class="col-md-4">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Total Revenue</h5>
-                <h1 class="text-success">$@totalRevenue.ToString("N2")</h1>
-            </div>
+            <h5 class="card-title">Tổng Doanh Thu</h5>
+            <h1 class="text-success">@totalRevenue.ToString("#,##0") VNĐ</h1>
+        </div>
         </div>
     </div>
 </div>
@@ -50,7 +50,7 @@
     <div class="col-md-6 mb-4">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Customers by Month (@selectedYear)</h5>
+                <h5 class="card-title">Khách Hàng Theo Tháng (@selectedYear)</h5>
                 <div>
                     <canvas id="customersChart"></canvas>
                 </div>
@@ -60,7 +60,7 @@
     <div class="col-md-6 mb-4">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Appointments by Month (@selectedYear)</h5>
+                <h5 class="card-title">Cuộc Hẹn Theo Tháng (@selectedYear)</h5>
                 <div>
                     <canvas id="appointmentsChart"></canvas>
                 </div>
@@ -73,7 +73,7 @@
     <div class="col-md-12">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Revenue by Month (@selectedYear)</h5>
+                <h5 class="card-title">Doanh Thu Theo Tháng (@selectedYear)</h5>
                 <div>
                     <canvas id="revenueChart"></canvas>
                 </div>
@@ -96,7 +96,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Only fetch data, do not interact with JavaScript
+        // Chỉ tải dữ liệu, không tương tác với JavaScript
         await FetchDataForYear();
     }
 
@@ -104,13 +104,13 @@
     {
         if (dataLoaded)
         {
-            // Clear existing charts if they exist (only if not first render)
+            // Xóa biểu đồ hiện có nếu chúng tồn tại (chỉ khi không phải lần hiển thị đầu tiên)
             if (!firstRender && chartsInitialized)
             {
                 await JSRuntime.InvokeVoidAsync("clearCharts");
             }
 
-            // Initialize charts with the loaded data
+            // Khởi tạo biểu đồ với dữ liệu đã tải
             await InitializeChartsAsync();
             dataLoaded = false;
             chartsInitialized = true;
@@ -119,26 +119,26 @@
 
     private async Task LoadDataForYear()
     {
-        // Only fetch data, do not interact with JavaScript yet
+        // Chỉ tải dữ liệu, chưa tương tác với JavaScript
         await FetchDataForYear();
         
-        // Trigger a re-render, after which OnAfterRenderAsync will be called
+        // Kích hoạt hiển thị lại, sau đó OnAfterRenderAsync sẽ được gọi
         StateHasChanged();
     }
 
     private async Task FetchDataForYear()
     {
-        // Get data for the selected year
+        // Lấy dữ liệu cho năm đã chọn
         monthlyCustomers = CustomerRepository.GetDashBoardCustomer(selectedYear);
         monthlyAppointments = AppointmentRepository.GetDashBoardAppointment(selectedYear);
         monthlyRevenue = PaymentRepository.GetDashBoardRevenue(selectedYear);
 
-        // Calculate totals
+        // Tính tổng
         totalCustomers = monthlyCustomers.Sum();
         totalAppointments = monthlyAppointments.Sum();
         totalRevenue = monthlyRevenue.Sum();
 
-        // Mark data as loaded so charts can be initialized in OnAfterRenderAsync
+        // Đánh dấu dữ liệu đã được tải để biểu đồ có thể được khởi tạo trong OnAfterRenderAsync
         dataLoaded = true;
     }
 
@@ -165,14 +165,14 @@
     };
 
     window.initializeCharts = (months, customerData, appointmentData, revenueData) => {
-        // Customers Chart
+        // Biểu đồ Khách Hàng
         const customersCtx = document.getElementById('customersChart');
         customerChart = new Chart(customersCtx, {
             type: 'line',
             data: {
                 labels: months,
                 datasets: [{
-                    label: 'New Customers',
+                    label: 'Khách Hàng Mới',
                     data: customerData,
                     borderColor: 'rgb(75, 192, 192)',
                     tension: 0.1,
@@ -192,14 +192,14 @@
             }
         });
 
-        // Appointments Chart
+        // Biểu đồ Cuộc Hẹn
         const appointmentsCtx = document.getElementById('appointmentsChart');
         appointmentChart = new Chart(appointmentsCtx, {
             type: 'line',
             data: {
                 labels: months,
                 datasets: [{
-                    label: 'Appointments',
+                    label: 'Cuộc Hẹn',
                     data: appointmentData,
                     borderColor: 'rgb(54, 162, 235)',
                     tension: 0.1,
@@ -219,14 +219,14 @@
             }
         });
 
-        // Revenue Chart
+        // Biểu đồ Doanh Thu
         const revenueCtx = document.getElementById('revenueChart');
         revenueChart = new Chart(revenueCtx, {
             type: 'line',
             data: {
                 labels: months,
                 datasets: [{
-                    label: 'Revenue ($)',
+                    label: 'Doanh Thu (VNĐ)',
                     data: revenueData,
                     borderColor: 'rgb(255, 99, 132)',
                     tension: 0.1,
