@@ -829,8 +829,7 @@
             PaymentStatus = "Paid",
             TransactionReference = SelectedPaymentMethod == "Cash" 
                 ? "Thanh toán tại quầy" 
-                : $"Chuyển khoản - {DateTime.UtcNow.ToString("yyyyMMddHHmmss")}",
-            ProcessedBy = null // Default value, will be updated when payment is processed
+                : $"Chuyển khoản - {DateTime.UtcNow.ToString("yyyyMMddHHmmss")}"
         };
         
         // Add the payment
