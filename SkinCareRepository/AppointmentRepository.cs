@@ -15,5 +15,12 @@ namespace SkinCareRepository
         {
             return AppointmentDAO.Instance.GetDashBoardAppointment(year);
         }
+
+        public Appointment GetOne(string id) => AppointmentDAO.Instance.GetOne(id);
+
+        public List<Appointment> GetAll() => AppointmentDAO.Instance.GetAll();
+
+        public void Add(Appointment a) => AppointmentDAO.Instance.Add(a);   
+       
     }
 }

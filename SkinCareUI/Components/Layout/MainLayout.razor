@@ -74,7 +74,7 @@
             userEmail = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "email");
             var accountId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "accountId");
             var user = customerRepo.GetCustomerByUserId(accountId);
-            username = user.FirstName;
+
             isAuthenticated = !string.IsNullOrEmpty(userEmail);
         }
         catch (Exception ex)

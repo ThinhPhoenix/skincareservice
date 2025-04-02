@@ -5,29 +5,28 @@
 @inject IServiceRepository ServiceRepository
 @inject ITherapistExpertiseRepository TherapistExpertiseRepository
 @inject ITherapistRepository TherapistRepository
-@* @inject IAppointmentRepository AppointmentRepository *@
+@inject IAppointmentRepository AppointmentRepository
+@inject IPaymentRepository PaymentRepository
+@inject ICustomerRepository CustomerRepository
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
-@* @inject AuthenticationStateProvider AuthenticationStateProvider *@
 
 <PageTitle>Đặt dịch vụ | SkinCare Spa</PageTitle>
 
-
 <div class="container mt-4">
     <div class="flex items-center mb-6">
-                    <button @onclick="() => GoToServices(ServiceId)" class="text-pink-600 hover:text-pink-800 transition-colors flex items-center">
-                        <i class="fas fa-arrow-left mr-2"></i> Quay lại dịch vụ
-                    </button>
-                </div>
-
-               
+        <button @onclick="() => GoToServices(ServiceId)" class="text-pink-600 hover:text-pink-800 transition-colors flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i> Quay lại dịch vụ
+        </button>
+    </div>
     
     @if (IsLoading)
     {
         <div class="text-center p-5">
-            <div class="spinner-border text-pink-500" role="status">
+            <div class="spinner-border" style="color: #db2777; width: 3rem; height: 3rem;" role="status">
                 <span class="visually-hidden">Đang tải...</span>
             </div>
+            <p class="mt-3" style="color: #db2777; font-weight: bold;">Đang tải thông tin dịch vụ...</p>
         </div>
     }
     else if (Service == null)
@@ -38,18 +37,38 @@
     }
     else
     {
+        <!-- Progress Bar -->
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                @foreach (var step in new[] { 1, 2, 3 })
+                {
+                    <div class="step-item @(CurrentStep >= step ? "step-active" : "")">
+                        <div class="step-number">@step</div>
+                        <div class="step-text">
+                            @(step == 1 ? "Chọn ngày & giờ" : (step == 2 ? "Chọn chuyên gia" : "Thanh toán"))
+                        </div>
+                    </div>
+                    
+                    @if (step < 3)
+                    {
+                        <div class="step-line @(CurrentStep > step ? "step-line-active" : "")"></div>
+                    }
+                }
+            </div>
+        </div>
+
         <div class="row">
-            <!-- Thông tin dịch vụ -->
-            <div class="col-md-5">
-                <div class="card shadow-sm h-100 border-pink-200">
+            <!-- Thông tin dịch vụ - always visible -->
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow-sm h-100 border-0 rounded-4" style="background-color: #fdf2f8; border: 1px solid #fbcfe8;">
                     <div class="position-relative">
-                        <img src="https://isharedigital.com/wp-content/uploads/2020/11/kinh-doanh-spa-bi-quyet-quang-cao-spa-lam-dep-hieu-qua.jpeg" class="card-img-top" alt="@Service.ServiceName" style="height: 250px; object-fit: cover;">
-                        <div class="position-absolute bottom-0 end-0 bg-pink-500 text-white px-3 py-2 m-2 rounded-pill">
+                        <img src="https://isharedigital.com/wp-content/uploads/2020/11/kinh-doanh-spa-bi-quyet-quang-cao-spa-lam-dep-hieu-qua.jpeg" class="card-img-top rounded-top-4" alt="@Service.ServiceName" style="height: 200px; object-fit: cover;">
+                        <div class="position-absolute bottom-0 end-0 text-white px-3 py-2 m-2 rounded-pill" style="background-color: #db2777;">
                             @FormatCurrencyVND(Service.Price)
                         </div>
                     </div>
                     <div class="card-body">
-                        <h2 class="card-title text-pink-700">@Service.ServiceName</h2>
+                        <h2 class="card-title" style="color: #be185d;">@Service.ServiceName</h2>
                         <div class="mb-3">
                             <span class="badge bg-pink-200 text-pink-800 me-2">@Service.CategoryId</span>
                             <span class="badge bg-secondary">@Service.DurationMinutes phút</span>
@@ -59,7 +78,7 @@
                         @if (!string.IsNullOrEmpty(Service.Prerequisites))
                         {
                             <div class="mt-3">
-                                <h5 class="text-pink-600">Yêu cầu trước khi chăm sóc</h5>
+                                <h5 style="color: #db2777;">Yêu cầu trước khi chăm sóc</h5>
                                 <p>@Service.Prerequisites</p>
                             </div>
                         }
@@ -67,7 +86,7 @@
                         @if (!string.IsNullOrEmpty(Service.Aftercare))
                         {
                             <div class="mt-3">
-                                <h5 class="text-pink-600">Chăm sóc sau dịch vụ</h5>
+                                <h5 style="color: #db2777;">Chăm sóc sau dịch vụ</h5>
                                 <p>@Service.Aftercare</p>
                             </div>
                         }
@@ -75,93 +94,140 @@
                 </div>
             </div>
 
-            <!-- Phần đặt lịch -->
-            <div class="col-md-7">
-                <div class="card shadow-sm mb-4 border-pink-200">
-                    <div class="card-header bg-pink-500 text-white">
-                        <h4 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Đặt lịch hẹn</h4>
+            <!-- Phần đặt lịch - changes based on step -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4 border-0 rounded-4">
+                    <div class="card-header text-white rounded-top-4 py-3" style="background-color: #db2777;">
+                        <h4 class="mb-0 fw-bold">
+                            @if (CurrentStep == 1)
+                            {
+                                <i class="bi bi-calendar-date me-2">Bước 1: Chọn ngày và giờ</i>
+                            }
+                            else if (CurrentStep == 2)
+                            {
+                                <i class="bi bi-person-badge me-2">Bước 2: Chọn chuyên gia</i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-credit-card me-2">Bước 3: Thanh toán</i>
+                            }
+                        </h4>
                     </div>
-                    <div class="card-body">
-                        <!-- Chọn ngày -->
-                        <div class="mb-4">
-                            <h5 class="text-pink-700">1. Chọn ngày</h5>
-                            <div class="calendar-container">
-                                <!-- Calendar navigation buttons - fix -->
-<!-- Replace the current calendar navigation section with this: -->
-<div class="d-flex justify-content-between align-items-center mb-2">
-                                    <button class="btn btn-sm btn-outline-pink-500" @onclick="PreviousMonth">
-                                        <i class="bi bi-chevron-left">Previous</i>
-                                    </button>
-                                    <h6 class="mb-0">@GetMonthNameInVietnamese(CurrentDate.Month) @CurrentDate.Year</h6>
-                                    <button class="btn btn-sm btn-outline-pink-500" @onclick="NextMonth">
-                                        <i class="bi bi-chevron-right">Next</i>
-                                    </button>
-                                </div>
-
-                                
-                                <div class="calendar">
-                                    <div class="calendar-header">
-                                        @foreach (var day in new[] { "CN", "T2", "T3", "T4", "T5", "T6", "T7" })
-                                        {
-                                            <div class="calendar-cell header">@day</div>
-                                        }
+                    <div class="card-body p-4" style="background-color: #fdf2f8;">
+                        @if (CurrentStep == 1)
+                        {
+                            <!-- Chọn ngày -->
+                            <div class="mb-4">
+                                <h5 style="color: #be185d;" class="fw-bold">Chọn ngày</h5>
+                                <div class="calendar-container">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <button class="btn btn-sm rounded-pill shadow-sm" 
+                                                style="border-color: #db2777; color: #db2777;" 
+                                                @onclick="PreviousMonth">
+                                            <i class="bi bi-chevron-left me-1"></i>Tháng trước
+                                        </button>
+                                        <h6 class="mb-0 fw-bold">@GetMonthNameInVietnamese(CurrentDate.Month) @CurrentDate.Year</h6>
+                                        <button class="btn btn-sm rounded-pill shadow-sm" 
+                                                style="border-color: #db2777; color: #db2777;" 
+                                                @onclick="NextMonth">
+                                            Tháng sau<i class="bi bi-chevron-right ms-1"></i>
+                                        </button>
                                     </div>
-                                    <div class="calendar-body">
-                                        @{
-                                            var firstDay = new DateTime(CurrentDate.Year, CurrentDate.Month, 1);
-                                            var lastDay = firstDay.AddMonths(1).AddDays(-1);
-                                            var startingDayOfWeek = (int)firstDay.DayOfWeek;
-                                            var today = DateTime.Today;
-                                            var tomorrow = today.AddDays(1);
-                                        }
+                                    
+                                    <div class="calendar">
+                                        <div class="calendar-header">
+                                            @foreach (var day in new[] { "CN", "T2", "T3", "T4", "T5", "T6", "T7" })
+                                            {
+                                                <div class="calendar-cell header">@day</div>
+                                            }
+                                        </div>
+                                        <div class="calendar-body">
+                                            @{
+                                                var firstDay = new DateTime(CurrentDate.Year, CurrentDate.Month, 1);
+                                                var lastDay = firstDay.AddMonths(1).AddDays(-1);
+                                                var startingDayOfWeek = (int)firstDay.DayOfWeek;
+                                                var today = DateTime.Today;
+                                            }
 
-                                        @for (int i = 0; i < startingDayOfWeek; i++)
-                                        {
-                                            <div class="calendar-cell empty"></div>
-                                        }
+                                            @for (int i = 0; i < startingDayOfWeek; i++)
+                                            {
+                                                <div class="calendar-cell empty"></div>
+                                            }
 
-                                        @for (int day = 1; day <= lastDay.Day; day++)
-                                        {
-                                            var currentDay = new DateTime(CurrentDate.Year, CurrentDate.Month, day);
-                                            var isDisabled = currentDay <= today;
-                                            var isSelected = SelectedDate?.Date == currentDay.Date;
-                                            var cellClass = isDisabled ? "disabled" : (isSelected ? "selected" : "available");
+                                            @for (int day = 1; day <= lastDay.Day; day++)
+                                            {
+                                                var currentDay = new DateTime(CurrentDate.Year, CurrentDate.Month, day);
+                                                var isDisabled = currentDay < today;
+                                                var isSelected = SelectedDate?.Date == currentDay.Date;
+                                                var cellClass = isDisabled ? "disabled" : (isSelected ? "selected" : "available");
 
-                                            <div class="calendar-cell @cellClass" @onclick="() => SelectDate(currentDay)" style="@(isDisabled ? "pointer-events: none;" : "")">
-                                                @day
-                                            </div>
-                                        }
+                                                <div class="calendar-cell @cellClass" 
+                                                     @onclick="() => SelectDate(currentDay)" 
+                                                     style="@(isDisabled ? "pointer-events: none;" : "")">
+                                                    @day
+                                                </div>
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Chọn giờ -->
-                        @if (SelectedDate != null)
-                        {
-                            <div class="mb-4">
-                                <h5 class="text-pink-700">2. Chọn giờ</h5>
-                                <div class="d-flex flex-wrap gap-2">
-                                    @foreach (var timeSlot in TimeSlots)
+                            <!-- Chọn giờ -->
+                            @if (SelectedDate != null)
+                            {
+                                <div class="mb-4">
+                                    <h5 style="color: #be185d;" class="fw-bold">Chọn giờ</h5>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach (var timeSlot in TimeSlots)
+                                        {
+                                            var isSelected = SelectedTimeSlot == timeSlot;
+                                            <button class="btn rounded-pill shadow-sm @(isSelected ? "text-white" : "")"
+                                                    style="@(isSelected ? "background-color: #db2777; border-color: #db2777;" : "color: #db2777; border-color: #db2777;")"
+                                                    @onclick="() => SelectTimeSlot(timeSlot)">
+                                                @timeSlot.ToString("HH:mm")
+                                            </button>
+                                        }
+                                    </div>
+                                    
+                                    @if (SelectedTimeSlot != null)
                                     {
-                                        var isSelected = SelectedTimeSlot == timeSlot;
-                                        <button class="btn @(isSelected ? "btn-pink-500 text-white" : "btn-outline-pink-500")"
-                                                @onclick="() => SelectTimeSlot(timeSlot)">
-                                            @timeSlot.ToString("HH:mm")
-                                        </button>
+                                        <div class="d-grid gap-2 mt-4">
+                                            <button class="btn btn-lg rounded-3 px-5 text-white" 
+                                                    style="background-color: #db2777;"
+                                                    @onclick="GoToStep2">
+                                                Tiếp theo: Chọn chuyên gia
+                                                <i class="bi bi-arrow-right ms-2"></i>
+                                            </button>
+                                        </div>
                                     }
                                 </div>
-                            </div>
+                            }
                         }
-
-                        <!-- Chọn chuyên gia -->
-                        @if (SelectedDate != null && SelectedTimeSlot != null)
+                        else if (CurrentStep == 2)
                         {
+                            <!-- Chọn chuyên gia -->
                             <div class="mb-4">
-                                <h5 class="text-pink-700">3. Chọn chuyên gia</h5>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <button class="btn rounded-pill shadow-sm" 
+                                            style="color: #db2777; border-color: #db2777;"
+                                            @onclick="() => CurrentStep = 1">
+                                        <i class="bi bi-arrow-left me-1"></i> Quay lại
+                                    </button>
+                                    
+                                    <div class="text-center">
+                                        <span class="badge rounded-pill text-white" style="background-color: #db2777;">
+                                            <i class="bi bi-calendar-check me-1"></i>
+                                            @FormatDateInVietnamese(SelectedDate.Value) - @SelectedTimeSlot?.ToString("HH:mm")
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <h5 style="color: #be185d;" class="fw-bold mb-3">Chọn chuyên gia</h5>
+                                
                                 @if (Experts.Count == 0)
                                 {
-                                    <div class="alert alert-info">
+                                    <div class="alert alert-info rounded-3 shadow-sm">
+                                        <i class="bi bi-info-circle-fill me-2"></i>
                                         Không có chuyên gia phục vụ cho dịch vụ này. Vui lòng thử dịch vụ khác hoặc liên hệ với chúng tôi.
                                     </div>
                                 }
@@ -172,7 +238,10 @@
                                         {
                                             var isSelected = SelectedExpert?.Id == expert.Id;
                                             <div class="col">
-                                                <div class="card @(isSelected ? "border-pink-500" : "")" @onclick="() => SelectExpert(expert)" style="cursor: pointer;">
+                                                <div class="card @(isSelected ? "border-2" : "border")"
+                                                     style="@(isSelected ? "border-color: #db2777; transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(219, 39, 119, 0.15);" : "border-color: #fbcfe8;") cursor: pointer; transition: all 0.2s ease;"
+                                                     @onclick="() => SelectExpert(expert)">
+                                                    
                                                     <div class="row g-0">
                                                         <div class="col-4">
                                                             @if (!string.IsNullOrEmpty(expert.ProfileImage))
@@ -185,8 +254,8 @@
                                                             }
                                                         </div>
                                                         <div class="col-8">
-                                                            <div class="card-body p-2">
-                                                                <h6 class="card-title mb-1 text-pink-700">@expert.FirstName @expert.LastName</h6>
+                                                            <div class="card-body p-3">
+                                                                <h6 class="card-title mb-1" style="color: #be185d;">@expert.FirstName @expert.LastName</h6>
                                                                 <p class="card-text small text-muted mb-1">@expert.Expertise</p>
                                                                 <div class="d-flex align-items-center">
                                                                     <div class="rating">
@@ -204,50 +273,148 @@
                                             </div>
                                         }
                                     </div>
+                                    
+                                    @if (SelectedExpert != null)
+                                    {
+                                        <div class="d-grid gap-2 mt-4">
+                                            <button class="btn btn-lg rounded-3 px-5 text-white" 
+                                                    style="background-color: #db2777;"
+                                                    @onclick="GoToStep3">
+                                                Tiếp theo: Thanh toán
+                                                <i class="bi bi-arrow-right ms-2"></i>
+                                            </button>
+                                        </div>
+                                    }
                                 }
                             </div>
                         }
-
-                        <!-- Thông tin đặt lịch -->
-                        @if (SelectedDate != null && SelectedTimeSlot != null && SelectedExpert != null)
+                        else if (CurrentStep == 3)
                         {
-                            <div class="booking-summary p-4 bg-pink-50 rounded-lg mb-4 border border-pink-200">
-                                <h5 class="text-pink-700 mb-3">Thông tin đặt lịch</h5>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <p class="mb-1 fw-bold text-pink-600">Dịch vụ</p>
-                                            <p class="border-bottom pb-2">@Service.ServiceName</p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <p class="mb-1 fw-bold text-pink-600">Ngày</p>
-                                            <p class="border-bottom pb-2">@FormatDateInVietnamese(SelectedDate.Value)</p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <p class="mb-1 fw-bold text-pink-600">Giờ</p>
-                                            <p>@SelectedTimeSlot?.ToString("HH:mm")</p>
-                                        </div>
+                            <!-- Thanh toán -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between mb-4">
+                                    <button class="btn rounded-pill shadow-sm" 
+                                            style="color: #db2777; border-color: #db2777;"
+                                            @onclick="() => CurrentStep = 2">
+                                        <i class="bi bi-arrow-left me-1"></i> Quay lại
+                                    </button>
+                                    
+                                    <div class="text-center">
+                                        <span class="badge rounded-pill text-white mb-1 d-block" style="background-color: #db2777;">
+                                            <i class="bi bi-calendar-check me-1"></i>
+                                            @FormatDateInVietnamese(SelectedDate.Value) - @SelectedTimeSlot?.ToString("HH:mm")
+                                        </span>
+                                        <span class="badge rounded-pill text-white d-block" style="background-color: #be185d;">
+                                            <i class="bi bi-person-badge me-1"></i>
+                                            Chuyên gia: @SelectedExpert.FirstName @SelectedExpert.LastName
+                                        </span>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <p class="mb-1 fw-bold text-pink-600">Chuyên gia</p>
-                                            <p class="border-bottom pb-2">@SelectedExpert.FirstName @SelectedExpert.LastName</p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <p class="mb-1 fw-bold text-pink-600">Thời gian</p>
-                                            <p class="border-bottom pb-2">@Service.DurationMinutes phút</p>
-                                        </div>
-                                        <div class="mb-3">
-                                            <p class="mb-1 fw-bold text-pink-600">Giá</p>
-                                            <p class="text-pink-800 fw-bold fs-5">@FormatCurrencyVND(Service.Price)</p>
+                                </div>
+                                
+                                <div class="card mb-4 border-0 shadow-sm rounded-4 bg-white">
+                                    <div class="card-body p-4">
+                                        <h5 style="color: #be185d;" class="fw-bold mb-3">Chi tiết đặt lịch</h5>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <p class="mb-1 fw-bold" style="color: #db2777;">Dịch vụ</p>
+                                                    <p class="border-bottom pb-2">@Service.ServiceName</p>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <p class="mb-1 fw-bold" style="color: #db2777;">Ngày</p>
+                                                    <p class="border-bottom pb-2">@FormatDateInVietnamese(SelectedDate.Value)</p>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <p class="mb-1 fw-bold" style="color: #db2777;">Giờ</p>
+                                                    <p class="border-bottom pb-2">@SelectedTimeSlot?.ToString("HH:mm")</p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <p class="mb-1 fw-bold" style="color: #db2777;">Chuyên gia</p>
+                                                    <p class="border-bottom pb-2">@SelectedExpert.FirstName @SelectedExpert.LastName</p>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <p class="mb-1 fw-bold" style="color: #db2777;">Thời gian</p>
+                                                    <p class="border-bottom pb-2">@Service.DurationMinutes phút</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-
-                                <div class="d-grid gap-2 mt-3">
-                                    <button class="btn btn-lg btn-pink-500 text-white" @onclick="ConfirmBooking">
-                                        <i class="bi bi-calendar2-check me-2"></i>Xác nhận đặt lịch
-                                    </button>
+                                
+                                <div class="card mb-4 border-0 shadow-sm rounded-4 bg-white">
+                                    <div class="card-body p-4">
+                                        <h5 style="color: #be185d;" class="fw-bold mb-3">Phương thức thanh toán</h5>
+                                        
+                                        <div class="mb-3">
+                                            <div class="form-check mb-3 p-3 border rounded-3 @(SelectedPaymentMethod == "Cash" ? "border-2" : "border-1")" style="@(SelectedPaymentMethod == "Cash" ? "border-color: #db2777; background-color: #fdf2f8;" : "")">
+                                                <!-- Line 355 fix - Fixed string literal syntax -->
+                                                <input class="form-check-input" type="radio" name="paymentMethod" id="cash"
+                                                       checked="@(SelectedPaymentMethod == "Cash")"
+                                                       @onchange='@(e => SelectedPaymentMethod = "Cash")'>
+                                                <label class="form-check-label w-100" for="cash">
+                                                    <div class="d-flex align-items-center justify-content-between">
+                                                        <div>
+                                                            <span class="fw-bold">Thanh toán tiền mặt</span>
+                                                            <p class="text-muted mb-0 small">Thanh toán tiền mặt tại quầy lễ tân khi đến spa</p>
+                                                        </div>
+                                                        <i class="bi bi-cash-coin fs-4" style="color: #db2777;"></i>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-3 p-3 border rounded-3 @(SelectedPaymentMethod == "BankTransfer" ? "border-2" : "border-1")" style="@(SelectedPaymentMethod == "BankTransfer" ? "border-color: #db2777; background-color: #fdf2f8;" : "")">
+                                                <input class="form-check-input" type="radio" name="paymentMethod" id="bankTransfer"
+                                                       checked="@(SelectedPaymentMethod == "BankTransfer")"
+                                                       @onchange='@(e => SelectedPaymentMethod = "BankTransfer")'>
+                                                <label class="form-check-label w-100" for="bankTransfer">
+                                                    <div class="d-flex align-items-center justify-content-between">
+                                                        <div>
+                                                            <span class="fw-bold">Chuyển khoản ngân hàng</span>
+                                                            <p class="text-muted mb-0 small">Chuyển khoản trước hoặc tại quầy bằng ứng dụng ngân hàng</p>
+                                                        </div>
+                                                        <i class="bi bi-bank fs-4" style="color: #db2777;"></i>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        @if (SelectedPaymentMethod == "BankTransfer")
+                                        {
+                                            <div class="alert alert-info rounded-3 shadow-sm small mb-4">
+                                                <p class="mb-2 fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Thông tin chuyển khoản:</p>
+                                                <p class="mb-1"><strong>Số tài khoản:</strong> 19038934184343</p>
+                                                <p class="mb-1"><strong>Chủ tài khoản:</strong> CÔNG TY TNHH SKINCARE SPA</p>
+                                                <p class="mb-1"><strong>Ngân hàng:</strong> Techcombank</p>
+                                                <p class="mb-0"><strong>Nội dung:</strong> [Tên của bạn] - Đặt lịch dịch vụ @Service.ServiceName @SelectedDate?.ToString("dd/MM/yyyy")</p>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <div class="card border-0 shadow-sm rounded-4 bg-white">
+                                    <div class="card-body p-4">
+                                        <h5 style="color: #be185d;" class="fw-bold mb-3">Thông tin thanh toán</h5>
+                                        
+                                        <div class="d-flex justify-content-between border-bottom pb-2 mb-3">
+                                            <span>Giá dịch vụ</span>
+                                            <span>@FormatCurrencyVND(Service.Price)</span>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between fw-bold" style="color: #db2777;">
+                                            <span>Tổng cộng</span>
+                                            <span class="fs-5">@FormatCurrencyVND(Service.Price)</span>
+                                        </div>
+                                        
+                                        <div class="d-grid gap-2 mt-4">
+                                            <button class="btn btn-lg rounded-3 px-5 text-white" 
+                                                    style="background-color: #db2777;"
+                                                    @onclick="ConfirmBooking">
+                                                <i class="bi bi-calendar2-check me-2"></i>Xác nhận đặt lịch
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         }
@@ -268,33 +435,37 @@
     .calendar {
         display: grid;
         grid-template-rows: auto 1fr;
-        border: 1px solid #dee2e6;
-        border-radius: 0.25rem;
+        border: 1px solid #fbcfe8;
+        border-radius: 0.75rem;
         overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
     
     .calendar-header {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        background-color: #f8f9fa;
+        background-color: #fdf2f8;
     }
     
     .calendar-body {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
+        background-color: white;
     }
     
     .calendar-cell {
-        height: 40px;
+        height: 45px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid #dee2e6;
+        border: 1px solid #fbcfe8;
+        transition: all 0.2s ease;
     }
     
     .calendar-cell.header {
         font-weight: bold;
-        background-color: #f8f9fa;
+        background-color: #fdf2f8;
+        color: #be185d;
     }
     
     .calendar-cell.empty {
@@ -307,11 +478,15 @@
     
     .calendar-cell.available:hover {
         background-color: #fbcfe8;
+        transform: scale(1.05);
     }
     
     .calendar-cell.selected {
-        background-color: #ec4899;
+        background-color: #db2777;
         color: white;
+        transform: scale(1.05);
+        font-weight: bold;
+        box-shadow: 0 4px 6px -1px rgba(219, 39, 119, 0.3);
     }
     
     .calendar-cell.disabled {
@@ -319,101 +494,77 @@
         background-color: #f8f9fa;
     }
     
-    .calendar-nav-icon {
-        font-size: 1.5rem;
-        cursor: pointer;
+    /* Step indicators */
+    .step-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
     }
     
-    .calendar-nav-icon:hover {
-        color: #db2777 !important;
-    }
-
-    /* Add to your existing styles */
-    .calendar-nav-btn {
-        background: none;
-        border: none;
-        transition: transform 0.2s;
-    }
-    
-    .calendar-nav-btn:hover {
-        transform: scale(1.1);
-    }
-    
-    .calendar-nav-btn:focus {
-        box-shadow: none;
-        outline: none;
+    .step-number {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background-color: #f8f9fa;
+        border: 2px solid #dee2e6;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-bottom: 5px;
+        transition: all 0.3s ease;
     }
     
-    .calendar-nav-btn i {
-        color: #ec4899;
+    .step-text {
+        color: #6c757d;
+        font-size: 0.85rem;
+        text-align: center;
+        transition: all 0.3s ease;
     }
     
-    .calendar-nav-btn:hover i {
-        color: #be185d;
+    .step-line {
+        flex: 1;
+        height: 2px;
+        background-color: #dee2e6;
+        margin-top: -15px;
+        transition: all 0.3s ease;
     }
     
-    .rating {
-        font-size: 0.8rem;
-    }
-    
-    .rounded-lg {
-        border-radius: 0.5rem;
-    }
-    
-    /* Add custom pink colors to match your theme */
-    .bg-pink-50 {
-        background-color: #fdf2f8;
-    }
-    
-    .bg-pink-200 {
-        background-color: #fbcfe8;
-    }
-    
-    .bg-pink-500 {
-        background-color: #ec4899;
-    }
-    
-    .text-pink-600 {
-        color: #db2777;
-    }
-    
-    .text-pink-700 {
-        color: #be185d;
-    }
-    
-    .text-pink-800 {
-        color: #9d174d;
-    }
-    
-    .border-pink-200 {
-        border-color: #fbcfe8;
-    }
-    
-    .border-pink-500 {
-        border-color: #ec4899;
-    }
-    
-    .btn-outline-pink-500 {
-        color: #ec4899;
-        border-color: #ec4899;
-    }
-    
-    .btn-outline-pink-500:hover {
-        color: #fff;
-        background-color: #ec4899;
-        border-color: #ec4899;
-    }
-    
-    .btn-pink-500 {
-        color: #fff;
-        background-color: #ec4899;
-        border-color: #ec4899;
-    }
-    
-    .btn-pink-500:hover {
-        color: #fff;
+    .step-active .step-number {
         background-color: #db2777;
         border-color: #db2777;
+        color: white;
+    }
+    
+    .step-active .step-text {
+        color: #db2777;
+        font-weight: bold;
+    }
+    
+    .step-line-active {
+        background-color: #db2777;
+    }
+    
+    /* Form controls */
+    .form-check-input:checked {
+        background-color: #db2777;
+        border-color: #db2777;
+    }
+    
+    .form-check-input:focus {
+        box-shadow: 0 0 0 0.25rem rgba(219, 39, 119, 0.25);
+        border-color: #db2777;
+    }
+    
+    /* Buttons and other elements */
+    .btn:focus {
+        box-shadow: 0 0 0 0.25rem rgba(219, 39, 119, 0.25);
+    }
+    
+    .border-2 {
+        border-width: 2px !important;
     }
 </style>
 
@@ -426,16 +577,36 @@
     private DateTime? SelectedDate;
     private DateTime? SelectedTimeSlot;
     private Therapist SelectedExpert;
+    private string SelectedPaymentMethod = "Cash"; // Default to cash payment
     private bool IsLoading = true;
     private string UserId;
+    private Customer Customer;
+    private int CurrentStep = 1;
     
     // Time slots from 9 AM to 5 PM with 1-hour intervals
     private List<DateTime> TimeSlots { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
-        // For demo purposes, we'll set a dummy user ID
-        UserId = "user1";
+        // Get user ID from local storage
+        UserId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "accountId");
+        
+        if (string.IsNullOrEmpty(UserId))
+        {
+            // Redirect to login if user isn't logged in
+            NavigationManager.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}");
+            return;
+        }
+        
+        // Get customer info
+        Customer = CustomerRepository.GetCustomerByUserId(UserId);
+        if (Customer == null)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Không tìm thấy thông tin khách hàng của bạn. Vui lòng liên hệ với quản trị viên.");
+            NavigationManager.NavigateTo("/services");
+            return;
+        }
+        
         await LoadServiceData();
     }
     
@@ -471,7 +642,7 @@
         {
             await JSRuntime.InvokeVoidAsync("console.error", $"Error loading service data: {ex.Message}");
             
-            // If there's an error, we might want to show mock data for demonstration purposes
+            // Show mock data for demonstration if there's an error
             if (Service == null)
             {
                 Service = new Service 
@@ -508,7 +679,7 @@
             StateHasChanged();
         }
     }
-
+    
     private void GoToServices(string serviceId)
     {
         NavigationManager.NavigateTo($"/services/{serviceId}");
@@ -547,11 +718,7 @@
         SelectedExpert = null;
         StateHasChanged();
     }
-    private string FormatCurrencyVND(decimal price)
-    {
-        // Format with dot as thousands separator and no decimal places
-        return string.Format("{0:#,##0}", price).Replace(",", ".") + " VNĐ";
-    }
+    
     private void NextMonth()
     {
         if (CurrentDate.AddMonths(1).Year > DateTime.Today.Year + 1)
@@ -578,7 +745,6 @@
     private void SelectTimeSlot(DateTime timeSlot)
     {
         SelectedTimeSlot = timeSlot;
-        SelectedExpert = null;
         StateHasChanged();
     }
     
@@ -588,68 +754,106 @@
         StateHasChanged();
     }
     
-    private async Task ConfirmBooking()
+    private void GoToStep2()
     {
-        if (Service == null || SelectedDate == null || SelectedTimeSlot == null || SelectedExpert == null)
+        if (SelectedDate != null && SelectedTimeSlot != null)
         {
-            await JSRuntime.InvokeVoidAsync("alert", "Vui lòng hoàn thành tất cả các bước đặt lịch trước khi xác nhận.");
-            return;
-        }
-        
-        if (string.IsNullOrEmpty(UserId))
-        {
-            // Redirect to login if user is not authenticated
-            NavigationManager.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}", true);
-            return;
-        }
-        
-        try
-        {
-            var bookingDateTime = new DateTime(
-                SelectedDate.Value.Year,
-                SelectedDate.Value.Month,
-                SelectedDate.Value.Day,
-                SelectedTimeSlot.Value.Hour,
-                SelectedTimeSlot.Value.Minute,
-                0);
-                
-            // Create a new appointment using the correct Appointment model from your codebase
-            // var appointment = new Appointment
-            // {
-            //     Id = Guid.NewGuid().ToString(),
-            //     CustomerId = UserId,
-            //     TherapistId = SelectedExpert.Id,
-            //     ServiceId = ServiceId.ToString(),
-            //     LocationId = "1", // Default location or get from user selection
-            //     AppointmentDateTime = bookingDateTime,
-            //     DurationMinutes = Service.DurationMinutes,
-            //     Status = "Pending",
-            //     CreatedAt = DateTime.Now,
-            //     CreatedBy = UserId
-            // };
-            
-            // var result = await Task.Run(() => AppointmentRepository.Create(appointment));
-            
-            // if (result != null)
-            // {
-            //     await JSRuntime.InvokeVoidAsync("alert", "Appointment confirmed! You'll receive a confirmation shortly.");
-            //     NavigationManager.NavigateTo("/appointments");
-            // }
-            // else
-            // {
-            //     await JSRuntime.InvokeVoidAsync("alert", "Something went wrong. Please try again.");
-            // }
-            
-            // For now, just show a success message since appointment creation is commented out
-            await JSRuntime.InvokeVoidAsync("alert", "Đã xác nhận đặt lịch! Bạn sẽ nhận được xác nhận qua email trong thời gian ngắn.");
-            NavigationManager.NavigateTo("/appointments");
-        }
-        catch (Exception ex)
-        {
-            await JSRuntime.InvokeVoidAsync("console.error", $"Error creating appointment: {ex.Message}");
-            await JSRuntime.InvokeVoidAsync("alert", "Có lỗi xảy ra trong quá trình đặt lịch. Vui lòng thử lại sau.");
+            CurrentStep = 2;
         }
     }
+    
+    private void GoToStep3()
+    {
+        if (SelectedExpert != null)
+        {
+            CurrentStep = 3;
+        }
+    }
+    
+    private string FormatCurrencyVND(decimal price)
+    {
+        // Format with dot as thousands separator and no decimal places
+        return string.Format("{0:#,##0}", price).Replace(",", ".") + " VNĐ";
+    }
+    
+    private async Task ConfirmBooking()
+{
+    if (Service == null || SelectedDate == null || SelectedTimeSlot == null || SelectedExpert == null || string.IsNullOrEmpty(SelectedPaymentMethod))
+    {
+        await JSRuntime.InvokeVoidAsync("alert", "Vui lòng hoàn thành tất cả các bước đặt lịch trước khi xác nhận.");
+        return;
+    }
+    
+    try
+    {
+        // Calculate appointment date and time and convert to UTC
+        var localBookingDateTime = new DateTime(
+            SelectedDate.Value.Year,
+            SelectedDate.Value.Month,
+            SelectedDate.Value.Day,
+            SelectedTimeSlot.Value.Hour,
+            SelectedTimeSlot.Value.Minute,
+            0);
+        
+        // Convert to UTC explicitly
+        var bookingDateTime = DateTime.SpecifyKind(localBookingDateTime, DateTimeKind.Utc);
+            
+        // Create a new appointment with UTC DateTimes
+        string appointmentId = Guid.NewGuid().ToString();
+        var appointment = new Appointment
+        {
+            Id = appointmentId,
+            CustomerId = Customer.Id,
+            TherapistId = SelectedExpert.Id,
+            ServiceId = ServiceId,
+            LocationId = null, // Default location
+            AppointmentDateTime = bookingDateTime, // UTC DateTime
+            DurationMinutes = Service.DurationMinutes,
+            Status = "Pending",
+            Notes = "",
+            CreatedAt = DateTime.UtcNow, // Use UtcNow instead of Now
+            CreatedBy = null,
+            LastModified = null,
+            ModifiedBy = null
+        };
+        
+        // Add the appointment
+        AppointmentRepository.Add(appointment);
+        
+        // Create the payment record with UTC DateTime
+        var payment = new Payment
+        {
+            Id = Guid.NewGuid().ToString(),
+            AppointmentId = appointmentId,
+            Amount = Service.Price,
+            PaymentDateTime = DateTime.UtcNow, // Use UtcNow instead of Now
+            PaymentMethod = SelectedPaymentMethod,
+            PaymentStatus = "Paid",
+            TransactionReference = SelectedPaymentMethod == "Cash" 
+                ? "Thanh toán tại quầy" 
+                : $"Chuyển khoản - {DateTime.UtcNow.ToString("yyyyMMddHHmmss")}",
+            ProcessedBy = null // Default value, will be updated when payment is processed
+        };
+        
+        // Add the payment
+        PaymentRepository.Add(payment);
+        
+        // Show success message
+        string successMessage = SelectedPaymentMethod == "Cash"
+            ? "Đặt lịch thành công! Bạn sẽ thanh toán khi đến spa. Vui lòng đến trước giờ hẹn 15 phút."
+            : "Đặt lịch thành công! Vui lòng hoàn tất chuyển khoản để xác nhận lịch hẹn. Bạn sẽ nhận được email xác nhận sau khi chúng tôi nhận được thanh toán.";
+        
+        await JSRuntime.InvokeVoidAsync("alert", successMessage);
+        
+        // Navigate to appointments page
+        NavigationManager.NavigateTo("/");
+    }
+    catch (Exception ex)
+    {
+        await JSRuntime.InvokeVoidAsync("console.error", $"Error creating appointment: {ex.Message}");
+        await JSRuntime.InvokeVoidAsync("alert", "Có lỗi xảy ra trong quá trình đặt lịch. Vui lòng thử lại sau.");
+    }
+}
     
     // Helper method for Vietnamese month name
     private string GetMonthNameInVietnamese(int month)

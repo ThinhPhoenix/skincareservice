@@ -12,5 +12,11 @@ namespace SkinCareRepository
     public interface IAppointmentRepository
     {
         public int[] GetDashBoardAppointment(int year);
+
+        public Appointment GetOne(string id);
+
+        public List<Appointment> GetAll();
+
+        public void Add(Appointment a);
     }
 }
