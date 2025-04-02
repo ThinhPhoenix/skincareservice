@@ -16,8 +16,6 @@ namespace SkinCareBussinessObject
         [Required]
         public string TherapistId { get; set; }
 
-        [Required]
-        public string LocationId { get; set; }
 
         [Required]
         public DateTime WorkDate { get; set; }
@@ -40,7 +38,5 @@ namespace SkinCareBussinessObject
         [ForeignKey("TherapistId")]
         public virtual Therapist Therapist { get; set; }
 
-        [ForeignKey("LocationId")]
-        public virtual CenterLocation CenterLocation { get; set; }
     }
 }

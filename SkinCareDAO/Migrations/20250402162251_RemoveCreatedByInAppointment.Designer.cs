@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SkinCareDAO;
@@ -11,9 +12,11 @@ using SkinCareDAO;
 namespace SkinCareDAO.Migrations
 {
     [DbContext(typeof(SkinCareDBContext))]
-    partial class SkinCareDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250402162251_RemoveCreatedByInAppointment")]
+    partial class RemoveCreatedByInAppointment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,6 +46,10 @@ namespace SkinCareDAO.Migrations
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("LocationId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("text");
 
@@ -65,6 +72,8 @@ namespace SkinCareDAO.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("LocationId");
 
                     b.HasIndex("ModifiedBy");
 
@@ -187,6 +196,52 @@ namespace SkinCareDAO.Migrations
                     b.HasIndex("QuestionId");
 
                     b.ToTable("AssessmentResponses");
+                });
+
+            modelBuilder.Entity("SkinCareBussinessObject.CenterLocation", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<TimeSpan>("ClosingTime")
+                        .HasColumnType("interval");
+
+                    b.Property<string>("LocationName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ManagerId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<TimeSpan>("OpeningTime")
+                        .HasColumnType("interval");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PostalCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ManagerId");
+
+                    b.ToTable("CenterLocations");
                 });
 
             modelBuilder.Entity("SkinCareBussinessObject.Customer", b =>
@@ -798,6 +853,10 @@ namespace SkinCareDAO.Migrations
                     b.Property<TimeSpan>("EndTime")
                         .HasColumnType("interval");
 
+                    b.Property<string>("LocationId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Notes")
                         .IsRequired()
                         .HasColumnType("text");
@@ -822,6 +881,8 @@ namespace SkinCareDAO.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("LocationId");
+
                     b.HasIndex("StaffId");
 
                     b.HasIndex("TherapistId");
@@ -834,6 +895,12 @@ namespace SkinCareDAO.Migrations
                     b.HasOne("SkinCareBussinessObject.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SkinCareBussinessObject.CenterLocation", "CenterLocation")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -852,6 +919,8 @@ namespace SkinCareDAO.Migrations
                         .HasForeignKey("TherapistId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("CenterLocation");
 
                     b.Navigation("Customer");
 
@@ -917,6 +986,17 @@ namespace SkinCareDAO.Migrations
                     b.Navigation("AssessmentQuestion");
 
                     b.Navigation("SkinAssessment");
+                });
+
+            modelBuilder.Entity("SkinCareBussinessObject.CenterLocation", b =>
+                {
+                    b.HasOne("SkinCareBussinessObject.Staff", "Manager")
+                        .WithMany()
+                        .HasForeignKey("ManagerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Manager");
                 });
 
             modelBuilder.Entity("SkinCareBussinessObject.Customer", b =>
@@ -1161,6 +1241,12 @@ namespace SkinCareDAO.Migrations
 
             modelBuilder.Entity("SkinCareBussinessObject.WorkingSchedule", b =>
                 {
+                    b.HasOne("SkinCareBussinessObject.CenterLocation", "CenterLocation")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("SkinCareBussinessObject.Staff", "Staff")
                         .WithMany()
                         .HasForeignKey("StaffId")
@@ -1172,6 +1258,8 @@ namespace SkinCareDAO.Migrations
                         .HasForeignKey("TherapistId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("CenterLocation");
 
                     b.Navigation("Staff");
 

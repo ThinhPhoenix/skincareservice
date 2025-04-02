@@ -806,13 +806,11 @@
             CustomerId = Customer.Id,
             TherapistId = SelectedExpert.Id,
             ServiceId = ServiceId,
-            LocationId = null, // Default location
             AppointmentDateTime = bookingDateTime, // UTC DateTime
             DurationMinutes = Service.DurationMinutes,
             Status = "Pending",
             Notes = "",
             CreatedAt = DateTime.UtcNow, // Use UtcNow instead of Now
-            CreatedBy = null,
             LastModified = null,
             ModifiedBy = null
         };
