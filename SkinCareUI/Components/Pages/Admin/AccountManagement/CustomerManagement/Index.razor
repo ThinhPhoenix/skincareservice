@@ -1,0 +1,293 @@
+@page "/admin/customers"
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@inject ICustomerRepository CustomerRepository
+@inject IUserRepository UserRepository
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Quản Lý Khách Hàng</PageTitle>
+
+<div class="container-fluid py-4">
+    <div class="card bg-white rounded-xl shadow-sm overflow-hidden mb-4">
+        <div class="card-header bg-gradient-to-r from-pink-500 to-purple-600 py-3">
+            <h4 class="text-white font-bold mb-0">Danh Sách Khách Hàng</h4>
+        </div>
+        <div class="card-body p-0">
+            <div class="p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="d-flex align-items-center">
+                        <input type="text" class="form-control rounded-lg border-gray-300 focus:border-pink-500 focus:ring focus:ring-pink-200" 
+                               placeholder="Tìm kiếm theo tên, email..." @bind="searchTerm" @bind:event="oninput" />
+                        <button class="btn bg-pink-500 hover:bg-pink-600 text-white rounded-lg ms-2 px-4 min-width-btn" @onclick="ApplyFilters">
+                            <i class="fas fa-search"></i> Tìm kiếm
+                        </button>
+                    </div>
+                    <div>
+                        <select class="form-select rounded-lg border-gray-300 focus:border-pink-500 focus:ring focus:ring-pink-200" @bind="statusFilter">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Active">Đang hoạt động</option>
+                            <option value="Banned">Đã bị khóa</option>
+                        </select>
+                    </div>
+                </div>
+
+                @if (customers == null)
+                {
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-pink-500" role="status">
+                            <span class="visually-hidden">Đang tải...</span>
+                        </div>
+                    </div>
+                }
+                else if (!customers.Any())
+                {
+                    <div class="text-center py-5">
+                        <p class="text-gray-500">Không tìm thấy khách hàng nào</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="py-3 px-4 text-gray-600">Họ Tên</th>
+                                    <th class="py-3 px-4 text-gray-600">Email</th>
+                                    <th class="py-3 px-4 text-gray-600">Số Điện Thoại</th>
+                                    <th class="py-3 px-4 text-gray-600">Giới Tính</th>
+                                    <th class="py-3 px-4 text-gray-600">Ngày Tạo</th>
+                                    <th class="py-3 px-4 text-gray-600">Trạng Thái</th>
+                                    <th class="py-3 px-4 text-gray-600 text-center">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in filteredCustomers)
+                                {
+                                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                        <td class="py-3 px-4">
+                                            <div class="d-flex align-items-center">
+                                                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-300 to-purple-300 text-white flex items-center justify-center font-bold me-3">
+                                                    @(item.Customer.FirstName.Substring(0, 1) + item.Customer.LastName.Substring(0, 1))
+                                                </div>
+                                                <div>
+                                                    <p class="font-semibold text-gray-800 mb-0">@item.Customer.FirstName @item.Customer.LastName</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4 text-gray-600">@item.User.Email</td>
+                                        <td class="py-3 px-4 text-gray-600">@item.Customer.PhoneNumber</td>
+                                        <td class="py-3 px-4 text-gray-600">@item.Customer.Gender</td>
+                                        <td class="py-3 px-4 text-gray-600">@item.User.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                        <td class="py-3 px-4">
+                                            @if (item.User.Status == "Active")
+                                            {
+                                                <span class="badge bg-green-100 text-green-800 rounded-full px-3 py-1">Đang hoạt động</span>
+                                            }
+                                            else if (item.User.Status == "Banned")
+                                            {
+                                                <span class="badge bg-red-100 text-red-800 rounded-full px-3 py-1">Đã bị khóa</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-gray-100 text-gray-800 rounded-full px-3 py-1">@item.User.Status</span>
+                                            }
+                                        </td>
+                                        <td class="py-3 px-4 text-center">
+                                            @if (item.User.Status == "Active")
+                                            {
+                                                <button class="btn btn-danger btn-sm rounded-lg" @onclick="() => BanUser(item.User.Id)">
+                                                    <i class="fas fa-ban me-1"></i> Khóa
+                                                </button>
+                                            }
+                                            else if (item.User.Status == "Banned")
+                                            {
+                                                <button class="btn btn-success btn-sm rounded-lg" @onclick="() => UnbanUser(item.User.Id)">
+                                                    <i class="fas fa-unlock me-1"></i> Mở khóa
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<CustomerViewModel> customers;
+    private string searchTerm = "";
+    private string statusFilter = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCustomers();
+    }
+
+    private async Task LoadCustomers()
+    {
+        var customerList = CustomerRepository.GetAll();
+        customers = new List<CustomerViewModel>();
+        
+        foreach (var customer in customerList)
+        {
+            var user = UserRepository.GetOne(customer.UserId);
+            if (user != null)
+            {
+                customers.Add(new CustomerViewModel
+                {
+                    Customer = customer,
+                    User = user
+                });
+            }
+        }
+    }
+
+    private List<CustomerViewModel> filteredCustomers => customers
+        .Where(c => (string.IsNullOrEmpty(searchTerm) ||
+                    c.Customer.FirstName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    c.Customer.LastName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    c.User.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    c.Customer.PhoneNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+        .Where(c => string.IsNullOrEmpty(statusFilter) || c.User.Status == statusFilter)
+        .ToList();
+
+    private async Task ApplyFilters()
+    {
+        // Chỉ cần kích hoạt UI cập nhật
+        StateHasChanged();
+    }
+
+    private async Task BanUser(string userId)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn khóa tài khoản khách hàng này không?");
+        if (confirmed)
+        {
+            var user = UserRepository.GetOne(userId);
+            if (user != null)
+            {
+                user.Status = "Banned";
+                UserRepository.Update(user);
+                await LoadCustomers();
+                await JSRuntime.InvokeVoidAsync("alert", "Đã khóa tài khoản khách hàng thành công!");
+            }
+        }
+    }
+
+    private async Task UnbanUser(string userId)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Bạn có chắc chắn muốn mở khóa tài khoản khách hàng này không?");
+        if (confirmed)
+        {
+            var user = UserRepository.GetOne(userId);
+            if (user != null)
+            {
+                user.Status = "Active";
+                UserRepository.Update(user);
+                await LoadCustomers();
+                await JSRuntime.InvokeVoidAsync("alert", "Đã mở khóa tài khoản khách hàng thành công!");
+            }
+        }
+    }
+
+    private class CustomerViewModel
+    {
+        public Customer Customer { get; set; }
+        public User User { get; set; }
+    }
+}
+
+<style>
+    .bg-green-100 {
+        background-color: rgba(209, 250, 229, 1);
+    }
+    
+    .text-green-800 {
+        color: rgba(6, 95, 70, 1);
+    }
+    
+    .bg-red-100 {
+        background-color: rgba(254, 226, 226, 1);
+    }
+    
+    .text-red-800 {
+        color: rgba(153, 27, 27, 1);
+    }
+    
+    .bg-gray-50 {
+        background-color: rgba(249, 250, 251, 1);
+    }
+    
+    .border-gray-100 {
+        border-color: rgba(243, 244, 246, 1);
+    }
+    
+    .text-gray-600 {
+        color: rgba(75, 85, 99, 1);
+    }
+    
+    .text-gray-800 {
+        color: rgba(31, 41, 55, 1);
+    }
+    
+    .w-10 {
+        width: 2.5rem;
+    }
+    
+    .h-10 {
+        height: 2.5rem;
+    }
+    
+    .rounded-full {
+        border-radius: 9999px;
+    }
+    
+    .flex {
+        display: flex;
+    }
+    
+    .items-center {
+        align-items: center;
+    }
+    
+    .justify-center {
+        justify-content: center;
+    }
+    
+    .rounded-xl {
+        border-radius: 0.75rem;
+    }
+    
+    .from-pink-500 {
+        --tw-gradient-from: rgb(236, 72, 153);
+    }
+    
+    .to-purple-600 {
+        --tw-gradient-to: rgb(124, 58, 237);
+    }
+    
+    .bg-gradient-to-r {
+        background-image: linear-gradient(to right, var(--tw-gradient-from), var(--tw-gradient-to));
+    }
+    
+    .bg-pink-500 {
+        background-color: rgb(236, 72, 153);
+    }
+    
+    .hover\:bg-pink-600:hover {
+        background-color: rgb(219, 39, 119);
+    }
+    
+    .min-width-btn {
+        min-width: 120px;
+        font-weight: 500;
+    }
+    
+    .px-4 {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+</style>
