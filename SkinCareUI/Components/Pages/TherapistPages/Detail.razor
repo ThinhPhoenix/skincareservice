@@ -173,7 +173,7 @@
             isLoading = true;
             
             // Sử dụng Task.Result để chuyển từ bất đồng bộ sang đồng bộ
-            therapist = TherapistRepository.GetOneAsync(Id).Result;
+            therapist = TherapistRepository.GetOne(Id);
             
             if (therapist != null)
             {

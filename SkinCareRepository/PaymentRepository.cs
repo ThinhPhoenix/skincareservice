@@ -26,5 +26,8 @@ namespace SkinCareRepository
         public void Update(Payment a) => PaymentDAO.Instance.Update(a);
         public void Delete(string id) => PaymentDAO.Instance.Delete(id);
 
+        public Payment GetByAppointmentId(string appointmentId) => PaymentDAO.Instance.GetByAppointmentId(appointmentId);
+
+
     }
 }

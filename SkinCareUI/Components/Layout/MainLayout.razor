@@ -11,14 +11,20 @@
     <main>
         <div class="top-row px-4 justify-between">
             
-            
             <div class="flex items-center">
                 @if (isAuthenticated)
                 {
                     <div class="flex items-center mr-4">
                         <span class="flex items-center text-gray-700">
                             <i class="fas fa-user-circle mr-2"></i>
-                            Xin chào, <span class="font-medium ml-1">@username</span>
+                            @if (!string.IsNullOrEmpty(username))
+                            {
+                                <span>Xin chào, <span class="font-medium ml-1">@username</span></span>
+                            }
+                            else
+                            {
+                                <span>Xin chào</span>
+                            }
                         </span>
                     </div>
                     <button @onclick="LogoutUser" class="bg-pink-500 hover:bg-pink-600 text-white px-3 py-1 rounded-md transition-colors flex items-center">
@@ -50,6 +56,7 @@
 </div>
 
 @code {
+    private bool isLoading = true;
     private bool isAuthenticated = false;
     private string username = string.Empty;
     private string userEmail = string.Empty;
@@ -59,23 +66,32 @@
         await CheckAuthenticationStatus();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await CheckAuthenticationStatus();
-        }
-    }
-
     private async Task CheckAuthenticationStatus()
     {
         try
         {
+            isLoading = true;
             userEmail = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "email");
-            var accountId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "accountId");
-            var user = customerRepo.GetCustomerByUserId(accountId);
-
+            
+            // Check authentication based on email
             isAuthenticated = !string.IsNullOrEmpty(userEmail);
+            
+            if (isAuthenticated)
+            {
+                var accountId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "accountId");
+                if (!string.IsNullOrEmpty(accountId))
+                {
+                    var customer = customerRepo.GetCustomerByUserId(accountId);
+                    if (customer != null)
+                    {
+                        username = $"{customer.FirstName} {customer.LastName}".Trim();
+                    }
+                }
+            }
+            else
+            {
+                username = string.Empty;
+            }
         }
         catch (Exception ex)
         {
@@ -83,23 +99,27 @@
             isAuthenticated = false;
             username = string.Empty;
         }
-        StateHasChanged();
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
 
     private async Task LogoutUser()
     {
         try
         {
-            // Sử dụng phương pháp đơn giản hơn để xóa dữ liệu từ localStorage
-            await JSRuntime.InvokeVoidAsync("eval", "localStorage.removeItem('email')");
-            await JSRuntime.InvokeVoidAsync("eval", "localStorage.removeItem('role')");
-            await JSRuntime.InvokeVoidAsync("eval", "localStorage.removeItem('accountId')");
-            await JSRuntime.InvokeVoidAsync("eval", "localStorage.removeItem('isAdmin')");
+            // Sử dụng localStorage API trực tiếp thay vì eval
+            await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "email");
+            await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "role");
+            await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "accountId");
+            await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "isAdmin");
             
             isAuthenticated = false;
-            userEmail = string.Empty;
+            username = string.Empty;
             
-            // Chuyển hướng về trang đăng nhập mà không sử dụng forceLoad
+            // Chuyển hướng về trang đăng nhập
             NavigationManager.NavigateTo("/signin");
         }
         catch (Exception ex)
