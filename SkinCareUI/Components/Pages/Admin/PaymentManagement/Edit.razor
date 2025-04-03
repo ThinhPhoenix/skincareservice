@@ -1,0 +1,80 @@
+@page "/admin/payments/edit/{id}"
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@inject IPaymentRepository PaymentRepository
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit Payment</PageTitle>
+
+<div class="container-fluid mt-4">
+    <div class="card shadow" style="background-color: #fdf2f8;">
+        <div class="card-header text-white" style="background-color: #db2777;">
+            <h1 class="m-0"><i class="bi bi-cash-stack me-2"></i>Edit Payment</h1>
+        </div>
+        <div class="card-body">
+            @if (payment != null)
+            {
+                <EditForm Model="@payment" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-3">
+                        <label for="appointmentId" class="form-label">Appointment ID</label>
+                        <InputText id="appointmentId" class="form-control" @bind-Value="payment.AppointmentId" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Amount</label>
+                        <InputNumber id="amount" class="form-control" @bind-Value="payment.Amount" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="paymentDateTime" class="form-label">Payment Date & Time</label>
+                        <InputDate id="paymentDateTime" class="form-control" @bind-Value="payment.PaymentDateTime" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="paymentMethod" class="form-label">Payment Method</label>
+                        <InputText id="paymentMethod" class="form-control" @bind-Value="payment.PaymentMethod" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="paymentStatus" class="form-label">Payment Status</label>
+                        <InputText id="paymentStatus" class="form-control" @bind-Value="payment.PaymentStatus" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionReference" class="form-label">Transaction Reference</label>
+                        <InputText id="transactionReference" class="form-control" @bind-Value="payment.TransactionReference" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary ms-2" @onclick="HandleCancel">Cancel</button>
+                </EditForm>
+            }
+            else
+            {
+                <p>Payment not found.</p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private Payment payment;
+
+    protected override void OnInitialized()
+    {
+        payment = PaymentRepository.GetOne(Id);
+    }
+
+    private void HandleValidSubmit()
+    {
+        // Update the payment
+        PaymentRepository.Update(payment);
+        NavigationManager.NavigateTo("/admin/payments");
+    }
+
+    private void HandleCancel()
+    {
+        NavigationManager.NavigateTo("/admin/payments");
+    }
+}
