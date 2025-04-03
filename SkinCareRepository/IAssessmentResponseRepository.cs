@@ -19,5 +19,6 @@ namespace SkinCareRepository
         public void Update(AssessmentResponse a);
 
         public void Delete(string id);
+        public List<AssessmentResponse> GetResponsesByAssessmentId(string assessmentId);
     }
 }

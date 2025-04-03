@@ -11,6 +11,7 @@ namespace SkinCareRepository
     public interface ISkinAssesmentRepository
     {
 
+public SkinAssessment GetById(string id);
         public SkinAssessment GetOne(string id);
 
         public List<SkinAssessment> GetAll();
