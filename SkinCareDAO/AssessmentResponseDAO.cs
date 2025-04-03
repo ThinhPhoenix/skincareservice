@@ -34,7 +34,7 @@ namespace SkinCareDAO
         public AssessmentResponse GetOne(string id)
         {
             return _dbContext.AssessmentResponses
-                .SingleOrDefault(a => a.AssessmentId.Equals(id));
+                .SingleOrDefault(a => a.Id.Equals(id));
         }
 
         public List<AssessmentResponse> GetAll()
