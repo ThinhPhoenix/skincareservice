@@ -1,0 +1,67 @@
+@page "/admin/payments/detail/{id}"
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@inject IPaymentRepository PaymentRepository
+@inject NavigationManager NavigationManager
+
+<PageTitle>Payment Details</PageTitle>
+
+<div class="container-fluid mt-4">
+    <div class="card shadow" style="background-color: #fdf2f8;">
+        <div class="card-header text-white" style="background-color: #db2777;">
+            <h1 class="m-0"><i class="bi bi-cash-stack me-2"></i>Payment Details</h1>
+        </div>
+        <div class="card-body">
+            @if (payment != null)
+            {
+                <div class="mb-3">
+                    <label class="form-label">Appointment ID</label>
+                    <p class="form-control-plaintext">@payment.AppointmentId</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Amount</label>
+                    <p class="form-control-plaintext">@payment.Amount</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Payment Date & Time</label>
+                    <p class="form-control-plaintext">@payment.PaymentDateTime.ToString("g")</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Payment Method</label>
+                    <p class="form-control-plaintext">@payment.PaymentMethod</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Payment Status</label>
+                    <p class="form-control-plaintext">@payment.PaymentStatus</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Transaction Reference</label>
+                    <p class="form-control-plaintext">@payment.TransactionReference</p>
+                </div>
+
+                <button type="button" class="btn btn-secondary" @onclick="HandleBack">Back</button>
+            }
+            else
+            {
+                <p>Payment not found.</p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private Payment payment;
+
+    protected override void OnInitialized()
+    {
+        payment = PaymentRepository.GetOne(Id);
+    }
+
+    private void HandleBack()
+    {
+        NavigationManager.NavigateTo("/admin/payments");
+    }
+}
