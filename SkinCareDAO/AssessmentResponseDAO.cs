@@ -121,6 +121,13 @@ namespace SkinCareDAO
                 _dbContext.SaveChanges(); // Delete the object
             }
         }
+
+        public List<AssessmentResponse> GetResponsesByAssessmentId(string assessmentId)
+        {
+            return _dbContext.AssessmentResponses
+                .Where(r => r.AssessmentId == assessmentId)
+                .ToList();
+        }
             
     }
 }

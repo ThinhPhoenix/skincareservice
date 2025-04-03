@@ -134,41 +134,40 @@
                                         </button>
                                     </div>
                                     
-                                    <div class="calendar">
-                                        <div class="calendar-header">
-                                            @foreach (var day in new[] { "CN", "T2", "T3", "T4", "T5", "T6", "T7" })
-                                            {
-                                                <div class="calendar-cell header">@day</div>
-                                            }
-                                        </div>
-                                        <div class="calendar-body">
-                                            @{
-                                                var firstDay = new DateTime(CurrentDate.Year, CurrentDate.Month, 1);
-                                                var lastDay = firstDay.AddMonths(1).AddDays(-1);
-                                                var startingDayOfWeek = (int)firstDay.DayOfWeek;
-                                                var today = DateTime.Today;
-                                            }
-
-                                            @for (int i = 0; i < startingDayOfWeek; i++)
-                                            {
-                                                <div class="calendar-cell empty"></div>
-                                            }
-
-                                            @for (int day = 1; day <= lastDay.Day; day++)
-                                            {
-                                                var currentDay = new DateTime(CurrentDate.Year, CurrentDate.Month, day);
-                                                var isDisabled = currentDay < today;
-                                                var isSelected = SelectedDate?.Date == currentDay.Date;
-                                                var cellClass = isDisabled ? "disabled" : (isSelected ? "selected" : "available");
-
-                                                <div class="calendar-cell @cellClass" 
-                                                     @onclick="() => SelectDate(currentDay)" 
-                                                     style="@(isDisabled ? "pointer-events: none;" : "")">
-                                                    @day
-                                                </div>
-                                            }
-                                        </div>
+                                     <div class="calendar">
+                                    <div class="calendar-header">
+                                        @foreach (var day in new[] { "CN", "T2", "T3", "T4", "T5", "T6", "T7" })
+                                        {
+                                            <div class="calendar-cell header">@day</div>
+                                        }
                                     </div>
+                                    <div class="calendar-body">
+                                        @{
+                                            var firstDay = new DateTime(CurrentDate.Year, CurrentDate.Month, 1);
+                                            var lastDay = firstDay.AddMonths(1).AddDays(-1);
+                                            var startingDayOfWeek = (int)firstDay.DayOfWeek;
+                                            var today = DateTime.Today;
+                                            var tomorrow = today.AddDays(1);
+                                        }
+
+                                        @for (int i = 0; i < startingDayOfWeek; i++)
+                                        {
+                                            <div class="calendar-cell empty"></div>
+                                        }
+
+                                        @for (int day = 1; day <= lastDay.Day; day++)
+                                        {
+                                            var currentDay = new DateTime(CurrentDate.Year, CurrentDate.Month, day);
+                                            var isDisabled = currentDay <= today;
+                                            var isSelected = SelectedDate?.Date == currentDay.Date;
+                                            var cellClass = isDisabled ? "disabled" : (isSelected ? "selected" : "available");
+
+                                            <div class="calendar-cell @cellClass" @onclick="() => SelectDate(currentDay)" style="@(isDisabled ? "pointer-events: none;" : "")">
+                                                @day
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
                                 </div>
                             </div>
 
@@ -787,16 +786,17 @@
     try
     {
         // Calculate appointment date and time and convert to UTC
-        var localBookingDateTime = new DateTime(
-            SelectedDate.Value.Year,
-            SelectedDate.Value.Month,
-            SelectedDate.Value.Day,
-            SelectedTimeSlot.Value.Hour,
-            SelectedTimeSlot.Value.Minute,
-            0);
+            var bookingDateTime = new DateTime(
+        SelectedDate.Value.Year,
+        SelectedDate.Value.Month,
+        SelectedDate.Value.Day,
+        SelectedTimeSlot.Value.Hour,
+        SelectedTimeSlot.Value.Minute,
+        0);
         
         // Convert to UTC explicitly
-            
+            var utcBookingDateTime = DateTime.SpecifyKind(bookingDateTime, DateTimeKind.Utc);
+
         // Create a new appointment with UTC DateTimes
         string appointmentId = Guid.NewGuid().ToString();
         var appointment = new Appointment
@@ -805,11 +805,11 @@
             CustomerId = Customer.Id,
             TherapistId = SelectedExpert.Id,
             ServiceId = ServiceId,
-            AppointmentDateTime = localBookingDateTime, // UTC DateTime
+                    AppointmentDateTime = utcBookingDateTime, // UTC DateTime
             DurationMinutes = Service.DurationMinutes,
             Status = "Pending",
             Notes = "",
-            CreatedAt = DateTime.UtcNow, // Use UtcNow instead of Now
+            CreatedAt = DateTime.UtcNow,
             LastModified = null,
             ModifiedBy = null
         };
@@ -825,7 +825,7 @@
             Amount = Service.Price,
             PaymentDateTime = DateTime.UtcNow, // Use UtcNow instead of Now
             PaymentMethod = SelectedPaymentMethod,
-            PaymentStatus = "Paid",
+            PaymentStatus = SelectedPaymentMethod == "Cash" ? "Pending" : "Paid",
             TransactionReference = SelectedPaymentMethod == "Cash" 
                 ? "Thanh toán tại quầy" 
                 : $"Chuyển khoản - {DateTime.UtcNow.ToString("yyyyMMddHHmmss")}"

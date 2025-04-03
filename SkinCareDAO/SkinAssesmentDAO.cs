@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using SkinCareBussinessObject;
 using SkinCareDAO.Utils;
 
@@ -32,25 +33,25 @@ namespace SkinCareDAO
 
         public SkinAssessment GetOne(string id)
         {
-            LogHelper.LogInfo($"SkinAssesmentDAO.GetOne - Retrieving skin assessment with ID: {id}");
-
-            var assessment = _dbContext.SkinAssessments
+            return _dbContext.SkinAssessments
+                .Include(a=>a.Customer)
                 .SingleOrDefault(a => a.Id.Equals(id));
+        }
 
-            LogHelper.LogInfo($"SkinAssesmentDAO.GetOne - Assessment found: {(assessment != null ? "Yes" : "No")}");
-
-            return assessment;
+        public SkinAssessment GetById(string id)
+        {
+            return _dbContext.SkinAssessments
+                .Include(a => a.Customer)
+                .ThenInclude(c => c.User)  // Include the User data
+                .SingleOrDefault(a => a.Id.Equals(id));
         }
 
         public List<SkinAssessment> GetAll()
         {
-            LogHelper.LogInfo("SkinAssesmentDAO.GetAll - Retrieving all skin assessments");
-
-            var assessments = _dbContext.SkinAssessments.ToList();
-
-            LogHelper.LogInfo($"SkinAssesmentDAO.GetAll - Retrieved {assessments.Count} skin assessments");
-
-            return assessments;
+            return _dbContext.SkinAssessments
+                .Include(a => a.Customer)
+                .ThenInclude(c => c.User)  // Include the User data
+                .ToList();
         }
 
         public void Add(SkinAssessment a)

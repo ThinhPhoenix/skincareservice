@@ -1,0 +1,82 @@
+@page "/therapist/skinassessments"
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@inject ISkinAssesmentRepository SkinAssessmentRepository
+@inject NavigationManager NavigationManager
+
+<PageTitle>Skin Assessments</PageTitle>
+
+<div class="container mt-4">
+    <h1 class="text-3xl font-bold text-pink-500 mb-4">Skin Assessments</h1>
+
+    @if (isLoading)
+    {
+        <div class="flex justify-center my-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
+        </div>
+    }
+    else if (skinAssessments == null || !skinAssessments.Any())
+    {
+        <div class="text-center py-5">
+            <h2 class="text-secondary">No Skin Assessments Found</h2>
+            <p class="text-muted mb-4 fs-5">There are no skin assessments available at the moment.</p>
+        </div>
+    }
+    else
+    {
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border border-gray-200">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4 border-b">User Full Name</th>
+                        <th class="py-2 px-4 border-b">Phone Number</th>
+                        <th class="py-2 px-4 border-b">Assessment ID</th>
+                        <th class="py-2 px-4 border-b">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var assessment in skinAssessments)
+                    {
+                        <tr>
+                            <td class="py-2 px-4 border-b">@assessment.Customer.FirstName @assessment.Customer.LastName</td>
+                            <td class="py-2 px-4 border-b">@assessment.Customer.PhoneNumber</td>
+                            <td class="py-2 px-4 border-b">@assessment.Id</td>
+                            <td class="py-2 px-4 border-b">
+                                <button class="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600" @onclick="() => ViewDetails(assessment.Id)">
+                                    View Detail
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<SkinAssessment> skinAssessments;
+    private bool isLoading = true;
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            skinAssessments = SkinAssessmentRepository.GetAll();
+        }
+        catch (Exception ex)
+        {
+            // Handle the exception (e.g., log it)
+            Console.WriteLine($"An error occurred while fetching skin assessments: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ViewDetails(string assessmentId)
+    {
+        NavigationManager.NavigateTo($"/therapist/skinassessments/details/{assessmentId}");
+    }
+}

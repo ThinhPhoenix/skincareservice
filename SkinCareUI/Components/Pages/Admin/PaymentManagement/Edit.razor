@@ -4,12 +4,12 @@
 @inject IPaymentRepository PaymentRepository
 @inject NavigationManager NavigationManager
 
-<PageTitle>Edit Payment</PageTitle>
+<PageTitle>Chỉnh Sửa Thanh Toán</PageTitle>
 
 <div class="container-fluid mt-4">
     <div class="card shadow" style="background-color: #fdf2f8;">
         <div class="card-header text-white" style="background-color: #db2777;">
-            <h1 class="m-0"><i class="bi bi-cash-stack me-2"></i>Edit Payment</h1>
+            <h1 class="m-0"><i class="bi bi-cash-stack me-2"></i>Chỉnh Sửa Thanh Toán</h1>
         </div>
         <div class="card-body">
             @if (payment != null)
@@ -19,37 +19,51 @@
                     <ValidationSummary />
 
                     <div class="mb-3">
-                        <label for="appointmentId" class="form-label">Appointment ID</label>
+                        <label for="appointmentId" class="form-label">Mã Lịch Hẹn</label>
                         <InputText id="appointmentId" class="form-control" @bind-Value="payment.AppointmentId" />
                     </div>
                     <div class="mb-3">
-                        <label for="amount" class="form-label">Amount</label>
+                        <label for="amount" class="form-label">Số Tiền</label>
                         <InputNumber id="amount" class="form-control" @bind-Value="payment.Amount" />
                     </div>
                     <div class="mb-3">
-                        <label for="paymentDateTime" class="form-label">Payment Date & Time</label>
+                        <label for="paymentDateTime" class="form-label">Ngày & Giờ Thanh Toán</label>
                         <InputDate id="paymentDateTime" class="form-control" @bind-Value="payment.PaymentDateTime" />
                     </div>
                     <div class="mb-3">
-                        <label for="paymentMethod" class="form-label">Payment Method</label>
-                        <InputText id="paymentMethod" class="form-control" @bind-Value="payment.PaymentMethod" />
+                        <label for="paymentMethod" class="form-label">Phương Thức Thanh Toán</label>
+                        <InputSelect id="paymentMethod" class="form-select" @bind-Value="payment.PaymentMethod">
+                            <option value="Cash">Tiền mặt</option>
+                            <option value="BankTransfer">Chuyển khoản ngân hàng</option>
+                            <option value="MomoPay">Ví điện tử Momo</option>
+                        </InputSelect>
                     </div>
                     <div class="mb-3">
-                        <label for="paymentStatus" class="form-label">Payment Status</label>
-                        <InputText id="paymentStatus" class="form-control" @bind-Value="payment.PaymentStatus" />
+                        <label for="paymentStatus" class="form-label">Trạng Thái Thanh Toán</label>
+                        <InputSelect id="paymentStatus" class="form-select" @bind-Value="payment.PaymentStatus">
+                            <option value="Pending">Chờ xử lý</option>
+                            <option value="Paid">Đã thanh toán</option>
+                            
+                        </InputSelect>
                     </div>
                     <div class="mb-3">
-                        <label for="transactionReference" class="form-label">Transaction Reference</label>
+                        <label for="transactionReference" class="form-label">Mã Giao Dịch</label>
                         <InputText id="transactionReference" class="form-control" @bind-Value="payment.TransactionReference" />
                     </div>
 
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <button type="button" class="btn btn-secondary ms-2" @onclick="HandleCancel">Cancel</button>
+                    <button type="submit" class="btn text-white" style="background-color: #db2777;">
+                        <i class="bi bi-save me-1"></i> Lưu thay đổi
+                    </button>
+                    <button type="button" class="btn btn-secondary ms-2" @onclick="HandleCancel">
+                        <i class="bi bi-x-circle me-1"></i> Hủy
+                    </button>
                 </EditForm>
             }
             else
             {
-                <p>Payment not found.</p>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Không tìm thấy thông tin thanh toán.
+                </div>
             }
         </div>
     </div>
@@ -60,6 +74,23 @@
     public string Id { get; set; }
 
     private Payment payment;
+    
+    // Dictionary to map English status values to Vietnamese display text
+    private Dictionary<string, string> PaymentStatusVN = new Dictionary<string, string>
+    {
+        { "Pending", "Chờ xử lý" },
+        { "Paid", "Đã thanh toán" },
+        { "Failed", "Thanh toán thất bại" },
+        { "Refunded", "Đã hoàn tiền" }
+    };
+    
+    // Dictionary to map English payment methods to Vietnamese display text
+    private Dictionary<string, string> PaymentMethodVN = new Dictionary<string, string>
+    {
+        { "Cash", "Tiền mặt" },
+        { "BankTransfer", "Chuyển khoản ngân hàng" },
+        { "MomoPay", "Ví điện tử Momo" }
+    };
 
     protected override void OnInitialized()
     {
@@ -68,13 +99,36 @@
 
     private void HandleValidSubmit()
     {
-        // Update the payment
-        PaymentRepository.Update(payment);
-        NavigationManager.NavigateTo("/admin/payments");
+        try
+        {
+            // Ensure DateTime is in UTC
+            payment.PaymentDateTime = DateTime.SpecifyKind(payment.PaymentDateTime, DateTimeKind.Utc);
+            
+            // Update the payment
+            PaymentRepository.Update(payment);
+            NavigationManager.NavigateTo("/admin/payments");
+        }
+        catch (Exception ex)
+        {
+            // You may want to handle errors and show a message to users
+            Console.WriteLine($"Error updating payment: {ex.Message}");
+        }
     }
 
     private void HandleCancel()
     {
         NavigationManager.NavigateTo("/admin/payments");
+    }
+    
+    // Helper method to get Vietnamese display text for payment status
+    private string GetPaymentStatusVN(string statusCode)
+    {
+        return PaymentStatusVN.TryGetValue(statusCode, out string translation) ? translation : statusCode;
+    }
+    
+    // Helper method to get Vietnamese display text for payment method
+    private string GetPaymentMethodVN(string methodCode)
+    {
+        return PaymentMethodVN.TryGetValue(methodCode, out string translation) ? translation : methodCode;
     }
 }
