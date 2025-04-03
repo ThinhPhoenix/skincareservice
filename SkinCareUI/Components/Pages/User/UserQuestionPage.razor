@@ -331,52 +331,96 @@
     }
     
     private async Task SubmitAssessment()
+{
+    if (!IsAssessmentComplete())
     {
-        if (!IsAssessmentComplete())
+        ErrorMessage = "Vui lòng trả lời tất cả các câu hỏi để hoàn thành đánh giá.";
+        return;
+    }
+    
+    try
+    {
+        IsLoading = true;
+        
+        // Generate a proper Id for the assessment
+        SkinAssessment.Id = Guid.NewGuid().ToString();
+        
+        Console.WriteLine($"Saving skin assessment with ID: {SkinAssessment.Id}");
+        
+        // First save the skin assessment to get an ID
+        SkinAssessmentRepository.Add(SkinAssessment);
+        
+        Console.WriteLine("Successfully saved skin assessment");
+        Console.WriteLine($"Saving {Responses.Count} assessment responses");
+        
+        // Now create and save the assessment responses
+        int responseCount = 0;
+        foreach (var response in Responses)
         {
-            ErrorMessage = "Vui lòng trả lời tất cả các câu hỏi để hoàn thành đánh giá.";
-            return;
+            var questionId = response.Key;
+            var optionId = response.Value;
+            
+            Console.WriteLine($"Creating response for Question: {questionId}, Option: {optionId}");
+            
+            var assessmentResponse = new AssessmentResponse
+            {
+                Id = Guid.NewGuid().ToString(),
+                AssessmentId = SkinAssessment.Id,
+                QuestionId = questionId,
+                OptionId = optionId,
+                ResponseText = string.Empty // Make sure this is never null
+            };
+            
+            try
+            {
+                // Save this response individually to catch errors for each response
+                AssessmentResponseRepository.Add(assessmentResponse);
+                responseCount++;
+                Console.WriteLine($"Successfully saved response {responseCount}");
+            }
+            catch (Exception ex)
+            {
+                // Log but continue with other responses
+                Console.WriteLine($"Error saving response: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+            }
         }
         
-        try
+        if (responseCount == 0)
         {
-            IsLoading = true;
-            
-            // First save the skin assessment to get an ID
-            SkinAssessmentRepository.Add(SkinAssessment);
-            
-            // Now create and save the assessment responses
-            foreach (var response in Responses)
-            {
-                var questionId = response.Key;
-                var optionId = response.Value;
-                
-                var assessmentResponse = new AssessmentResponse
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    AssessmentId = SkinAssessment.Id,
-                    QuestionId = questionId,
-                    OptionId = optionId,
-                    ResponseText = string.Empty
-                };
-                
-                // Save this response (you would need to implement AssessmentResponseRepository)
-                AssessmentResponseRepository.Add(assessmentResponse);
-            }
-            
+            // No responses were saved, but don't throw an exception
+            // This way we at least save the assessment
+            ErrorMessage = "Đánh giá của bạn đã được lưu, nhưng có lỗi khi lưu các câu trả lời chi tiết.";
+        }
+        else if (responseCount < Responses.Count)
+        {
+            // Some responses were saved
+            SuccessMessage = "Đánh giá da của bạn đã được gửi thành công, nhưng một số câu trả lời không được lưu đầy đủ.";
+        }
+        else
+        {
+            // All responses were saved
             SuccessMessage = "Đánh giá da của bạn đã được gửi thành công! Chuyên gia của chúng tôi sẽ đánh giá và cung cấp lời khuyên được cá nhân hóa cho bạn.";
-            
-            // Wait a moment for the user to see the success message, then redirect
-            await Task.Delay(3000);
-            NavigationManager.NavigateTo("/");
         }
-        catch (Exception ex)
+        
+        // Wait a moment for the user to see the success message, then redirect
+        await Task.Delay(3000);
+        NavigationManager.NavigateTo("/");
+    }
+    catch (Exception ex)
+    {
+        ErrorMessage = $"Lỗi khi gửi đánh giá: {ex.Message}";
+        if (ex.InnerException != null)
         {
-            ErrorMessage = $"Lỗi khi gửi đánh giá: {ex.Message}";
-        }
-        finally
-        {
-            IsLoading = false;
+            Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
         }
     }
+    finally
+    {
+        IsLoading = false;
+    }
+}
 }
