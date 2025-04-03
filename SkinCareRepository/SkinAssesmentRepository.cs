@@ -20,6 +20,7 @@ namespace SkinCareRepository
             return result;
         }
 
+        public SkinAssessment GetById(string id) => SkinAssesmentDAO.Instance.GetById(id);   
         public List<SkinAssessment> GetAll()
         {
             LogHelper.LogInfo("SkinAssesmentRepository.GetAll - Retrieving all skin assessments");

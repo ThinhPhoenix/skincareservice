@@ -42,11 +42,7 @@ namespace SkinCareRepository
             LogHelper.LogInfo($"AssessmentResponseRepository.Update - Successfully updated response");
         }
 
-        public void Delete(string id)
-        {
-            LogHelper.LogInfo($"AssessmentResponseRepository.Delete - Deleting response with ID: {id}");
-            AssessmentResponseDAO.Instance.Delete(id);
-            LogHelper.LogInfo($"AssessmentResponseRepository.Delete - Response deletion processed");
-        }
+        public void Delete(string id) => AssessmentResponseDAO.Instance.Delete(id);
+        public List<AssessmentResponse> GetResponsesByAssessmentId(string assessmentId) => AssessmentResponseDAO.Instance.GetResponsesByAssessmentId(assessmentId);
     }
 }
