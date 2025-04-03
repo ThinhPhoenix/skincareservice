@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SkinCareBussinessObject;
-using SkinCareDAO;
+using SkinCareDAO.Utils;
 
 namespace SkinCareDAO
 {
@@ -33,11 +33,18 @@ namespace SkinCareDAO
         {
             try
             {
+                LogHelper.LogInfo("TherapistDAO.GetAll - Retrieving all therapists");
+
                 using var context = new SkinCareDBContext();
-                return context.Therapists.ToList();
+                var therapists = context.Therapists.ToList();
+
+                LogHelper.LogInfo($"TherapistDAO.GetAll - Retrieved {therapists.Count} therapists");
+
+                return therapists;
             }
             catch (Exception ex)
             {
+                LogHelper.LogError("TherapistDAO.GetAll - Error retrieving therapists", ex);
                 Console.WriteLine($"Error in GetAll: {ex.Message}");
                 return new List<Therapist>();
             }
@@ -47,14 +54,21 @@ namespace SkinCareDAO
         {
             try
             {
+                LogHelper.LogInfo($"TherapistDAO.GetOne - Retrieving therapist with ID: {id}");
+
                 using var context = new SkinCareDBContext();
-                return context.Therapists.FirstOrDefault(t => t.Id == id);
+                var therapist = context.Therapists.FirstOrDefault(t => t.Id == id);
+
+                LogHelper.LogInfo($"TherapistDAO.GetOne - Therapist found: {(therapist != null ? "Yes" : "No")}");
+
+                return therapist;
             }
             catch (Exception ex)
             {
+                LogHelper.LogError($"TherapistDAO.GetOne - Error retrieving therapist with ID: {id}", ex);
                 Console.WriteLine($"Error in GetOne: {ex.Message}");
                 return null;
             }
         }
     }
-} 
+}
