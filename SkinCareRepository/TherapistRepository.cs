@@ -53,7 +53,6 @@ namespace SkinCareRepository
         public List<Service> GetTherapistServices(string therapistId)
         {
             return TherapistDAO.Instance.GetTherapistServices(therapistId);
-
         }
     }
 }

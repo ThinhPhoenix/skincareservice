@@ -203,8 +203,8 @@
 @code {
     private Therapist therapist = new Therapist
     {
-        Id = "T" + new Random().Next(100, 999).ToString(),
-        HireDate = DateTime.Today,
+        Id = Guid.NewGuid().ToString(),
+        HireDate = DateTime.UtcNow.Date, // Use UTC date
         IsAvailable = true,
         WorkStartTime = new TimeSpan(9, 0, 0),
         WorkEndTime = new TimeSpan(17, 0, 0)
@@ -225,6 +225,20 @@
     {
         try
         {
+            // Validate input
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Email và mật khẩu không được để trống!");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(therapist.FirstName) || string.IsNullOrWhiteSpace(therapist.LastName))
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Họ và tên không được để trống!");
+                return;
+            }
+
+            // Parse time inputs
             if (TimeSpan.TryParse(workStartTimeInput, out TimeSpan startTime))
             {
                 therapist.WorkStartTime = startTime;
@@ -235,17 +249,45 @@
                 therapist.WorkEndTime = endTime;
             }
             
-            // Create user
+            // Check if the user email already exists
+            var existingUser = UserRepository.GetUserByEmail(email);
+            if (existingUser != null)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"Email {email} đã tồn tại trong hệ thống. Vui lòng sử dụng email khác.");
+                return;
+            }
+            
+            // Create user object with UTC dates
             var user = new User
             {
                 Id = Guid.NewGuid().ToString(),
                 Email = email,
-                Password = password, // Note: In a real app, you should hash this
+                Password = password, // In production, should hash this password
                 Role = "therapist",
-                CreatedAt = DateTime.Now
+                Status = "Active",
+                CreatedAt = DateTime.UtcNow
             };
             
-            // Add therapist with user in a single transaction
+            // Handle nullable fields with empty strings
+            if (string.IsNullOrWhiteSpace(therapist.Bio))
+                therapist.Bio = "";
+                
+            if (string.IsNullOrWhiteSpace(therapist.ProfileImage))
+                therapist.ProfileImage = "";
+                
+            if (string.IsNullOrWhiteSpace(therapist.Expertise))
+                therapist.Expertise = "";
+            
+            // Link user ID to therapist and ensure UTC date
+            therapist.UserId = user.Id;
+            therapist.HireDate = DateTime.SpecifyKind(therapist.HireDate, DateTimeKind.Utc);
+            
+            // Debug info
+            Console.WriteLine($"Creating therapist: ID={therapist.Id}, Name={therapist.FirstName} {therapist.LastName}");
+            Console.WriteLine($"IsAvailable: {therapist.IsAvailable}, HireDate: {therapist.HireDate} (Kind: {therapist.HireDate.Kind})");
+            Console.WriteLine($"User: ID={user.Id}, Email={user.Email}, CreatedAt: {user.CreatedAt} (Kind: {user.CreatedAt.Kind})");
+            
+            // Add therapist with user in a single transaction through the repository
             TherapistRepository.Add(therapist, user);
             
             await JSRuntime.InvokeVoidAsync("alert", "Đã thêm chuyên viên thành công!");
@@ -253,7 +295,19 @@
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"Lỗi khi thêm chuyên viên: {ex.Message}");
+            var errorMessage = ex.Message;
+            if (ex.InnerException != null)
+            {
+                errorMessage += $"\n\nDetails: {ex.InnerException.Message}";
+            }
+            
+            await JSRuntime.InvokeVoidAsync("console.error", "Error creating therapist:", ex.Message, ex.StackTrace);
+            if (ex.InnerException != null)
+            {
+                await JSRuntime.InvokeVoidAsync("console.error", "Inner exception:", ex.InnerException.Message, ex.InnerException.StackTrace);
+            }
+            
+            await JSRuntime.InvokeVoidAsync("alert", $"Lỗi khi thêm chuyên viên: {errorMessage}");
         }
     }
     
@@ -261,4 +315,4 @@
     {
         NavigationManager.NavigateTo("/staff/therapist");
     }
-} 
+}
