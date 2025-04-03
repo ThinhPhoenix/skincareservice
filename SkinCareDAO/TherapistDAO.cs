@@ -198,34 +198,91 @@ namespace SkinCareDAO
         {
             try
             {
+                LogHelper.LogInfo($"TherapistDAO.AddWithUser - Creating new therapist with user account. Email: {user.Email}");
+                Console.WriteLine($"TherapistDAO.AddWithUser - Starting to create therapist. Email: {user.Email}, FirstName: {therapist.FirstName}, LastName: {therapist.LastName}");
+                
                 using var context = new SkinCareDBContext();
                 using var transaction = context.Database.BeginTransaction();
 
                 try
                 {
-                    // Thêm user trước
-                    context.Users.Add(user);
-                    context.SaveChanges();
+                    // Check if the user with this email already exists
+                    var existingUser = context.Users.FirstOrDefault(u => u.Email == user.Email);
+                    if (existingUser != null)
+                    {
+                        LogHelper.LogWarning($"TherapistDAO.AddWithUser - User with email {user.Email} already exists");
+                        Console.WriteLine($"TherapistDAO.AddWithUser - User with email {user.Email} already exists");
+                        throw new Exception($"User with email {user.Email} already exists");
+                    }
 
-                    // Gán UserId cho therapist
-                    therapist.UserId = user.Id;
+                    // Ensure all DateTime fields are in UTC
+                    Console.WriteLine($"TherapistDAO.AddWithUser - Original User.CreatedAt: {user.CreatedAt}, Kind: {user.CreatedAt.Kind}");
+                    user.CreatedAt = DateTime.SpecifyKind(user.CreatedAt, DateTimeKind.Utc);
+                    Console.WriteLine($"TherapistDAO.AddWithUser - Converted User.CreatedAt: {user.CreatedAt}, Kind: {user.CreatedAt.Kind}");
                     
-                    // Thêm therapist
-                    context.Therapists.Add(therapist);
+                    Console.WriteLine($"TherapistDAO.AddWithUser - Original Therapist.HireDate: {therapist.HireDate}, Kind: {therapist.HireDate.Kind}");
+                    therapist.HireDate = DateTime.SpecifyKind(therapist.HireDate, DateTimeKind.Utc);
+                    Console.WriteLine($"TherapistDAO.AddWithUser - Converted Therapist.HireDate: {therapist.HireDate}, Kind: {therapist.HireDate.Kind}");
+                    
+                    // Add user first
+                    context.Users.Add(user);
+                    Console.WriteLine($"TherapistDAO.AddWithUser - User added to context. Saving changes...");
                     context.SaveChanges();
+                    Console.WriteLine($"TherapistDAO.AddWithUser - User saved successfully with ID: {user.Id}");
 
+                    // Verify the user was created and has an ID
+                    if (string.IsNullOrEmpty(user.Id))
+                    {
+                        LogHelper.LogError("TherapistDAO.AddWithUser - User ID is null or empty after save");
+                        Console.WriteLine("TherapistDAO.AddWithUser - User ID is null or empty after save");
+                        throw new Exception("Failed to create user account");
+                    }
+
+                    // Ensure therapist's UserId is set to the new user's Id
+                    therapist.UserId = user.Id;
+                    Console.WriteLine($"TherapistDAO.AddWithUser - Set Therapist.UserId to {user.Id}");
+                    
+                    // Explicitly log IsAvailable value
+                    Console.WriteLine($"TherapistDAO.AddWithUser - Therapist.IsAvailable: {therapist.IsAvailable}");
+                    
+                    // Add therapist
+                    context.Therapists.Add(therapist);
+                    Console.WriteLine($"TherapistDAO.AddWithUser - Therapist added to context. Saving changes...");
+                    context.SaveChanges();
+                    Console.WriteLine($"TherapistDAO.AddWithUser - Therapist saved successfully with ID: {therapist.Id}");
+
+                    // Commit the transaction
+                    Console.WriteLine($"TherapistDAO.AddWithUser - Committing transaction...");
                     transaction.Commit();
+                    Console.WriteLine($"TherapistDAO.AddWithUser - Transaction committed successfully");
+                    LogHelper.LogInfo($"TherapistDAO.AddWithUser - Successfully created therapist ID: {therapist.Id} with user ID: {user.Id}");
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Console.WriteLine($"TherapistDAO.AddWithUser - Error in transaction: {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"TherapistDAO.AddWithUser - Inner exception: {ex.InnerException.Message}");
+                        Console.WriteLine($"TherapistDAO.AddWithUser - Inner exception stack trace: {ex.InnerException.StackTrace}");
+                    }
+                    
+                    LogHelper.LogError("TherapistDAO.AddWithUser - Transaction failed, rolling back", ex);
                     transaction.Rollback();
+                    Console.WriteLine($"TherapistDAO.AddWithUser - Transaction rolled back");
                     throw;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in AddWithUser: {ex.Message}");
-                throw;
+                Console.WriteLine($"TherapistDAO.AddWithUser - Outer exception: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"TherapistDAO.AddWithUser - Outer inner exception: {ex.InnerException.Message}");
+                    Console.WriteLine($"TherapistDAO.AddWithUser - Outer inner exception stack trace: {ex.InnerException.StackTrace}");
+                }
+                
+                LogHelper.LogError("TherapistDAO.AddWithUser - Error creating therapist with user", ex);
+                throw new Exception($"Error creating therapist: {ex.Message}", ex);
             }
         }
 
