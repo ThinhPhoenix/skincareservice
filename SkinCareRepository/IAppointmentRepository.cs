@@ -19,6 +19,10 @@ namespace SkinCareRepository
 
         public void Add(Appointment a);
 
+        public void Update(Appointment a);
+
+        public void Delete(string id);
+
         public List<Appointment> GetAppointmentsByCustomerId(string customerId);
 
     }

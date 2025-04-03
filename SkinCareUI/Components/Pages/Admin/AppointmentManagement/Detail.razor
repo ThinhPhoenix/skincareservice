@@ -1,0 +1,71 @@
+@page "/admin/appointments/details/{id}"
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@inject IAppointmentRepository AppointmentRepository
+@inject NavigationManager NavigationManager
+
+<PageTitle>Appointment Details</PageTitle>
+
+<div class="container-fluid mt-4">
+    <div class="card shadow" style="background-color: #fdf2f8;">
+        <div class="card-header text-white" style="background-color: #db2777;">
+            <h1 class="m-0"><i class="bi bi-calendar-event-fill me-2"></i>Appointment Details</h1>
+        </div>
+        <div class="card-body">
+            @if (appointment != null)
+            {
+                <div class="mb-3">
+                    <label class="form-label">Customer ID</label>
+                    <p class="form-control-plaintext">@appointment.CustomerId</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Therapist ID</label>
+                    <p class="form-control-plaintext">@appointment.TherapistId</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Service ID</label>
+                    <p class="form-control-plaintext">@appointment.ServiceId</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Date & Time</label>
+                    <p class="form-control-plaintext">@appointment.AppointmentDateTime.ToString("g")</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Duration (minutes)</label>
+                    <p class="form-control-plaintext">@appointment.DurationMinutes</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <p class="form-control-plaintext">@appointment.Status</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Notes</label>
+                    <p class="form-control-plaintext">@appointment.Notes</p>
+                </div>
+
+                <button type="button" class="btn btn-secondary" @onclick="HandleBack">Back</button>
+            }
+            else
+            {
+                <p>Appointment not found.</p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private Appointment appointment;
+
+    protected override void OnInitialized()
+    {
+        appointment = AppointmentRepository.GetOne(Id);
+    }
+
+    private void HandleBack()
+    {
+        NavigationManager.NavigateTo("/admin/appointments");
+    }
+}

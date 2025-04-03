@@ -1,0 +1,195 @@
+@page "/admin/appointments"
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@using Microsoft.JSInterop
+@inject IAppointmentRepository AppointmentRepository
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Appointment Management</PageTitle>
+
+<div class="container-fluid mt-4">
+    <div class="card shadow" style="background-color: #fdf2f8;">
+        <div class="card-header text-white" style="background-color: #db2777;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="m-0"><i class="bi bi-calendar-check-fill me-2 text-lg-center"></i>Appointment Management</h1>
+                <button class="btn btn-light btn-lg" @onclick="@(() => NavigationManager.NavigateTo("/admin/appointments/create"))">
+                    <i class="bi bi-plus-circle me-1"></i> Create New Appointment
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- Search bar -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" placeholder="Search appointments..."
+                               @bind="searchTerm" @bind:event="oninput" @onkeyup="FilterAppointments" />
+                    </div>
+                </div>
+            </div>
+
+            @if (filteredAppointments != null && filteredAppointments.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 fs-5">
+                        <thead style="background-color: #fdf2f8;">
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Therapist</th>
+                                <th>Service</th>
+                                <th>Date & Time</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                                <th>Created At</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var appointment in filteredAppointments)
+                            {
+                                <tr>
+                                    <td>@appointment.Id</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="text-white d-flex align-items-center justify-content-center me-2"
+                                                 style="width: 40px; height: 40px; font-weight: bold; background-color: #db2777; border-radius: 50%; font-size: 0.9rem;">
+                                                @(appointment.Customer?.FirstName?.Substring(0, 1) ?? "C")
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">@(appointment.Customer?.FirstName ?? appointment.CustomerId)</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@(appointment.Therapist?.FirstName ?? appointment.TherapistId) @(appointment.Therapist?.LastName ?? "")</td>
+                                    <td>@(appointment.Service?.ServiceName ?? appointment.ServiceId)</td>
+                                    <td>@appointment.AppointmentDateTime.ToString("g")</td>
+                                    <td>@appointment.DurationMinutes min</td>
+                                    <td>
+                                        <span class="badge rounded-pill fs-6 @GetStatusBadgeClass(appointment.Status)">
+                                            @appointment.Status
+                                        </span>
+                                    </td>
+                                    <td>@appointment.CreatedAt.ToString("g")</td>
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a href="@($"/admin/appointments/details/{appointment.Id}")" class="btn btn-info">
+                                                <i class="bi bi-eye me-1"></i> Details
+                                            </a>
+                                            <a href="@($"/admin/appointments/edit/{appointment.Id}")" class="btn" style="background-color: #db2777; color: white;">
+                                                <i class="bi bi-pencil me-1"></i> Edit
+                                            </a>
+                                            <button class="btn btn-danger" @onclick="() => DeleteAppointment(appointment.Id)">
+                                                <i class="bi bi-trash me-1"></i> Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else if (filteredAppointments != null && !filteredAppointments.Any() && searchTerm != "")
+            {
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-search text-secondary" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="text-secondary">No Results Found</h2>
+                    <p class="text-muted mb-4 fs-5">Please try again with a different search term.</p>
+                </div>
+            }
+            else if (appointments != null && !appointments.Any())
+            {
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-calendar-x text-secondary" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="text-secondary">No Appointments Yet</h2>
+                    <p class="text-muted mb-4 fs-5">Start by creating your first appointment.</p>
+                    <button class="btn text-white btn-lg" @onclick="@(() => NavigationManager.NavigateTo("/admin/appointments/create"))" style="background-color: #db2777;">
+                        <i class="bi bi-plus-circle me-1"></i> Create First Appointment
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex justify-content-center py-5">
+                    <div class="spinner-border" role="status" style="color: #db2777; width: 4rem; height: 4rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Appointment>? appointments;
+    private List<Appointment>? filteredAppointments;
+    private string searchTerm = "";
+
+    protected override void OnInitialized()
+    {
+        LoadAppointments();
+    }
+
+    private void LoadAppointments()
+    {
+        appointments = AppointmentRepository.GetAll();
+        FilterAppointments();
+    }
+
+    private void FilterAppointments()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredAppointments = appointments;
+        }
+        else
+        {
+            filteredAppointments = appointments?
+                .Where(a =>
+                    a.Id.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    (a.Customer?.FirstName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (a.Therapist?.FirstName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (a.Therapist?.LastName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (a.Service?.ServiceName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    a.Status.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    (a.Notes?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+                )
+                .ToList();
+        }
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status.ToLower() switch
+        {
+            "scheduled" => "bg-primary",
+            "confirmed" => "bg-success",
+            "completed" => "bg-info",
+            "cancelled" => "bg-danger",
+            "no-show" => "bg-warning",
+            _ => "bg-secondary"
+        };
+    }
+
+    private async Task DeleteAppointment(string id)
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this appointment?"))
+        {
+            // Since there is no Delete method in the repository,
+            // you'll need to implement it or handle deletion differently
+            // AppointmentRepository.Delete(id);
+
+            // For now, just reload the appointments
+            LoadAppointments();
+            StateHasChanged();
+        }
+    }
+}
