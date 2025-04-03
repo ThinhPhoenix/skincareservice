@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SkinCareBussinessObject;
-using SkinCareDAO;
+using SkinCareDAO.Utils;
 
 namespace SkinCareDAO
 {
@@ -33,6 +33,8 @@ namespace SkinCareDAO
         {
             try
             {
+                LogHelper.LogInfo("TherapistDAO.GetAll - Retrieving all therapists");
+
                 using var context = new SkinCareDBContext();
                 return context.Therapists
                     .Include(t => t.User)
@@ -40,6 +42,7 @@ namespace SkinCareDAO
             }
             catch (Exception ex)
             {
+                LogHelper.LogError("TherapistDAO.GetAll - Error retrieving therapists", ex);
                 Console.WriteLine($"Error in GetAll: {ex.Message}");
                 return new List<Therapist>();
             }
@@ -49,6 +52,8 @@ namespace SkinCareDAO
         {
             try
             {
+                LogHelper.LogInfo($"TherapistDAO.GetOne - Retrieving therapist with ID: {id}");
+
                 using var context = new SkinCareDBContext();
                 return context.Therapists
                     .Include(t => t.User)
@@ -56,6 +61,7 @@ namespace SkinCareDAO
             }
             catch (Exception ex)
             {
+                LogHelper.LogError($"TherapistDAO.GetOne - Error retrieving therapist with ID: {id}", ex);
                 Console.WriteLine($"Error in GetOne: {ex.Message}");
                 return null;
             }
@@ -316,4 +322,4 @@ namespace SkinCareDAO
             }
         }
     }
-} 
+}

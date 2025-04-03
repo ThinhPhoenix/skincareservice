@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using SkinCareBussinessObject;
 using Microsoft.EntityFrameworkCore;
+using SkinCareDAO.Utils;
 
 namespace SkinCareDAO
 {
     public class ServiceDAO
     {
-
         private SkinCareDBContext _dbContext;
         private static ServiceDAO instance;
 
@@ -33,90 +33,94 @@ namespace SkinCareDAO
 
         public Service? GetOne(string id)
         {
-            // Đảm bảo DbContext được refresh để lấy dữ liệu mới nhất
             try
             {
-                Console.WriteLine($"ServiceDAO.GetOne - Fetching service with ID: {id}");
-                
-                // Tìm service và tải trực tiếp, không sử dụng cache
+                LogHelper.LogInfo($"ServiceDAO.GetOne - Fetching service with ID: {id}");
+
                 var service = _dbContext.Services
                     .AsNoTracking() // Đảm bảo EF không track entity này
                     .SingleOrDefault(a => a.Id.Equals(id));
-                    
-                Console.WriteLine($"ServiceDAO.GetOne - Service found: {(service != null ? "Yes" : "No")}");
-                
+
+                LogHelper.LogInfo($"ServiceDAO.GetOne - Service found: {(service != null ? "Yes" : "No")}");
+
                 return service;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ServiceDAO.GetOne - Error: {ex.Message}");
+                LogHelper.LogError($"ServiceDAO.GetOne - Error retrieving service with ID: {id}", ex);
                 throw;
             }
         }
 
         public List<Service> GetAll()
         {
-            return _dbContext.Services
-                .ToList();
+            try
+            {
+                LogHelper.LogInfo("ServiceDAO.GetAll - Retrieving all services");
+                return _dbContext.Services.ToList();
+            }
+            catch (Exception ex)
+            {
+                LogHelper.LogError("ServiceDAO.GetAll - Error retrieving all services", ex);
+                throw;
+            }
         }
 
         public void Add(Service a)
         {
             try
             {
-                Console.WriteLine($"ServiceDAO.Add - Start with service: {a.ServiceName}, CategoryId: {a.CategoryId}");
-                
+                LogHelper.LogInfo($"ServiceDAO.Add - Start with service: {a.ServiceName}, CategoryId: {a.CategoryId}");
+
                 // Đảm bảo xóa bỏ reference đến ServiceCategory để tránh EF tạo mới
                 a.ServiceCategory = null;
-                
+
                 // Tạo ID mới nếu chưa có
                 if (string.IsNullOrEmpty(a.Id))
                 {
-                    Console.WriteLine("ServiceDAO.Add - Creating new GUID");
+                    LogHelper.LogInfo("ServiceDAO.Add - Creating new GUID");
                     a.Id = Guid.NewGuid().ToString();
                 }
                 else
                 {
-                    Console.WriteLine($"ServiceDAO.Add - Checking if ID {a.Id} exists");
+                    LogHelper.LogInfo($"ServiceDAO.Add - Checking if ID {a.Id} exists");
                     Service cur = GetOne(a.Id);
                     if (cur != null)
                     {
+                        LogHelper.LogWarning($"ServiceDAO.Add - Service with ID {a.Id} already exists");
                         throw new Exception("Service with this ID already exists");
                     }
                 }
-                
+
                 // Kiểm tra xem CategoryId có tồn tại trong database không
                 if (!string.IsNullOrEmpty(a.CategoryId))
                 {
-                    Console.WriteLine($"ServiceDAO.Add - Checking if CategoryId {a.CategoryId} exists");
+                    LogHelper.LogInfo($"ServiceDAO.Add - Checking if CategoryId {a.CategoryId} exists");
                     var category = _dbContext.ServiceCategories.Find(a.CategoryId);
                     if (category == null)
                     {
+                        LogHelper.LogWarning($"ServiceDAO.Add - Category with ID {a.CategoryId} does not exist");
                         throw new Exception($"Category with ID {a.CategoryId} does not exist");
                     }
-                    Console.WriteLine($"ServiceDAO.Add - Found category: {category.CategoryName}");
+                    LogHelper.LogInfo($"ServiceDAO.Add - Found category: {category.CategoryName}");
                 }
-                
+
                 // Thêm vào context và lưu
-                Console.WriteLine("ServiceDAO.Add - Adding to context");
+                LogHelper.LogInfo("ServiceDAO.Add - Adding to context");
                 _dbContext.Services.Add(a);
-                
-                Console.WriteLine("ServiceDAO.Add - Saving changes");
+
+                LogHelper.LogInfo("ServiceDAO.Add - Saving changes");
                 _dbContext.SaveChanges();
-                Console.WriteLine("ServiceDAO.Add - Successfully saved service");
+                LogHelper.LogInfo("ServiceDAO.Add - Successfully saved service");
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
-                Console.WriteLine($"ServiceDAO.Add - DbUpdateException: {dbEx.Message}");
-                if (dbEx.InnerException != null)
-                {
-                    Console.WriteLine($"ServiceDAO.Add - Inner exception: {dbEx.InnerException.Message}");
-                }
+                LogHelper.LogError($"ServiceDAO.Add - DbUpdateException", dbEx);
                 throw new Exception("Database error while adding service", dbEx);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ServiceDAO.Add - General exception: {ex.Message}");
+                LogHelper.LogError($"ServiceDAO.Add - General exception", ex);
                 throw;
             }
         }
@@ -125,34 +129,36 @@ namespace SkinCareDAO
         {
             try
             {
-                Console.WriteLine($"ServiceDAO.Update - Start with service ID: {a.Id}");
-                
+                LogHelper.LogInfo($"ServiceDAO.Update - Start with service ID: {a.Id}");
+
                 // Đảm bảo có dữ liệu mới nhất từ DB
                 RefreshContext();
-                
+
                 // Kiểm tra sự tồn tại của dịch vụ
                 Service cur = GetOne(a.Id);
                 if (cur == null)
                 {
-                    throw new Exception($"Không tìm thấy dịch vụ với ID {a.Id}");
+                    LogHelper.LogWarning($"ServiceDAO.Update - Service with ID {a.Id} not found");
+                    throw new Exception($"Service with ID {a.Id} not found");
                 }
-                
+
                 // Đảm bảo xóa bỏ reference đến ServiceCategory để tránh EF tạo mới
                 a.ServiceCategory = null;
-                
+
                 // Kiểm tra xem CategoryId có tồn tại trong database không
                 if (!string.IsNullOrEmpty(a.CategoryId))
                 {
-                    Console.WriteLine($"ServiceDAO.Update - Checking if CategoryId {a.CategoryId} exists");
+                    LogHelper.LogInfo($"ServiceDAO.Update - Checking if CategoryId {a.CategoryId} exists");
                     var category = _dbContext.ServiceCategories.Find(a.CategoryId);
                     if (category == null)
                     {
-                        throw new Exception($"Danh mục với ID {a.CategoryId} không tồn tại");
+                        LogHelper.LogWarning($"ServiceDAO.Update - Category with ID {a.CategoryId} does not exist");
+                        throw new Exception($"Category with ID {a.CategoryId} does not exist");
                     }
                 }
-                
-                Console.WriteLine("ServiceDAO.Update - Creating a tracked entity copy");
-                
+
+                LogHelper.LogInfo("ServiceDAO.Update - Creating a tracked entity copy");
+
                 // Tạo một entity mới được tracked bởi DbContext với ID giống entity cần update
                 var trackedEntity = new Service
                 {
@@ -166,37 +172,33 @@ namespace SkinCareDAO
                     Prerequisites = a.Prerequisites ?? string.Empty,
                     Aftercare = a.Aftercare ?? string.Empty
                 };
-                
+
                 // Kiểm tra và log dữ liệu sau khi cập nhật
-                Console.WriteLine($"ServiceDAO.Update - Updated values: Name={trackedEntity.ServiceName}, Price={trackedEntity.Price}, CategoryId={trackedEntity.CategoryId}");
-                
+                LogHelper.LogInfo($"ServiceDAO.Update - Updated values: Name={trackedEntity.ServiceName}, Price={trackedEntity.Price}, CategoryId={trackedEntity.CategoryId}");
+
                 // Cập nhật một cách rõ ràng
                 _dbContext.Attach(trackedEntity);
                 _dbContext.Entry(trackedEntity).State = EntityState.Modified;
-                
-                Console.WriteLine("ServiceDAO.Update - Saving changes");
+
+                LogHelper.LogInfo("ServiceDAO.Update - Saving changes");
                 _dbContext.SaveChanges();
-                
+
                 // Detach entity sau khi lưu để tránh các vấn đề về tracking
                 _dbContext.Entry(trackedEntity).State = EntityState.Detached;
-                
+
                 // Refresh DbContext để đảm bảo không có vấn đề với dữ liệu trong cache
                 RefreshContext();
-                
-                Console.WriteLine("ServiceDAO.Update - Successfully updated service");
+
+                LogHelper.LogInfo("ServiceDAO.Update - Successfully updated service");
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
-                Console.WriteLine($"ServiceDAO.Update - DbUpdateException: {dbEx.Message}");
-                if (dbEx.InnerException != null)
-                {
-                    Console.WriteLine($"ServiceDAO.Update - Inner exception: {dbEx.InnerException.Message}");
-                }
-                throw new Exception("Lỗi cơ sở dữ liệu khi cập nhật dịch vụ", dbEx);
+                LogHelper.LogError($"ServiceDAO.Update - DbUpdateException", dbEx);
+                throw new Exception("Database error while updating service", dbEx);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ServiceDAO.Update - General exception: {ex.Message}");
+                LogHelper.LogError($"ServiceDAO.Update - General exception", ex);
                 throw;
             }
         }
@@ -205,45 +207,40 @@ namespace SkinCareDAO
         {
             try
             {
-                Console.WriteLine($"ServiceDAO.Delete - Start with service ID: {id}");
-                
+                LogHelper.LogInfo($"ServiceDAO.Delete - Start with service ID: {id}");
+
                 // Kiểm tra sự tồn tại của dịch vụ
                 Service cur = GetOne(id);
                 if (cur == null)
                 {
-                    Console.WriteLine($"ServiceDAO.Delete - Service with ID {id} not found");
+                    LogHelper.LogWarning($"ServiceDAO.Delete - Service with ID {id} not found");
                     return; // Không cần throw exception nếu không tìm thấy để xóa
                 }
-                
+
                 // Kiểm tra ràng buộc khóa ngoại trước khi xóa (nếu cần)
                 // Ví dụ: kiểm tra xem có ServiceRecommendation nào liên quan không
                 var hasRecommendations = _dbContext.ServiceRecommendations.Any(sr => sr.ServiceId == id);
                 if (hasRecommendations)
                 {
-                    throw new Exception("Không thể xóa dịch vụ vì có khuyến nghị dịch vụ liên quan");
+                    LogHelper.LogWarning($"ServiceDAO.Delete - Cannot delete service with ID {id} due to related recommendations");
+                    throw new Exception("Cannot delete service due to related recommendations");
                 }
-                
-                // Kiểm tra ràng buộc khác (ví dụ: Appointment, ...)
-                
-                Console.WriteLine("ServiceDAO.Delete - Removing entity");
+
+                LogHelper.LogInfo("ServiceDAO.Delete - Removing entity");
                 _dbContext.Services.Remove(cur);
-                
-                Console.WriteLine("ServiceDAO.Delete - Saving changes");
+
+                LogHelper.LogInfo("ServiceDAO.Delete - Saving changes");
                 _dbContext.SaveChanges();
-                Console.WriteLine("ServiceDAO.Delete - Successfully deleted service");
+                LogHelper.LogInfo("ServiceDAO.Delete - Successfully deleted service");
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
-                Console.WriteLine($"ServiceDAO.Delete - DbUpdateException: {dbEx.Message}");
-                if (dbEx.InnerException != null)
-                {
-                    Console.WriteLine($"ServiceDAO.Delete - Inner exception: {dbEx.InnerException.Message}");
-                }
-                throw new Exception("Lỗi cơ sở dữ liệu khi xóa dịch vụ", dbEx);
+                LogHelper.LogError($"ServiceDAO.Delete - DbUpdateException", dbEx);
+                throw new Exception("Database error while deleting service", dbEx);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ServiceDAO.Delete - General exception: {ex.Message}");
+                LogHelper.LogError($"ServiceDAO.Delete - General exception", ex);
                 throw;
             }
         }
@@ -252,29 +249,33 @@ namespace SkinCareDAO
         {
             try
             {
-                Console.WriteLine($"ServiceDAO.Search - Searching for keyword: {keyword}");
-                
+                LogHelper.LogInfo($"ServiceDAO.Search - Searching for keyword: {keyword}");
+
                 if (string.IsNullOrWhiteSpace(keyword))
                 {
+                    LogHelper.LogInfo("ServiceDAO.Search - Empty keyword, returning all services");
                     return GetAll();
                 }
-                
+
                 keyword = keyword.ToLower().Trim();
-                
-                Console.WriteLine("ServiceDAO.Search - Executing search query");
-                return _dbContext.Services
-                    .Where(s => 
+
+                LogHelper.LogInfo("ServiceDAO.Search - Executing search query");
+                var results = _dbContext.Services
+                    .Where(s =>
                         (s.ServiceName != null && s.ServiceName.ToLower().Contains(keyword)) ||
                         (s.Description != null && s.Description.ToLower().Contains(keyword)) ||
                         (s.Prerequisites != null && s.Prerequisites.ToLower().Contains(keyword)) ||
                         (s.Aftercare != null && s.Aftercare.ToLower().Contains(keyword))
                     )
                     .ToList();
+
+                LogHelper.LogInfo($"ServiceDAO.Search - Found {results.Count} results");
+                return results;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ServiceDAO.Search - Exception: {ex.Message}");
-                throw new Exception("Lỗi khi tìm kiếm dịch vụ", ex);
+                LogHelper.LogError($"ServiceDAO.Search - Exception when searching for: {keyword}", ex);
+                throw;
             }
         }
 
@@ -283,19 +284,18 @@ namespace SkinCareDAO
         {
             try
             {
-                Console.WriteLine("ServiceDAO.RefreshContext - Refreshing DbContext");
+                LogHelper.LogInfo("ServiceDAO.RefreshContext - Refreshing DbContext");
                 // Giải phóng DbContext hiện tại
                 _dbContext.Dispose();
                 // Tạo mới DbContext
                 _dbContext = new SkinCareDBContext();
-                Console.WriteLine("ServiceDAO.RefreshContext - DbContext refreshed successfully");
+                LogHelper.LogInfo("ServiceDAO.RefreshContext - DbContext refreshed successfully");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ServiceDAO.RefreshContext - Error: {ex.Message}");
+                LogHelper.LogError($"ServiceDAO.RefreshContext - Error refreshing context", ex);
                 throw;
             }
         }
-
     }
 }
