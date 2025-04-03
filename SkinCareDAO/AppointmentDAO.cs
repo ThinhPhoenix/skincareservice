@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using SkinCareBussinessObject;
 
 namespace SkinCareDAO
@@ -42,7 +43,9 @@ namespace SkinCareDAO
         public List<Appointment> GetAll()
         {
             return _dbContext.Appointments
-               
+                .Include(a => a.Customer)
+                .Include(a => a.Therapist)
+                .Include(a => a.Service)
                 .ToList();
         }
 
