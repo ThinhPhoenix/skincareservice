@@ -44,10 +44,6 @@ namespace SkinCareDAO
                 .Include(a => a.Customer)
                 .ThenInclude(c => c.User)  // Include the User data
                 .SingleOrDefault(a => a.Id.Equals(id));
-
-            LogHelper.LogInfo($"SkinAssesmentDAO.GetOne - Assessment found: {(assessment != null ? "Yes" : "No")}");
-
-            return assessment;
         }
 
         public List<SkinAssessment> GetAll()
