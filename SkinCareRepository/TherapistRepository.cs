@@ -20,12 +20,40 @@ namespace SkinCareRepository
             return await Task.FromResult(result);
         }
 
+        public List<Therapist> GetAll()
+        {
+            return TherapistDAO.Instance.GetAll();
+        }
+
         public Therapist GetOne(string id)
         {
-            LogHelper.LogInfo($"TherapistRepository.GetOne - Retrieving therapist with ID: {id}");
-            var result = TherapistDAO.Instance.GetOne(id);
-            LogHelper.LogInfo($"TherapistRepository.GetOne - Retrieved therapist: {(result != null ? "Success" : "Not Found")}");
-            return result;
+            return TherapistDAO.Instance.GetOne(id);
+        }
+
+        public void Add(Therapist therapist, User user)
+        {
+            TherapistDAO.Instance.AddWithUser(therapist, user);
+        }
+
+        public void Update(Therapist therapist, User user = null)
+        {
+            TherapistDAO.Instance.UpdateWithUser(therapist, user);
+        }
+
+        public void Delete(string id)
+        {
+            TherapistDAO.Instance.DeleteWithUser(id);
+        }
+
+        public List<Appointment> GetTherapistAppointments(string therapistId)
+        {
+            return TherapistDAO.Instance.GetTherapistAppointments(therapistId);
+        }
+
+        public List<Service> GetTherapistServices(string therapistId)
+        {
+            return TherapistDAO.Instance.GetTherapistServices(therapistId);
+
         }
     }
 }
