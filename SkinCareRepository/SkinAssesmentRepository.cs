@@ -12,6 +12,7 @@ namespace SkinCareRepository
     public class SkinAssesmentRepository : ISkinAssesmentRepository
     {
 
+        public SkinAssessment GetById(string id) => SkinAssesmentDAO.Instance.GetById(id);
         public SkinAssessment GetOne(string id) => SkinAssesmentDAO.Instance.GetOne(id);    
 
         public List<SkinAssessment> GetAll() => SkinAssesmentDAO.Instance.GetAll();

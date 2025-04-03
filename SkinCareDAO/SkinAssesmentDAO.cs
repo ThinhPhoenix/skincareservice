@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using SkinCareBussinessObject;
 
 namespace SkinCareDAO
@@ -34,13 +35,23 @@ namespace SkinCareDAO
         public SkinAssessment GetOne(string id)
         {
             return _dbContext.SkinAssessments
+                .Include(a=>a.Customer)
+                .SingleOrDefault(a => a.Id.Equals(id));
+        }
+
+        public SkinAssessment GetById(string id)
+        {
+            return _dbContext.SkinAssessments
+                .Include(a => a.Customer)
+                .ThenInclude(c => c.User)  // Include the User data
                 .SingleOrDefault(a => a.Id.Equals(id));
         }
 
         public List<SkinAssessment> GetAll()
         {
             return _dbContext.SkinAssessments
-                
+                .Include(a => a.Customer)
+                .ThenInclude(c => c.User)  // Include the User data
                 .ToList();
         }
 

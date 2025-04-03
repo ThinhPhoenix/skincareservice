@@ -20,5 +20,6 @@ namespace SkinCareRepository
         public void Update(AssessmentResponse a) => AssessmentResponseDAO.Instance.Update(a);   
 
         public void Delete(string id) => AssessmentResponseDAO.Instance.Delete(id);
+        public List<AssessmentResponse> GetResponsesByAssessmentId(string assessmentId) => AssessmentResponseDAO.Instance.GetResponsesByAssessmentId(assessmentId);
     }
 }
