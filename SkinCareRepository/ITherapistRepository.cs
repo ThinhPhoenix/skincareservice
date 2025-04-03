@@ -10,6 +10,12 @@ namespace SkinCareRepository
     public interface ITherapistRepository
     {
         Task<List<Therapist>> GetAllAsync();
-        public Therapist GetOne(string id);
+        List<Therapist> GetAll();
+        Therapist GetOne(string id);
+        void Add(Therapist therapist, User user);
+        void Update(Therapist therapist, User user = null);
+        void Delete(string id);
+        List<Appointment> GetTherapistAppointments(string therapistId);
+        List<Service> GetTherapistServices(string therapistId);
     }
 } 

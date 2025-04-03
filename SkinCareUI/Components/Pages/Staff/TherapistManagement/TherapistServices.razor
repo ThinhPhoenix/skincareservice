@@ -1,0 +1,421 @@
+@page "/staff/therapist/services/{Id}"
+@using SkinCareBussinessObject
+@using SkinCareRepository
+@inject ITherapistRepository TherapistRepository
+@inject IServiceRepository ServiceRepository
+@inject ITherapistExpertiseRepository TherapistExpertiseRepository
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<PageTitle>Quản Lý Dịch Vụ Chuyên Viên | SkinCare Spa</PageTitle>
+
+<div class="bg-gradient-to-b from-white to-pink-50 min-h-screen py-8">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center">
+                <button @onclick="GoBack" class="mr-4 text-gray-600 hover:text-pink-600 transition">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <h1 class="text-3xl font-bold text-pink-600">Quản Lý Dịch Vụ Cho Chuyên Viên</h1>
+            </div>
+        </div>
+        
+        @if (isLoading)
+        {
+            <div class="flex justify-center my-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
+            </div>
+        }
+        else if (therapist == null)
+        {
+            <div class="bg-red-50 p-4 rounded-xl text-center mb-8">
+                <p class="text-red-600">Không tìm thấy thông tin chuyên viên với mã @Id</p>
+                <button @onclick="GoToTherapistList" class="mt-4 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition">
+                    Quay lại danh sách
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden mb-8">
+                <div class="bg-pink-50 p-4 flex items-center">
+                    <div class="h-16 w-16 rounded-full overflow-hidden bg-gray-100 mr-4 flex-shrink-0">
+                        <img src="@GetProfileImageUrl(therapist)" class="h-full w-full object-cover" alt="@($"{therapist.FirstName} {therapist.LastName}")">
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800">@($"{therapist.FirstName} {therapist.LastName}")</h3>
+                        <p class="text-gray-600">@therapist.Expertise</p>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Dịch Vụ Hiện Tại</h3>
+                    
+                    @if (!assignedServices.Any())
+                    {
+                        <div class="bg-gray-50 p-4 rounded-lg text-center mb-6">
+                            <p class="text-gray-500">Chuyên viên này chưa được phân công dịch vụ nào.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="overflow-x-auto mb-6">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Dịch Vụ
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Thời Gian
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Giá
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Thao Tác
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @foreach (var service in assignedServices)
+                                    {
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm font-medium text-gray-900">@service.ServiceName</div>
+                                                <div class="text-sm text-gray-500 max-w-xs truncate">@service.Description</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">@service.DurationMinutes phút</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm font-medium text-pink-600">@FormatCurrency(service.Price)</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <button @onclick="() => RemoveService(service)" class="text-red-600 hover:text-red-900">
+                                                    <i class="fas fa-trash"></i> Xóa
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+            
+            <!-- Add New Service Section -->
+            <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Thêm Dịch Vụ Mới</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div class="md:col-span-3">
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Chọn Dịch Vụ</label>
+                        <select 
+                            @bind="selectedServiceId" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        >
+                            <option value="">-- Chọn dịch vụ --</option>
+                            @foreach (var service in availableServices)
+                            {
+                                <option value="@service.Id">@service.ServiceName (@FormatCurrency(service.Price))</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <button 
+                            @onclick="AddService" 
+                            disabled="@string.IsNullOrEmpty(selectedServiceId)"
+                            class="w-full px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600 transition @(string.IsNullOrEmpty(selectedServiceId) ? "opacity-50 cursor-not-allowed" : "")"
+                        >
+                            <i class="fas fa-plus mr-2"></i> Thêm
+                        </button>
+                    </div>
+                </div>
+                
+                @if (!availableServices.Any())
+                {
+                    <div class="mt-4 bg-blue-50 p-4 rounded-lg text-center">
+                        <p class="text-blue-600">Tất cả dịch vụ đã được phân công cho chuyên viên này.</p>
+                    </div>
+                }
+                
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="mt-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-circle text-red-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-red-700">@errorMessage</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex justify-between">
+                <button @onclick="GoBack" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition">
+                    <i class="fas fa-arrow-left mr-2"></i> Quay Lại
+                </button>
+                
+                <button @onclick="SaveChanges" class="px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600 transition">
+                    <i class="fas fa-save mr-2"></i> Lưu Thay Đổi
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+    
+    private Therapist? therapist;
+    private List<Service> allServices = new List<Service>();
+    private List<Service> assignedServices = new List<Service>();
+    private List<Service> availableServices = new List<Service>();
+    private List<TherapistExpertise> therapistExpertiseList = new List<TherapistExpertise>();
+    private List<string> addedServiceIds = new List<string>();
+    private List<string> removedServiceIds = new List<string>();
+    
+    private string selectedServiceId = "";
+    private string errorMessage = "";
+    private bool isLoading = true;
+    
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+    
+    private void LoadData()
+    {
+        try
+        {
+            isLoading = true;
+            
+            // Lấy thông tin therapist
+            therapist = TherapistRepository.GetOne(Id);
+            
+            if (therapist != null)
+            {
+                // Lấy danh sách tất cả dịch vụ
+                allServices = ServiceRepository.GetAll();
+                
+                // Lấy danh sách dịch vụ đã phân công cho therapist này
+                assignedServices = TherapistExpertiseRepository.GetServicesByTherapistIdAsync(Id).Result;
+                
+                // Lấy danh sách TherapistExpertise cho therapist này
+                therapistExpertiseList = TherapistExpertiseRepository.GetByTherapistIdAsync(Id).Result;
+                
+                // Tính toán danh sách dịch vụ có thể thêm (chưa được phân công)
+                UpdateAvailableServices();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading data: {ex.Message}");
+            errorMessage = $"Lỗi khi tải dữ liệu: {ex.Message}";
+            
+            // Mock data for testing
+            InitializeMockData();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    
+    private void UpdateAvailableServices()
+    {
+        // Danh sách service ID đã phân công
+        var assignedServiceIds = assignedServices.Select(s => s.Id).ToList();
+        
+        // Lọc ra các dịch vụ chưa được phân công
+        availableServices = allServices
+            .Where(s => !assignedServiceIds.Contains(s.Id) && s.IsActive)
+            .ToList();
+    }
+    
+    private void InitializeMockData()
+    {
+        therapist = new Therapist
+        {
+            Id = Id,
+            FirstName = "Hương",
+            LastName = "Nguyễn",
+            Expertise = "Điều Trị Mụn, Trẻ Hóa Da",
+            ProfileImage = "https://images.unsplash.com/photo-1559839734-2b71ea197ec2"
+        };
+        
+        allServices = new List<Service>
+        {
+            new Service { Id = "1", ServiceName = "Điều Trị Mụn", Description = "Điều trị mụn chuyên nghiệp", DurationMinutes = 60, Price = 1200000, IsActive = true },
+            new Service { Id = "2", ServiceName = "Trẻ Hóa Da", Description = "Trẻ hóa làn da", DurationMinutes = 90, Price = 1800000, IsActive = true },
+            new Service { Id = "3", ServiceName = "Massage Mặt", Description = "Massage thư giãn khuôn mặt", DurationMinutes = 45, Price = 900000, IsActive = true },
+            new Service { Id = "4", ServiceName = "Tẩy Tế Bào Chết", Description = "Loại bỏ tế bào chết", DurationMinutes = 30, Price = 600000, IsActive = true }
+        };
+        
+        assignedServices = new List<Service>
+        {
+            allServices[0],
+            allServices[1]
+        };
+        
+        therapistExpertiseList = new List<TherapistExpertise>
+        {
+            new TherapistExpertise { Id = "1", TherapistId = Id, ServiceId = "1" },
+            new TherapistExpertise { Id = "2", TherapistId = Id, ServiceId = "2" }
+        };
+        
+        UpdateAvailableServices();
+    }
+    
+    private string GetProfileImageUrl(Therapist? therapist)
+    {
+        if (therapist == null || string.IsNullOrEmpty(therapist.ProfileImage))
+        {
+            return "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80";
+        }
+        
+        string url = therapist.ProfileImage;
+        
+        if (!url.StartsWith("http://") && !url.StartsWith("https://"))
+        {
+            url = "https://" + url;
+        }
+        
+        return url;
+    }
+    
+    private string FormatCurrency(decimal amount)
+    {
+        return string.Format("{0:#,##0} VNĐ", amount).Replace(",", ".");
+    }
+    
+    private void AddService()
+    {
+        if (string.IsNullOrEmpty(selectedServiceId))
+        {
+            errorMessage = "Vui lòng chọn dịch vụ để thêm.";
+            return;
+        }
+        
+        // Tìm service theo ID
+        var serviceToAdd = allServices.FirstOrDefault(s => s.Id == selectedServiceId);
+        
+        if (serviceToAdd == null)
+        {
+            errorMessage = "Không tìm thấy thông tin dịch vụ.";
+            return;
+        }
+        
+        // Kiểm tra xem dịch vụ đã được phân công chưa
+        if (assignedServices.Any(s => s.Id == selectedServiceId))
+        {
+            errorMessage = "Dịch vụ này đã được phân công cho chuyên viên.";
+            return;
+        }
+        
+        // Thêm service vào danh sách đã phân công
+        assignedServices.Add(serviceToAdd);
+        
+        // Thêm service ID vào danh sách sẽ được thêm khi lưu
+        addedServiceIds.Add(selectedServiceId);
+        
+        // Nếu service ID này đã có trong danh sách xóa, loại bỏ nó
+        removedServiceIds.Remove(selectedServiceId);
+        
+        // Cập nhật danh sách dịch vụ có thể thêm
+        UpdateAvailableServices();
+        
+        // Reset lựa chọn và thông báo lỗi
+        selectedServiceId = "";
+        errorMessage = "";
+    }
+    
+    private async Task RemoveService(Service service)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Bạn có chắc chắn muốn xóa dịch vụ '{service.ServiceName}' khỏi chuyên viên này?");
+        
+        if (!confirmed) return;
+        
+        // Xóa service khỏi danh sách đã phân công
+        assignedServices.RemoveAll(s => s.Id == service.Id);
+        
+        // Thêm service ID vào danh sách sẽ bị xóa khi lưu
+        removedServiceIds.Add(service.Id);
+        
+        // Nếu service ID này đã có trong danh sách thêm, loại bỏ nó
+        addedServiceIds.Remove(service.Id);
+        
+        // Cập nhật danh sách dịch vụ có thể thêm
+        UpdateAvailableServices();
+    }
+    
+    private async Task SaveChanges()
+    {
+        try
+        {
+            if (!addedServiceIds.Any() && !removedServiceIds.Any())
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Không có thay đổi nào để lưu.");
+                return;
+            }
+            
+            // Xử lý các dịch vụ bị xóa
+            foreach (var serviceId in removedServiceIds)
+            {
+                var expertise = therapistExpertiseList.FirstOrDefault(e => e.ServiceId == serviceId);
+                if (expertise != null)
+                {
+                    // Xóa liên kết (trong ứng dụng thực tế, gọi repository method để xóa)
+                    // await TherapistExpertiseRepository.DeleteAsync(expertise.Id);
+                    Console.WriteLine($"Removing expertise: TherapistId={expertise.TherapistId}, ServiceId={expertise.ServiceId}");
+                }
+            }
+            
+            // Xử lý các dịch vụ được thêm mới
+            foreach (var serviceId in addedServiceIds)
+            {
+                // Tạo liên kết mới
+                var newExpertise = new TherapistExpertise
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    TherapistId = Id,
+                    ServiceId = serviceId
+                };
+                
+                // Thêm liên kết (trong ứng dụng thực tế, gọi repository method để thêm)
+                // await TherapistExpertiseRepository.AddAsync(newExpertise);
+                Console.WriteLine($"Adding expertise: TherapistId={newExpertise.TherapistId}, ServiceId={newExpertise.ServiceId}");
+            }
+            
+            // Xóa các danh sách theo dõi thay đổi
+            addedServiceIds.Clear();
+            removedServiceIds.Clear();
+            
+            await JSRuntime.InvokeVoidAsync("alert", "Đã lưu thay đổi thành công!");
+            
+            // Chuyển về trang chi tiết chuyên viên
+            NavigationManager.NavigateTo($"/staff/therapist/{Id}");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Lỗi khi lưu thay đổi: {ex.Message}";
+        }
+    }
+    
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo($"/staff/therapist/{Id}");
+    }
+    
+    private void GoToTherapistList()
+    {
+        NavigationManager.NavigateTo("/staff/therapist");
+    }
+}

@@ -45,15 +45,61 @@ namespace SkinCareDAO
         }
 
         public void Add(AssessmentResponse a)
+{
+    try
+    {
+        using var context = new SkinCareDBContext();
+        
+        // Make sure we have all required fields
+        if (string.IsNullOrEmpty(a.Id))
         {
-            AssessmentResponse cur = GetOne(a.AssessmentId);
-            if (cur != null)
-            {
-                throw new Exception();
-            }
-            _dbContext.AssessmentResponses.Add(a);
-            _dbContext.SaveChanges();
+            a.Id = Guid.NewGuid().ToString();
         }
+        
+        if (string.IsNullOrEmpty(a.AssessmentId) || 
+            string.IsNullOrEmpty(a.QuestionId) || 
+            string.IsNullOrEmpty(a.OptionId))
+        {
+            throw new Exception("Assessment response is missing required fields (AssessmentId, QuestionId, or OptionId)");
+        }
+        
+        // Make sure ResponseText is not null
+        a.ResponseText = a.ResponseText ?? string.Empty;
+        
+        // Verify that the referenced entities exist
+        var assessmentExists = context.SkinAssessments.Any(s => s.Id == a.AssessmentId);
+        var questionExists = context.AssessmentQuestions.Any(q => q.Id == a.QuestionId);
+        var optionExists = context.AssessmentOptions.Any(o => o.Id == a.OptionId);
+        
+        if (!assessmentExists)
+        {
+            throw new Exception($"Assessment with ID {a.AssessmentId} does not exist");
+        }
+        
+        if (!questionExists)
+        {
+            throw new Exception($"Question with ID {a.QuestionId} does not exist");
+        }
+        
+        if (!optionExists)
+        {
+            throw new Exception($"Option with ID {a.OptionId} does not exist");
+        }
+        
+        // Add the response
+        context.AssessmentResponses.Add(a);
+        context.SaveChanges();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error in AssessmentResponseDAO.Add: {ex.Message}");
+        if (ex.InnerException != null)
+        {
+            Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+        }
+        throw; // Rethrow with better context
+    }
+}
 
         public void Update(AssessmentResponse a)
         {
